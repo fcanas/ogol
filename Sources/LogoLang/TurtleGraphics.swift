@@ -6,37 +6,31 @@
 //  Copyright © 2018 Fabian Canas. All rights reserved.
 //
 
-#if os(macOS)
-import Quartz
-#elseif os(iOS)
-import QuartzCore
-#endif
+import Foundation
 
-extension CGPoint {
-    static func + (_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+public struct Point {
+    public let x: Double
+    public let y: Double
+
+    public static func + (_ lhs: Point, _ rhs: Point) -> Point {
+        return Point(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
 
-    static func - (_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+    public static func - (_ lhs: Point, _ rhs: Point) -> Point {
+        return Point(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
-}
 
-#if os(iOS)
-import UIKit
-extension CGColor {
-    static var white = UIColor.white.cgColor
+    public static let zero = Point(x: 0, y: 0)
 }
-#endif
 
 public struct Turtle {
 
     public enum Command {
-        case fd(CGFloat)
-        case bk(CGFloat)
-        case lt(CGFloat)
-        case rt(CGFloat)
-        case setxy(CGPoint)
+        case fd(Double)
+        case bk(Double)
+        case lt(Double)
+        case rt(Double)
+        case setxy(Point)
         case pu
         case pd
         case home
@@ -50,51 +44,37 @@ public struct Turtle {
     }
 
     public struct Segment {
-        public let start: CGPoint
-        public let end: CGPoint
-        public let color: CGColor
+        public let start: Point
+        public let end: Point
     }
 
-    public static let defaultAngle: CGFloat = -90
+    public static let defaultAngle: Double = -90
 
-    public var position: CGPoint = .zero
-    public var angle: CGFloat = Turtle.defaultAngle
+    public var position: Point = .zero
+    public var angle: Double = Turtle.defaultAngle
     public var pen: Pen = .down
     public var visible: Bool = true
-    private var color: CGColor = CGColor.white
 
-    public init(position: CGPoint = .zero,
-                 angle: CGFloat = Turtle.defaultAngle,
-                 pen: Pen = .down,
-                 visible: Bool = true
-        ) {
-        self.init(position: position, angle: angle, pen: pen, visible: visible, color: CGColor.white)
-    }
-
-    private init(position: CGPoint,
-                angle: CGFloat,
-                pen: Pen,
-                visible: Bool,
-                color: CGColor
+    public init(position: Point = .zero,
+                angle: Double = Turtle.defaultAngle,
+                pen: Pen = .down,
+                visible: Bool = true
         ) {
         self.position = position
         self.angle = angle
         self.pen = pen
         self.visible = visible
-        self.color = color
     }
 
-    func with(position: CGPoint? = nil,
-              angle: CGFloat? = nil,
+    func with(position: Point? = nil,
+              angle: Double? = nil,
               pen: Pen? = nil,
-              visible: Bool? = nil,
-              color: CGColor? = nil
+              visible: Bool? = nil
         ) -> Turtle {
         return Turtle(position: position ?? self.position,
                       angle: angle ?? self.angle,
                       pen: pen ?? self.pen,
-                      visible: visible ?? self.visible,
-                      color: color ?? self.color
+                      visible: visible ?? self.visible
         )
     }
 
@@ -105,7 +85,7 @@ public struct Turtle {
         switch command {
 
         case .fd(_) where self.pen == .down, .bk(_)  where self.pen == .down:
-            segment = Segment(start: position, end: out.position, color: color)
+            segment = Segment(start: position, end: out.position)
         default:
             segment = nil
         }
@@ -117,10 +97,10 @@ public struct Turtle {
         switch command {
         case let .fd(dist):
             let a = angle * .pi / 180
-            return with(position: position + CGPoint(x: cos(a) * dist, y: sin(a) * dist))
+            return with(position: position + Point(x: cos(a) * dist, y: sin(a) * dist))
         case let .bk(dist):
             let a = angle * .pi / 180
-            return with(position: position - CGPoint(x: cos(a) * dist, y: sin(a) * dist))
+            return with(position: position - Point(x: cos(a) * dist, y: sin(a) * dist))
         case let .lt(a):
             return with(angle: angle + a)
         case let .rt(a):

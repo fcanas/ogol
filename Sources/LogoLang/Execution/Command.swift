@@ -8,11 +8,6 @@
 
 import Foundation
 
-#if os(macOS)
-import Quartz
-#elseif os(iOS)
-import QuartzCore
-#endif
 
 public protocol Command: ExecutionNode { }
 
@@ -67,16 +62,16 @@ enum TurtleCommand: Command, Equatable {
         switch self {
         case let .fd(e):
             let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.fd(CGFloat(value)))
+            context?.issueCommand(Turtle.Command.fd(Double(value)))
         case let .bk(e):
             let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.bk(CGFloat(value)))
+            context?.issueCommand(Turtle.Command.bk(Double(value)))
         case let .rt(e):
             let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.rt(CGFloat(value)))
+            context?.issueCommand(Turtle.Command.rt(Double(value)))
         case let .lt(e):
             let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.lt(CGFloat(value)))
+            context?.issueCommand(Turtle.Command.lt(Double(value)))
         case .cs:
             fatalError()
         // context?.issueCommand(Turtle.Command.cs)
@@ -93,7 +88,7 @@ enum TurtleCommand: Command, Equatable {
         case let .setXY(xExpression, yExpression):
             let x = xExpression.execute(context: &context)!
             let y = yExpression.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.setxy(CGPoint(x: x, y: y)))
+            context?.issueCommand(Turtle.Command.setxy(Point(x: x, y: y)))
         }
         return nil
     }
