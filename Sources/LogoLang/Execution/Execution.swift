@@ -121,7 +121,9 @@ public class Procedure: ExecutionNode, Scope {
     var name: String
     public var commands: [Command]
     public var procedures: [String : Procedure]
-    var parameters: [Value] // Must be .deref
+    /// Defined parameters for the procedure.
+    /// Must be Value.deref
+    var parameters: [Value]
 
     init(name: String, commands: [Command], procedures: [String: Procedure], parameters: [Value]) {
         self.name = name

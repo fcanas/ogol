@@ -93,7 +93,16 @@ public class LogoParser {
             switch value.syntaxCategory() {
             case .procedureInvocation:
                 let procedureName = String(string[range])
-                if program.procedures[String(string[range])] == nil {
+                if let procedure = program.procedures[String(string[range])] {
+                    guard let invocation = value as? ProcedureInvocation else {
+                        break
+                    }
+                    let invocationCount = invocation.parameters.count
+                    let declarationCount = procedure.parameters.count
+                    if invocationCount != declarationCount {
+                        errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
+                    }
+                } else {
                     errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked without known implementation")
                 }
             default:
@@ -189,22 +198,30 @@ public class LogoParser {
         let chompedString = eatWhitespace(substring)
 
         if let command = Lex.Commands.all.run(chompedString) {
-            registerToken(range: chompedString.startIndex..<command.1.startIndex, token: command.0)
+            let commandTokenRange = chompedString.startIndex..<command.1.startIndex
 
             switch command.0 {
             case .cs:
+                registerToken(range: commandTokenRange, token: command.0)
                 return (TurtleCommand.cs, command.1)
             case .pu:
+                registerToken(range: commandTokenRange, token: command.0)
                 return (TurtleCommand.pu, command.1)
             case .pd:
+                registerToken(range: commandTokenRange, token: command.0)
                 return (TurtleCommand.pd, command.1)
             case .ht:
+                registerToken(range: commandTokenRange, token: command.0)
                 return (TurtleCommand.ht, command.1)
             case .st:
+                registerToken(range: commandTokenRange, token: command.0)
                 return (TurtleCommand.st, command.1)
             case .home:
+                registerToken(range: commandTokenRange, token: command.0)
                 return (TurtleCommand.home, command.1)
             case .fd:
+                // TODO: Convert this into a procedure invocation
+                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'fd'")
                     hasFatalError = true
@@ -212,6 +229,8 @@ public class LogoParser {
                 }
                 return (TurtleCommand.fd(expression.0), expression.1)
             case .bk:
+                // TODO: Convert this into a procedure invocation
+                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'bk'")
                     hasFatalError = true
@@ -219,6 +238,8 @@ public class LogoParser {
                 }
                 return (TurtleCommand.bk(expression.0), expression.1)
             case .lt:
+                // TODO: Convert this into a procedure invocation
+                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'lt'")
                     hasFatalError = true
@@ -226,6 +247,8 @@ public class LogoParser {
                 }
                 return (TurtleCommand.lt(expression.0), expression.1)
             case .rt:
+                // TODO: Convert this into a procedure invocation
+                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'rt'")
                     hasFatalError = true
@@ -233,6 +256,7 @@ public class LogoParser {
                 }
                 return (TurtleCommand.rt(expression.0), expression.1)
             case .make:
+                registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
                 guard let literal = Lex.stringLiteral.run(runningSubstring) else {
                     errors[substring.startIndex..<command.1.startIndex] = .basic("Expected string literal as a name afer 'make'")
@@ -260,6 +284,8 @@ public class LogoParser {
                 hasFatalError = true
                 return nil
             case .setxy:
+                // TODO: Convert this into a procedure invocation
+                registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
                 guard let x = signExpression(substring: runningSubstring) else {
                     errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected X value for 'setxy'")
@@ -274,6 +300,7 @@ public class LogoParser {
                 }
                 return (TurtleCommand.setXY(x.0, y.0), eatWhitespace(y.1))
             case .repeat_:
+                registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
                 guard let repitions = signExpression(substring: runningSubstring) else {
                     errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected a value for 'repeat'")
@@ -288,6 +315,7 @@ public class LogoParser {
                 }
                 return (Repeat(count: repitions.0, block: block.0), block.1)
             case .ife:
+                registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
                 guard let lhs = expression(substring: runningSubstring) else {
                     errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression before comparison")
@@ -330,7 +358,9 @@ public class LogoParser {
                     runningSubstring = parsedExpression.1
                 }
 
-                return (ProcedureInvocation(name: name, parameters: expressions), runningSubstring)
+                let invocation = ProcedureInvocation(name: name, parameters: expressions)
+                registerToken(range: commandTokenRange, token: invocation)
+                return (invocation, runningSubstring)
             }
         }
 
