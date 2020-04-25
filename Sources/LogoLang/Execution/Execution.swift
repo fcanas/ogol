@@ -79,43 +79,6 @@ public struct Program: Scope {
     }
 }
 
-public class ExecutionContext: TurtleCommandSource {
-
-    public var issueCommand: (Turtle.Command) -> Void
-
-    class NestedKeyValueStore<T> {
-        var parent: NestedKeyValueStore<T>?
-        var items: [String : T]
-        subscript(key: String)-> T? {
-            get {
-                return items[key] ?? parent?[key]
-            }
-            set(item) {
-                (listContaining(key: key) ?? self).items[key] = item
-            }
-        }
-        func listContaining(key: String) -> NestedKeyValueStore? {
-            if items[key] != nil {
-                return self
-            }
-            return parent?.listContaining(key: key)
-        }
-        init(parent: NestedKeyValueStore<T>?, items: [String: T] = [:]) {
-            self.parent = parent
-            self.items = items
-        }
-    }
-
-    var procedures: NestedKeyValueStore<Procedure>
-    var variables: NestedKeyValueStore<Double>
-
-    public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Double] = [:]) {
-        self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
-        self.variables = NestedKeyValueStore(parent: parent?.variables, items: variables)
-        self.issueCommand = { [weak parent] t in parent?.issueCommand(t) }
-    }
-}
-
 public class Procedure: ExecutionNode, Scope {
 
     var name: String
