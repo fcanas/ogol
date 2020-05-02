@@ -1,3 +1,3 @@
 # LogoLang
 
-A description of this package.
+A parser and interpreter for the Logo computer language.
