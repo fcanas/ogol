@@ -64,7 +64,7 @@ struct Lex {
             // TODO: case label
         }
 
-        static let expressionless = cs <|> pu <|> pd <|> ht <|> st <|> home
+        static let expressionless = (cs <|> pu <|> pd <|> ht <|> st <|> home) <* Lex.Token._space.optional
 
         static let cs: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.cs } <^> ("cs" <|> "clearscreen") <* (Lex.Token._space  <|>  Lex.Token.eol)
         static let pu: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.pu } <^> ("pu" <|> "penup") <* (Lex.Token._space  <|>  Lex.Token.eol)
@@ -73,20 +73,20 @@ struct Lex {
         static let st: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.st } <^> ("st" <|> "clearscreen") <* (Lex.Token._space  <|>  Lex.Token.eol)
         static let home: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.home } <^> "home" <* (Lex.Token._space  <|> Lex.Token.eol)
 
-        static let singleExpression = fd <|> bk <|> rt <|> lt
+        static let singleExpression = (fd <|> bk <|> rt <|> lt) <* Lex.Token._space
 
-        static let fd: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.fd } <^> ("fd" <|> "forward")  <* Lex.Token._space
-        static let bk: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.bk } <^> ("bk" <|> "backward")  <* Lex.Token._space
-        static let rt: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.rt } <^> ("rt" <|> "right")  <* Lex.Token._space
-        static let lt: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.lt } <^> ("lt" <|> "left")  <* Lex.Token._space
+        static let fd: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.fd } <^> ("fd" <|> "forward")
+        static let bk: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.bk } <^> ("bk" <|> "backward")
+        static let rt: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.rt } <^> ("rt" <|> "right")
+        static let lt: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.lt } <^> ("lt" <|> "left")
 
         static let setxy: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.setxy } <^> "setxy" <* Lex.Token._space
 
-        static let lexical = repeat_ <|> make <|> ife
+        static let lexical = (repeat_ <|> make <|> ife) <* Lex.Token._space
 
-        static let repeat_: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.repeat_ } <^> "repeat" <* Lex.Token._space
-        static let make: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.make } <^> "make" <* Lex.Token._space
-        static let ife: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.ife } <^> "if" <* Lex.Token._space
+        static let repeat_: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.repeat_ } <^> "repeat"
+        static let make: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.make } <^> "make"
+        static let ife: Parser<Substring, Lex.Commands.Partial> = { _ in Lex.Commands.Partial.ife } <^> "if"
 
         static let procedureInvocation = { Lex.Commands.Partial.procedureInvocation($0) } <^> Lex.name
 

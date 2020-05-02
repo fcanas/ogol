@@ -57,7 +57,7 @@ public class LogoParser {
             return .error(self.errors)
         }
         let program = Program(executionNodes: executionNodes)
-        verifyProcedureCalls(for: program, string: String(substring))
+        verifyProcedureCalls(for: program)
 
         return .success(program, self.allTokens, self.errors)
     }
@@ -88,15 +88,15 @@ public class LogoParser {
 
     // MARK: Verify
 
-    func verifyProcedureCalls(for program: Program, string: String) {
+    func verifyProcedureCalls(for program: Program) {
         allTokens.forEach { (range: Range<Substring.Index>, value: SyntaxColorable) in
             switch value.syntaxCategory() {
             case .procedureInvocation:
-                let procedureName = String(string[range])
-                if let procedure = program.procedures[String(string[range])] {
-                    guard let invocation = value as? ProcedureInvocation else {
-                        break
-                    }
+            	guard let invocation = value as? ProcedureInvocation else {
+            		break
+            	}
+                let procedureName = invocation.name
+                if let procedure = program.procedures[procedureName] {
                     let invocationCount = invocation.parameters.count
                     let declarationCount = procedure.parameters.count
                     if invocationCount != declarationCount {

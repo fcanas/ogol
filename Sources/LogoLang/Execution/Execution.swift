@@ -97,7 +97,7 @@ public class Procedure: ExecutionNode, Scope {
 
 }
 
-struct ProcedureInvocation: ExecutionNode, Command {
+struct ProcedureInvocation: ExecutionNode, Command, Equatable {
     let name: String
     let parameters: [Expression]
     func execute(context: inout ExecutionContext?) -> Double? {

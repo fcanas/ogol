@@ -51,6 +51,30 @@ class SimpleCommandParserTests: XCTestCase {
         XCTAssertEqual(programString[tokenKey], "pu", file: file, line: line)
         XCTAssertEqual(s, "", file: file, line: line)
     }
+    
+    func testBasicInvocation() {
+    	let parser = LogoParser()
+    	let programString: Substring = "par 5\n"
+    	guard let (i, _) = parser.command(substring: programString) else {
+    		XCTFail("Failed to parse invocation")
+    		return
+    	}
+		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
+
+    	XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "par", parameters:[exp]))
+    }
+    
+    func testInvocationPrefixedWithBuiltin() {
+    	let parser = LogoParser()
+    	let programString: Substring = "star 5\n"
+    	guard let (i, _) = parser.command(substring: programString) else {
+    		XCTFail("Failed to parse invocation")
+    		return
+    	}
+		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
+
+    	XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "star", parameters:[exp]))
+    }
 
 }
 
