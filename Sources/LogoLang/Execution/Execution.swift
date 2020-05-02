@@ -98,40 +98,89 @@ public class Procedure: ExecutionNode, Scope {
 }
 
 struct ProcedureInvocation: ExecutionNode, Command, Equatable {
-    let name: String
+
+    enum Identifier: Equatable {
+        case turtle(TurtleCommand.Partial)
+        case user(String)
+    }
+
+    let identifier: Identifier
     let parameters: [Expression]
+
     func execute(context: inout ExecutionContext?) -> Double? {
-        guard let procedure = context?.procedures[name] else {
-            // TODO: Runtime error
-            return nil
-        }
-        guard procedure.parameters.count == parameters.count else {
-            // TODO: Runtime error : expectd number of parameters
-            return nil
-        }
-        let parameterValues = parameters.map { (e) -> Double in
-            // TODO: Runtime error :
-            e.execute(context: &context)!
-        }
-        let parameterNames = procedure.parameters.map { (parameterValue) -> String in
-            switch parameterValue {
-            case let .deref(parameterName):
-                return parameterName
-            default:
-                assert(false, "This shouldn't have been parsed, but was for some reason")
+
+        switch identifier {
+        case let .turtle(partial):
+            guard partial.parameterCount == parameters.count else {
+                // TODO: Runtime error
+                return nil
             }
+            let turtleCommand: TurtleCommand
+
+            switch partial {
+            case .fd:
+                turtleCommand = .fd(parameters.first!)
+            case .bk:
+                turtleCommand = .bk(parameters.first!)
+            case .rt:
+                turtleCommand = .rt(parameters.first!)
+            case .lt:
+                turtleCommand = .lt(parameters.first!)
+            case .cs:
+                turtleCommand = .cs
+            case .pu:
+                turtleCommand = .pu
+            case .pd:
+                turtleCommand = .pd
+            case .st:
+                turtleCommand = .st
+            case .ht:
+                turtleCommand = .ht
+            case .home:
+                turtleCommand = .home
+            case .setXY:
+                turtleCommand = .lt(parameters.first!)
+            }
+            return turtleCommand.execute(context: &context)
+        case let .user(name):
+            guard let procedure = context?.procedures[name] else {
+                // TODO: Runtime error
+                return nil
+            }
+            guard procedure.parameters.count == parameters.count else {
+                // TODO: Runtime error : expectd number of parameters
+                return nil
+            }
+            let parameterValues = parameters.map { (e) -> Double in
+                // TODO: Runtime error :
+                e.execute(context: &context)!
+            }
+            let parameterNames = procedure.parameters.map { (parameterValue) -> String in
+                switch parameterValue {
+                case let .deref(parameterName):
+                    return parameterName
+                default:
+                    assert(false, "This shouldn't have been parsed, but was for some reason")
+                }
+            }
+            let parameters = Dictionary(zip(parameterNames, parameterValues)) { (k1, k2) in
+                return k2
+            }
+            var newScope: ExecutionContext? = ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameters)
+            return procedure.execute(context: &newScope)
         }
-        let parameters = Dictionary(zip(parameterNames, parameterValues)) { (k1, k2) in
-            return k2
-        }
-        var newScope: ExecutionContext? = ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameters)
-        return procedure.execute(context: &newScope)
+
     }
 }
 
 extension ProcedureInvocation: SyntaxColorable {
     func syntaxCategory() -> SyntaxCategory? {
-        return .procedureInvocation
+        switch identifier {
+        case .turtle(_):
+            return .builtin
+        case .user(_):
+            return .procedureInvocation
+        }
     }
 }
 

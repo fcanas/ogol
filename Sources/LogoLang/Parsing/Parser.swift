@@ -95,15 +95,20 @@ public class LogoParser {
             	guard let invocation = value as? ProcedureInvocation else {
             		break
             	}
-                let procedureName = invocation.name
-                if let procedure = program.procedures[procedureName] {
-                    let invocationCount = invocation.parameters.count
-                    let declarationCount = procedure.parameters.count
-                    if invocationCount != declarationCount {
-                        errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
+
+                switch invocation.identifier {
+                case .turtle(_):
+                break // Turtle commands succeed
+                case let .user(procedureName):
+                    if let procedure = program.procedures[procedureName] {
+                        let invocationCount = invocation.parameters.count
+                        let declarationCount = procedure.parameters.count
+                        if invocationCount != declarationCount {
+                            errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
+                        }
+                    } else {
+                        errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked without known implementation")
                     }
-                } else {
-                    errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked without known implementation")
                 }
             default:
                 break
@@ -202,59 +207,69 @@ public class LogoParser {
 
             switch command.0 {
             case .cs:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (TurtleCommand.cs, command.1)
+                let inv = ProcedureInvocation(identifier: .turtle(.cs), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, command.1)
             case .pu:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (TurtleCommand.pu, command.1)
+                let inv = ProcedureInvocation(identifier: .turtle(.pu), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, command.1)
             case .pd:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (TurtleCommand.pd, command.1)
+                let inv = ProcedureInvocation(identifier: .turtle(.pd), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, command.1)
             case .ht:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (TurtleCommand.ht, command.1)
+                let inv = ProcedureInvocation(identifier: .turtle(.ht), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, command.1)
             case .st:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (TurtleCommand.st, command.1)
+                let inv = ProcedureInvocation(identifier: .turtle(.st), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, command.1)
             case .home:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (TurtleCommand.home, command.1)
+                let inv = ProcedureInvocation(identifier: .turtle(.home), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, command.1)
             case .fd:
-                // TODO: Convert this into a procedure invocation
-                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'fd'")
                     hasFatalError = true
                     return nil
                 }
-                return (TurtleCommand.fd(expression.0), expression.1)
+
+                let inv = ProcedureInvocation(identifier: .turtle(.fd), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
             case .bk:
-                // TODO: Convert this into a procedure invocation
-                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'bk'")
                     hasFatalError = true
                     return nil
                 }
-                return (TurtleCommand.bk(expression.0), expression.1)
+
+                let inv = ProcedureInvocation(identifier: .turtle(.bk), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
             case .lt:
-                // TODO: Convert this into a procedure invocation
-                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'lt'")
                     hasFatalError = true
                     return nil
                 }
-                return (TurtleCommand.lt(expression.0), expression.1)
+
+                let inv = ProcedureInvocation(identifier: .turtle(.lt), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
             case .rt:
-                // TODO: Convert this into a procedure invocation
-                registerToken(range: commandTokenRange, token: command.0)
                 guard let expression = expression(substring: command.1) else {
                     errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'rt'")
                     hasFatalError = true
                     return nil
                 }
-                return (TurtleCommand.rt(expression.0), expression.1)
+
+                let inv = ProcedureInvocation(identifier: .turtle(.rt), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
             case .make:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -298,6 +313,7 @@ public class LogoParser {
                     hasFatalError = true
                     return nil
                 }
+
                 return (TurtleCommand.setXY(x.0, y.0), eatWhitespace(y.1))
             case .repeat_:
                 registerToken(range: commandTokenRange, token: command.0)
@@ -358,7 +374,7 @@ public class LogoParser {
                     runningSubstring = parsedExpression.1
                 }
 
-                let invocation = ProcedureInvocation(name: name, parameters: expressions)
+                let invocation = ProcedureInvocation(identifier: .user(name), parameters: expressions)
                 registerToken(range: commandTokenRange, token: invocation)
                 return (invocation, runningSubstring)
             }

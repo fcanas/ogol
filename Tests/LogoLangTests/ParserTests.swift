@@ -38,7 +38,7 @@ class SimpleCommandParserTests: XCTestCase {
 
     func _test(_ command: String, file: StaticString = #file, line: UInt = #line) throws {
         let parser = LogoParser()
-        let programString: Substring = "pu"
+        let programString: Substring = Substring(command)
         guard let (c, s) = parser.command(substring: programString) else {
             XCTFail("Failed to parse basic command \(command)", file: file, line: line)
             return
@@ -47,8 +47,8 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("No token for basic command \(command)", file: file, line: line)
             return
         }
-        XCTAssertEqual(c as? TurtleCommand, TurtleCommand.pu, file: file, line: line)
-        XCTAssertEqual(programString[tokenKey], "pu", file: file, line: line)
+        XCTAssertEqual(c as? ProcedureInvocation, ProcedureInvocation(identifier: .turtle(TurtleCommand.Partial(rawValue: command)!), parameters: []), file: file, line: line)
+        XCTAssertEqual(programString[tokenKey], programString, file: file, line: line)
         XCTAssertEqual(s, "", file: file, line: line)
     }
     
@@ -61,7 +61,7 @@ class SimpleCommandParserTests: XCTestCase {
     	}
 		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
 
-    	XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "par", parameters:[exp]))
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .user("par"), parameters:[exp]))
     }
     
     func testInvocationPrefixedWithBuiltin() {
@@ -73,7 +73,7 @@ class SimpleCommandParserTests: XCTestCase {
     	}
 		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
 
-    	XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "star", parameters:[exp]))
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .user("star"), parameters:[exp]))
     }
 
 }

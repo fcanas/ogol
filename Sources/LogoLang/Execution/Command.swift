@@ -46,6 +46,31 @@ struct Make: Command {
 
 enum TurtleCommand: Command, Equatable {
 
+    enum Partial: String, RawRepresentable {
+        case fd
+        case bk
+        case rt
+        case lt
+        case cs
+        case pu
+        case pd
+        case st
+        case ht
+        case home
+        case setXY
+
+        var parameterCount: Int {
+            switch self {
+            case .fd, .bk, .rt, .lt:
+                return 1
+            case .cs, .pu, .pd, .st, .ht, .home:
+                return 0
+            case .setXY:
+                return 2
+            }
+        }
+    }
+
     case fd(Expression)
     case bk(Expression)
     case rt(Expression)
