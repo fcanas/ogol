@@ -303,38 +303,20 @@ public class LogoParser {
         if let tCommand = Lex.Commands.turtle.run(chompedString) {
             let commandTokenRange = chompedString.startIndex..<tCommand.1.startIndex
 
-            switch tCommand.0 {
-            case .cs, .pu, .pd, .ht, .st, .home:
-                let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, tCommand.1)
-            case .fd, .bk, .lt, .rt:
-                guard let expression = expression(substring: tCommand.1) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for '\(tCommand.0)'")
+            var parameters: [Expression] = []
+            var runningSubstring = eatWhitespace(tCommand.1)
+            for pIndex in 0..<tCommand.0.parameterCount {
+                guard let p = expression(substring: runningSubstring) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected \(tCommand.0.parameterCount) parameters for '\(tCommand.0.rawValue)', found \(pIndex)")
                     hasFatalError = true
                     return nil
                 }
-                let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .setXY:
-                var runningSubstring = eatWhitespace(tCommand.1)
-                guard let x = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected X value for 'setXY'")
-                    hasFatalError = true
-                    return nil
-                }
-                runningSubstring = eatWhitespace(x.1)
-                guard let y = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected Y value for 'setXY'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.setXY), parameters: [x.0, y.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, y.1)
+                runningSubstring = eatWhitespace(p.1)
+                parameters.append(p.0)
             }
+            let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: parameters)
+            registerToken(range: commandTokenRange, token: inv)
+            return (inv, runningSubstring)
         }
 
         return nil
