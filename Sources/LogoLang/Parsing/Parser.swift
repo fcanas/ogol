@@ -304,68 +304,17 @@ public class LogoParser {
             let commandTokenRange = chompedString.startIndex..<tCommand.1.startIndex
 
             switch tCommand.0 {
-            case .cs:
-                let inv = ProcedureInvocation(identifier: .turtle(.cs), parameters: [])
+            case .cs, .pu, .pd, .ht, .st, .home:
+                let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: [])
                 registerToken(range: commandTokenRange, token: inv)
                 return (inv, tCommand.1)
-            case .pu:
-                let inv = ProcedureInvocation(identifier: .turtle(.pu), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, tCommand.1)
-            case .pd:
-                let inv = ProcedureInvocation(identifier: .turtle(.pd), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, tCommand.1)
-            case .ht:
-                let inv = ProcedureInvocation(identifier: .turtle(.ht), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, tCommand.1)
-            case .st:
-                let inv = ProcedureInvocation(identifier: .turtle(.st), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, tCommand.1)
-            case .home:
-                let inv = ProcedureInvocation(identifier: .turtle(.home), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, tCommand.1)
-            case .fd:
+            case .fd, .bk, .lt, .rt:
                 guard let expression = expression(substring: tCommand.1) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'fd'")
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for '\(tCommand.0)'")
                     hasFatalError = true
                     return nil
                 }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.fd), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .bk:
-                guard let expression = expression(substring: tCommand.1) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'bk'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.bk), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .lt:
-                guard let expression = expression(substring: tCommand.1) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'lt'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.lt), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .rt:
-                guard let expression = expression(substring: tCommand.1) else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'rt'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.rt), parameters: [expression.0])
+                let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: [expression.0])
                 registerToken(range: commandTokenRange, token: inv)
                 return (inv, expression.1)
             case .setXY:
