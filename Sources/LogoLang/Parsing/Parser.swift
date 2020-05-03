@@ -299,22 +299,23 @@ public class LogoParser {
                 hasFatalError = true
                 return nil
             case .setxy:
-                // TODO: Convert this into a procedure invocation
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
-                guard let x = signExpression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected X value for 'setxy'")
+                guard let x = expression(substring: runningSubstring) else {
+                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected X value for 'setXY'")
                     hasFatalError = true
                     return nil
                 }
                 runningSubstring = eatWhitespace(x.1)
-                guard let y = signExpression(substring: runningSubstring) else {
-                    errors[command.1.startIndex..<x.1.startIndex] = ParseError.basic("Expected Y value for 'setxy'")
+                guard let y = expression(substring: runningSubstring) else {
+                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected Y value for 'setXY'")
                     hasFatalError = true
                     return nil
                 }
 
-                return (TurtleCommand.setXY(x.0, y.0), eatWhitespace(y.1))
+                let inv = ProcedureInvocation(identifier: .turtle(.setXY), parameters: [x.0, y.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, y.1)
             case .repeat_:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
