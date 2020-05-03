@@ -107,7 +107,7 @@ public class LogoParser {
                             errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
                         }
                     } else {
-                        errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked without known implementation")
+                        errors[range] = .anticipatedRuntime("Cannot find implementation for '\(procedureName)'")
                     }
                 }
             default:
@@ -201,7 +201,6 @@ public class LogoParser {
 
     internal func command(substring: Substring) -> (Command, Substring)? {
         let chompedString = eatWhitespace(substring)
-
 
         if let command = Lex.Commands.controlFlow.run(chompedString) {
             let commandTokenRange = chompedString.startIndex..<command.1.startIndex
