@@ -92,9 +92,9 @@ public class LogoParser {
         allTokens.forEach { (range: Range<Substring.Index>, value: SyntaxColorable) in
             switch value.syntaxCategory() {
             case .procedureInvocation:
-            	guard let invocation = value as? ProcedureInvocation else {
-            		break
-            	}
+                guard let invocation = value as? ProcedureInvocation else {
+                    break
+                }
 
                 switch invocation.identifier {
                 case .turtle(_):
@@ -202,74 +202,11 @@ public class LogoParser {
     internal func command(substring: Substring) -> (Command, Substring)? {
         let chompedString = eatWhitespace(substring)
 
-        if let command = Lex.Commands.all.run(chompedString) {
+
+        if let command = Lex.Commands.controlFlow.run(chompedString) {
             let commandTokenRange = chompedString.startIndex..<command.1.startIndex
 
             switch command.0 {
-            case .cs:
-                let inv = ProcedureInvocation(identifier: .turtle(.cs), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, command.1)
-            case .pu:
-                let inv = ProcedureInvocation(identifier: .turtle(.pu), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, command.1)
-            case .pd:
-                let inv = ProcedureInvocation(identifier: .turtle(.pd), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, command.1)
-            case .ht:
-                let inv = ProcedureInvocation(identifier: .turtle(.ht), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, command.1)
-            case .st:
-                let inv = ProcedureInvocation(identifier: .turtle(.st), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, command.1)
-            case .home:
-                let inv = ProcedureInvocation(identifier: .turtle(.home), parameters: [])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, command.1)
-            case .fd:
-                guard let expression = expression(substring: command.1) else {
-                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'fd'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.fd), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .bk:
-                guard let expression = expression(substring: command.1) else {
-                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'bk'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.bk), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .lt:
-                guard let expression = expression(substring: command.1) else {
-                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'lt'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.lt), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
-            case .rt:
-                guard let expression = expression(substring: command.1) else {
-                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected expression for 'rt'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.rt), parameters: [expression.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, expression.1)
             case .make:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -298,24 +235,6 @@ public class LogoParser {
                 errors[command.1.startIndex..<literal.1.startIndex] = .basic("Expected value to assign to '\(literal.0)'")
                 hasFatalError = true
                 return nil
-            case .setxy:
-                registerToken(range: commandTokenRange, token: command.0)
-                var runningSubstring = eatWhitespace(command.1)
-                guard let x = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected X value for 'setXY'")
-                    hasFatalError = true
-                    return nil
-                }
-                runningSubstring = eatWhitespace(x.1)
-                guard let y = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<command.1.startIndex] = ParseError.basic("Expected Y value for 'setXY'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                let inv = ProcedureInvocation(identifier: .turtle(.setXY), parameters: [x.0, y.0])
-                registerToken(range: commandTokenRange, token: inv)
-                return (inv, y.1)
             case .repeat_:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -381,9 +300,98 @@ public class LogoParser {
             }
         }
 
+        if let tCommand = Lex.Commands.turtle.run(chompedString) {
+            let commandTokenRange = chompedString.startIndex..<tCommand.1.startIndex
+
+            switch tCommand.0 {
+            case .cs:
+                let inv = ProcedureInvocation(identifier: .turtle(.cs), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, tCommand.1)
+            case .pu:
+                let inv = ProcedureInvocation(identifier: .turtle(.pu), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, tCommand.1)
+            case .pd:
+                let inv = ProcedureInvocation(identifier: .turtle(.pd), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, tCommand.1)
+            case .ht:
+                let inv = ProcedureInvocation(identifier: .turtle(.ht), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, tCommand.1)
+            case .st:
+                let inv = ProcedureInvocation(identifier: .turtle(.st), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, tCommand.1)
+            case .home:
+                let inv = ProcedureInvocation(identifier: .turtle(.home), parameters: [])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, tCommand.1)
+            case .fd:
+                guard let expression = expression(substring: tCommand.1) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'fd'")
+                    hasFatalError = true
+                    return nil
+                }
+
+                let inv = ProcedureInvocation(identifier: .turtle(.fd), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
+            case .bk:
+                guard let expression = expression(substring: tCommand.1) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'bk'")
+                    hasFatalError = true
+                    return nil
+                }
+
+                let inv = ProcedureInvocation(identifier: .turtle(.bk), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
+            case .lt:
+                guard let expression = expression(substring: tCommand.1) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'lt'")
+                    hasFatalError = true
+                    return nil
+                }
+
+                let inv = ProcedureInvocation(identifier: .turtle(.lt), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
+            case .rt:
+                guard let expression = expression(substring: tCommand.1) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected expression for 'rt'")
+                    hasFatalError = true
+                    return nil
+                }
+
+                let inv = ProcedureInvocation(identifier: .turtle(.rt), parameters: [expression.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, expression.1)
+            case .setXY:
+                var runningSubstring = eatWhitespace(tCommand.1)
+                guard let x = expression(substring: runningSubstring) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected X value for 'setXY'")
+                    hasFatalError = true
+                    return nil
+                }
+                runningSubstring = eatWhitespace(x.1)
+                guard let y = expression(substring: runningSubstring) else {
+                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected Y value for 'setXY'")
+                    hasFatalError = true
+                    return nil
+                }
+
+                let inv = ProcedureInvocation(identifier: .turtle(.setXY), parameters: [x.0, y.0])
+                registerToken(range: commandTokenRange, token: inv)
+                return (inv, y.1)
+            }
+        }
+
         return nil
     }
-    private static let nameBlackList = Set(arrayLiteral: "end")
+
+    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife"] )
 
     private func block(substring: Substring) -> (Block, Substring)? {
         var runningSubstring = substring

@@ -46,7 +46,7 @@ struct Make: Command {
 
 enum TurtleCommand: Command, Equatable {
 
-    enum Partial: String, RawRepresentable {
+    enum Partial: String, RawRepresentable, CaseIterable {
         case fd
         case bk
         case rt
