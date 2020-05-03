@@ -63,7 +63,7 @@ struct Lex {
         static let bk: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.bk } <^> ("bk" <|> "backward")
         static let rt: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.rt } <^> ("rt" <|> "right")
         static let lt: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.lt } <^> ("lt" <|> "left")
-        static let setxy: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.setXY } <^> "setxy" <* Lex.Token._space
+        static let setxy: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.setxy } <^> "setxy" <* Lex.Token._space
 
         static let controlFlow = (repeat_ <|> make <|> ife <|> procedureInvocation) <* Lex.Token._space
 

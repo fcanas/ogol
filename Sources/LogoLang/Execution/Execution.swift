@@ -138,8 +138,8 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
                 turtleCommand = .ht
             case .home:
                 turtleCommand = .home
-            case .setXY:
-                turtleCommand = .lt(parameters.first!)
+            case .setxy:
+                turtleCommand = .setXY(parameters[0], parameters[1])
             }
             return turtleCommand.execute(context: &context)
         case let .user(name):

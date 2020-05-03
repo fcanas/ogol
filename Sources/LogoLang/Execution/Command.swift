@@ -57,7 +57,7 @@ enum TurtleCommand: Command, Equatable {
         case st
         case ht
         case home
-        case setXY
+        case setxy
 
         var parameterCount: Int {
             switch self {
@@ -65,7 +65,7 @@ enum TurtleCommand: Command, Equatable {
                 return 1
             case .cs, .pu, .pd, .st, .ht, .home:
                 return 0
-            case .setXY:
+            case .setxy:
                 return 2
             }
         }
@@ -81,7 +81,7 @@ enum TurtleCommand: Command, Equatable {
     case st
     case ht
     case home
-    case setXY(SignExpression, SignExpression)
+    case setXY(Expression, Expression)
 
     func execute(context: inout ExecutionContext?) -> Double? {
         switch self {

@@ -35,7 +35,6 @@ class SimpleCommandParserTests: XCTestCase {
         try _test("home")
     }
 
-
     func _test(_ command: String, file: StaticString = #file, line: UInt = #line) throws {
         let parser = LogoParser()
         let programString: Substring = Substring(command)

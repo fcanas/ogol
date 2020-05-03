@@ -284,7 +284,7 @@ public class LogoParser {
 
                 // black list
                 if LogoParser.nameBlackList.contains(name) {
-                    return nil
+                    break
                 }
 
                 // TODO: parameter list
