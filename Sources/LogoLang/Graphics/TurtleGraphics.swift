@@ -156,3 +156,4 @@ public struct Canvas {
         return Canvas(turtle: t, multiLines: m.map { self.multiLines + [$0] } ?? multiLines )
     }
 }
+
