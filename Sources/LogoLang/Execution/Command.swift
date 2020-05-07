@@ -11,6 +11,13 @@ import Foundation
 
 public protocol Command: ExecutionNode { }
 
+struct Stop: Command {
+    func execute(context: inout ExecutionContext?) -> Double? {
+        // TODO: Stop
+        abort()
+    }
+}
+
 struct Repeat: Command {
 
     func execute(context: inout ExecutionContext?) -> Double? {

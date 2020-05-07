@@ -10,6 +10,34 @@ import XCTest
 
 class CompleteProgramTests: XCTestCase {
     
+    func testTreeDrawing() {
+        let program = """
+                      to tree :size
+                          if :size < 5 [forward :size back :size stop]
+                          forward :size/3
+                          left 30 tree :size*2/3 right 30
+                          forward :size/6
+                          right 25 tree :size/2 left 25
+                          forward :size/3
+                          right 25 tree :size/2 left 25
+                          forward :size/6
+                          back :size
+                      end
+                      tree 1
+                      """
+        let parser = LogoParser()
+        let parseResult = parser.program(substring: Substring(program))
+        
+        switch parseResult {
+        case .error(_):
+            XCTFail("Failed to parse program")
+        case let .success(program, _, parseError):
+            XCTAssert(parseError.count == 0)
+            let svgOut = try! SVGEncoder().encode(program: program)
+            print(svgOut)
+        }
+    }
+    
     func testProgramA() {
         let program =   """
                         make "diam  100
@@ -63,18 +91,8 @@ class CompleteProgramTests: XCTestCase {
             XCTAssertEqual(procedure.procedures.count, 0)
             XCTAssertEqual(procedure.parameters.count, 0)
             
-            var context: ExecutionContext? = ExecutionContext(parent: nil)
+            let svgOut = try! SVGEncoder().encode(program: program)
             
-            var c = Canvas(turtle: Turtle())
-            context?.issueCommand = { turtleCommand in
-                c = c.performing(turtleCommand)
-            }
-            
-            _ = program.execute(context: &context)
-            
-            c = c.performing(.pu)
-            
-            let svgOut = try! SVGEncoder().encode(c.multiLines)
             print(svgOut)
             // XCTAssertEqual(svgOut,
             //               "<svg version=\"1.1\" baseProfile=\"full\" width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\"><polyline fill=\"none\" stroke=\"black\" points=\"158.0, 130.0 122.08788495080478, 31.332274817479615 104.98687778452131, 78.31690585677502 138.9868777845213, 78.31690585677504 104.98687778452131, 78.31690585677502 86.1757699016095, 129.99999999999997\"/></svg>")

@@ -206,6 +206,9 @@ public class LogoParser {
             let commandTokenRange = chompedString.startIndex..<command.1.startIndex
 
             switch command.0 {
+            case .stop:
+                registerToken(range: commandTokenRange, token: command.0)
+                return (Stop(), command.1)
             case .make:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -321,7 +324,7 @@ public class LogoParser {
         return nil
     }
 
-    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife"] )
+    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show"] )
 
     private func block(substring: Substring) -> (Block, Substring)? {
         var runningSubstring = substring

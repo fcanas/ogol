@@ -27,13 +27,12 @@ struct Lex {
 
     static let comment: Parser<Substring, String> = Lex.Token.comment
 
-
     struct Commands {
 
         enum ControlFlow: SyntaxColorable {
             func syntaxCategory() -> SyntaxCategory? {
                 switch self {
-                case .repeat_, .make, .ife:
+                case .repeat_, .make, .ife, .stop:
                     return .keyword
                 case .procedureInvocation(_):
                     return .procedureInvocation
@@ -44,6 +43,7 @@ struct Lex {
             case make
             case procedureInvocation(String)
             case ife
+            case stop
             // TODO: case fore
             // TODO: case label
         }
@@ -53,23 +53,24 @@ struct Lex {
         static let cs: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.cs } <^> ("cs" <|> "clearscreen") <* (Lex.Token._space  <|>  Lex.Token.eol)
         static let pu: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.pu } <^> ("pu" <|> "penup") <* (Lex.Token._space  <|>  Lex.Token.eol)
         static let pd: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.pd } <^> ("pd" <|> "pendown") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let ht: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.ht } <^> ("ht" <|> "clearscreen") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let st: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.st } <^> ("st" <|> "clearscreen") <* (Lex.Token._space  <|>  Lex.Token.eol)
+        static let ht: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.ht } <^> ("ht" <|> "hide") <* (Lex.Token._space  <|>  Lex.Token.eol)
+        static let st: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.st } <^> ("st" <|> "show") <* (Lex.Token._space  <|>  Lex.Token.eol)
         static let home: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.home } <^> "home" <* (Lex.Token._space  <|> Lex.Token.eol)
 
         static let singleExpression = (fd <|> bk <|> rt <|> lt) <* Lex.Token._space
 
         static let fd: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.fd } <^> ("fd" <|> "forward")
-        static let bk: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.bk } <^> ("bk" <|> "backward")
+        static let bk: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.bk } <^> ("bk" <|> "backward" <|> "back")
         static let rt: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.rt } <^> ("rt" <|> "right")
         static let lt: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.lt } <^> ("lt" <|> "left")
         static let setxy: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.setxy } <^> "setxy" <* Lex.Token._space
 
-        static let controlFlow = ((repeat_ <|> make <|> ife) <* Lex.Token._space) <|> procedureInvocation
+        static let controlFlow = ((repeat_ <|> make <|> ife) <* Lex.Token._space) <|> stop <|> procedureInvocation
 
         static let repeat_: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.repeat_ } <^> "repeat"
         static let make: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.make } <^> "make"
         static let ife: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.ife } <^> "if"
+        static let stop: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.stop } <^> "stop"
 
         static let procedureInvocation = { Lex.Commands.ControlFlow.procedureInvocation($0) } <^> Lex.name
 

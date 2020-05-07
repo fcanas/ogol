@@ -24,9 +24,17 @@ extension Array where Element == ExecutionNode {
 
 struct CommandList: ExecutionNode {
     func execute(context: inout ExecutionContext?) -> Double? {
-        commands.reduce(0) { (_, c) -> Double? in
-            c.execute(context: &context)
+        for (i, command) in commands.enumerated() {
+            if let _ = command as? Stop {
+                return nil
+            }
+            if i == (commands.count - 1) {
+                return command.execute(context: &context)
+            }
+            _ = command.execute(context: &context)
         }
+        assert(commands.count == 0)
+        return nil
     }
     let commands: [Command]
 }
@@ -40,9 +48,16 @@ public extension Scope {
     func execute(context: inout ExecutionContext?) -> Double? {
         var context: ExecutionContext? = ExecutionContext(parent: context, procedures: procedures)
 
-        commands.forEach { (command) in
+        for (i, command) in commands.enumerated() {
+            if let _ = command as? Stop {
+                return nil
+            }
+            if i == (commands.count - 1) {
+                return command.execute(context: &context)
+            }
             _ = command.execute(context: &context)
         }
+        assert(commands.count == 0)
         return nil
     }
 

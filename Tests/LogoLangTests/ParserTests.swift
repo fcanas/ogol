@@ -51,6 +51,46 @@ class SimpleCommandParserTests: XCTestCase {
         XCTAssertEqual(s, "", file: file, line: line)
     }
     
+    func testStop() {
+        let parser = LogoParser()
+        let programString: Substring = Substring("stop")
+        guard let (c, s) = parser.command(substring: programString) else {
+            XCTFail("Failed to parse stop")
+            return
+        }
+        guard let tokenKey = parser.allTokens.keys.first else {
+            XCTFail("No token for stop")
+            return
+        }
+        XCTAssertNotNil(c as? Stop)
+        XCTAssertEqual(programString[tokenKey], programString)
+        XCTAssertEqual(s, "")
+    }
+    
+    func testBasicCommand() {
+        let parser = LogoParser()
+        let programString: Substring = "fd 5\n"
+        guard let (i, _) = parser.command(substring: programString) else {
+            XCTFail("Failed to parse fd")
+            return
+        }
+        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
+
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .turtle(.fd), parameters:[exp]))
+    }
+    
+    func testBasicCommandAlternateName() {
+        let parser = LogoParser()
+        let programString: Substring = "forward 5\n"
+        guard let (i, _) = parser.command(substring: programString) else {
+            XCTFail("Failed to parse fd")
+            return
+        }
+        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
+
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .turtle(.fd), parameters:[exp]))
+    }
+    
     func testBasicInvocation() {
     	let parser = LogoParser()
     	let programString: Substring = "par 5\n"
