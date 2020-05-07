@@ -165,4 +165,56 @@ class CompleteProgramTests: XCTestCase {
         }
     }
     
+    func testFlower() {
+        let program =   """
+                        make "turnAmount 10
+                        make "stepPerTurn 20
+                        make "counter 0
+
+                        repeat 558 [
+                            if :counter > 360 / 12 [
+                                make "counter 0
+                                lt :turnAmount * 5
+                            ]
+                            make "counter :counter + 1
+
+                            repeat :turnAmount [
+                                rt 1
+                                fd :stepPerTurn / :turnAmount
+                            ]
+                        ]
+
+                        ht
+                        """
+        let parser = LogoParser()
+        let parseResult = parser.program(substring: Substring(program))
+        
+        switch parseResult {
+        case .error(_):
+            XCTFail("Failed to parse program")
+        case let .success(program, _, parseError):
+            XCTAssert(parseError.count == 0, "Program should not contain any parse errors")
+            
+            XCTAssertEqual(program.commands.count, 5)
+            XCTAssertEqual(program.procedures.count, 0)
+            
+            // TODO: Procedure content
+            
+            var context: ExecutionContext? = ExecutionContext(parent: nil)
+            
+            var c = Canvas(turtle: Turtle())
+            context?.issueCommand = { turtleCommand in
+                c = c.performing(turtleCommand)
+            }
+            
+            _ = program.execute(context: &context)
+            
+            c = c.performing(.pu)
+            
+            let svgOut = try! SVGEncoder().encode(c.multiLines)
+            print(svgOut)
+        }
+        
+    }
+    
 }
