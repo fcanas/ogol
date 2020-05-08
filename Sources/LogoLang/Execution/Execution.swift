@@ -18,17 +18,10 @@ public protocol Scope: ExecutionNode {
 
 }
 
-extension Array where Element == ExecutionNode {
-
-}
-
 struct CommandList: ExecutionNode {
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
         for command in commands {
-            if let _ = command as? Stop {
-                return // TODO: stop?
-            }
-            command.execute(context: &context)
+            try command.execute(context: &context)
         }
     }
     let commands: [Command]
@@ -40,21 +33,28 @@ struct NOP: Command {
 
 public extension Scope {
 
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
         var context: ExecutionContext? = ExecutionContext(parent: context, procedures: procedures)
-
         for command in commands {
-            if let _ = command as? Stop {
-                return // TODO: Stop
-            }
-            command.execute(context: &context)
+            try command.execute(context: &context)
         }
     }
 
 }
 
+enum ExecutionHandoff: Error {
+    case stop
+    case error(Runtime, String) // TODO: node that can be tied back to source?
+    case output(Bottom)
+    
+    enum Runtime {
+        case typeError
+        case missingSymbol
+    }
+}
+
 public protocol ExecutionNode {
-    func execute(context: inout ExecutionContext?)
+    func execute(context: inout ExecutionContext?) throws
 }
 
 public protocol TurtleCommandSource {
@@ -99,6 +99,17 @@ public class Procedure: ExecutionNode, Scope {
         self.procedures = procedures
         self.parameters = parameters
     }
+    
+    public func execute(context: inout ExecutionContext?) throws {
+        var context: ExecutionContext? = ExecutionContext(parent: context, procedures: procedures)
+        for command in commands {
+            do {
+                try command.execute(context: &context)
+            } catch ExecutionHandoff.stop {
+                return
+            }
+        }
+    }
 
 }
 
@@ -113,7 +124,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
     let parameters: [Expression]
     
     // TODO: Output?
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
 
         switch identifier {
         case let .turtle(partial):
@@ -147,7 +158,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             case .setxy:
                 turtleCommand = .setXY(parameters[0], parameters[1])
             }
-            return turtleCommand.execute(context: &context)
+            return try turtleCommand.execute(context: &context)
         case let .user(name):
             guard let procedure = context?.procedures[name] else {
                 // TODO: Runtime error
@@ -157,8 +168,8 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
                 // TODO: Runtime error : expectd number of parameters
                 return
             }
-            let parameterValues = parameters.map { (e) -> Bottom in
-                e.evaluate(context: &context)
+            let parameterValues = try parameters.map { (e) -> Bottom in
+                try e.evaluate(context: &context)
             }
             let parameterNames = procedure.parameters.map { (parameterValue) -> String in
                 switch parameterValue {
@@ -172,7 +183,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
                 return k2
             }
             var newScope: ExecutionContext? = ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameters)
-            procedure.execute(context: &newScope)
+            try procedure.execute(context: &newScope)
         }
 
     }

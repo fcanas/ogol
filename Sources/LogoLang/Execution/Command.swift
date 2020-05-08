@@ -12,21 +12,20 @@ import Foundation
 public protocol Command: ExecutionNode { }
 
 struct Stop: Command {
-    func execute(context: inout ExecutionContext?) {
-        // TODO: Stop
-        abort()
+    func execute(context: inout ExecutionContext?) throws {
+        throw ExecutionHandoff.stop
     }
 }
 
 struct Repeat: Command {
 
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
         var executed = 0
-        guard case let .double(limit) = count.evaluate(context: &context) else {
-            fatalError("Tried to use non-numeric repeat value")
+        guard case let .double(limit) = try count.evaluate(context: &context) else {
+            throw ExecutionHandoff.error(.typeError, "Tried to use non-numeric repeat value")
         }
         while executed < Int(limit) {
-            _ = block.execute(context: &context)
+            try block.execute(context: &context)
             executed += 1
         }
     }
@@ -42,9 +41,9 @@ struct Repeat: Command {
 }
 
 struct Make: Command {
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
         assert(context != nil)
-        context!.variables[symbol] = value.evaluate(context: &context)
+        context!.variables[symbol] = try value.evaluate(context: &context)
     }
 
     var value: Value
@@ -90,26 +89,26 @@ enum TurtleCommand: Command, Equatable {
     case home
     case setXY(Expression, Expression)
 
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
         switch self {
         case let .fd(e):
-            guard case let .double(value) = e.evaluate(context: &context) else {
-                fatalError()
+            guard case let .double(value) = try e.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "I can only go forward by a number")
             }
             context?.issueCommand(Turtle.Command.fd(value))
         case let .bk(e):
-            guard case let .double(value) = e.evaluate(context: &context) else {
-                fatalError()
+            guard case let .double(value) = try e.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "I can only go back by a number")
             }
             context?.issueCommand(Turtle.Command.bk(value))
         case let .rt(e):
-            guard case let .double(value) = e.evaluate(context: &context) else {
-                fatalError()
+            guard case let .double(value) = try e.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "I can only go right by a number")
             }
             context?.issueCommand(Turtle.Command.rt(value))
         case let .lt(e):
-            guard case let .double(value) = e.evaluate(context: &context) else {
-                fatalError()
+            guard case let .double(value) = try e.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "I can only go left by a number")
             }
             context?.issueCommand(Turtle.Command.lt(value))
         case .cs:
@@ -126,9 +125,9 @@ enum TurtleCommand: Command, Equatable {
         case .home:
             context?.issueCommand(Turtle.Command.home)
         case let .setXY(xExpression, yExpression):
-            guard case let .double(x) = xExpression.evaluate(context: &context),
-                case let .double(y) = yExpression.evaluate(context: &context) else {
-                    fatalError()
+            guard case let .double(x) = try xExpression.evaluate(context: &context),
+                case let .double(y) = try yExpression.evaluate(context: &context) else {
+                    throw ExecutionHandoff.error(.typeError, "setxy needs the horizontal and vertical positions to be numbers")
             }
             context?.issueCommand(Turtle.Command.setxy(Point(x: x, y: y)))
         }
@@ -155,24 +154,24 @@ struct Conditional: Command {
         self.block = block
     }
 
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: inout ExecutionContext?) throws {
         // TODO : raise errors
-        guard case let .double(lhsv) = lhs.evaluate(context: &context),
-            case let .double(rhsv) = rhs.evaluate(context: &context) else {
-                fatalError()
+        guard case let .double(lhsv) = try lhs.evaluate(context: &context),
+            case let .double(rhsv) = try rhs.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "Conditional statements can only compare numbers")
         }
         switch self.comparisonOp {
         case .lt:
             if lhsv < rhsv {
-                _ = block.execute(context: &context)
+                try block.execute(context: &context)
             }
         case .gt:
             if lhsv > rhsv {
-                _ = block.execute(context: &context)
+                try block.execute(context: &context)
             }
         case .eq:
             if lhsv == rhsv {
-                _ = block.execute(context: &context)
+                try block.execute(context: &context)
             }
         }
     }

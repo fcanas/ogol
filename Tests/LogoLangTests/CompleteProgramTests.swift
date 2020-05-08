@@ -170,7 +170,7 @@ class CompleteProgramTests: XCTestCase {
                 c = c.performing(turtleCommand)
             }
             
-            _ = program.execute(context: &context)
+            try! program.execute(context: &context)
             
             c = c.performing(.pu)
             
@@ -225,7 +225,7 @@ class CompleteProgramTests: XCTestCase {
                 c = c.performing(turtleCommand)
             }
             
-            _ = program.execute(context: &context)
+            try! program.execute(context: &context)
             
             c = c.performing(.pu)
             

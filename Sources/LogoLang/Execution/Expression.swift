@@ -13,7 +13,7 @@ public enum Bottom {
 }
 
 protocol Evaluatable {
-    func evaluate(context: inout ExecutionContext?) -> Bottom
+    func evaluate(context: inout ExecutionContext?)throws -> Bottom
 }
 
 struct SignExpression: Evaluatable, Equatable {
@@ -28,7 +28,7 @@ struct SignExpression: Evaluatable, Equatable {
         self.value = value
     }
     
-    func evaluate(context: inout ExecutionContext?) -> Bottom {
+    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         let multiplier: Double
         switch sign {
         case .negative:
@@ -37,9 +37,8 @@ struct SignExpression: Evaluatable, Equatable {
             multiplier = 1.0
         }
         
-        guard case let .double(value) = self.value.evaluate(context: &context) else {
-            // TODO: Runtime error
-            fatalError()
+        guard case let .double(value) = try self.value.evaluate(context: &context) else {
+            throw ExecutionHandoff.error(.typeError, "I can only negate a number")
         }
         
         return .double(multiplier * value)
@@ -71,18 +70,17 @@ struct MultiplyingExpression: Equatable {
     var lhs: SignExpression
     var rhs: [Rhs]
 
-    func evaluate(context: inout ExecutionContext?) -> Bottom {
+    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
 
         // TODO : LHS shouldn't be nil
         
-        guard case let .double(lhsv) = self.lhs.evaluate(context: &context) else {
-            fatalError()
+        guard case let .double(lhsv) = try self.lhs.evaluate(context: &context) else {
+            throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
         }
 
-        return .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
-            guard case let .double(rhsv) = rhs.rhs.evaluate(context: &context) else {
-                // TODO: Runtime error
-                fatalError()
+        return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
+            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
             }
             switch rhs.operation {
             case .multiply:
@@ -119,17 +117,15 @@ struct Expression: Evaluatable, Equatable {
     var lhs: MultiplyingExpression
     var rhs: [Rhs]
 
-    func evaluate(context: inout ExecutionContext?) -> Bottom {
+    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         
-        guard case let .double(lhsv) = self.lhs.evaluate(context: &context) else {
-            // TODO: Runtime error
-            fatalError()
+        guard case let .double(lhsv) = try self.lhs.evaluate(context: &context) else {
+            throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
         }
 
-        return .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
-            guard case let .double(rhsv) = rhs.rhs.evaluate(context: &context) else {
-                // TODO: Runtime Error
-                fatalError()
+        return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
+            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: &context) else {
+                throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
             }
             switch rhs.operation {
             case .add:
@@ -143,13 +139,15 @@ struct Expression: Evaluatable, Equatable {
 }
 
 enum Value: Evaluatable, Equatable {
-    func evaluate(context: inout ExecutionContext?) -> Bottom {
+    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         switch self {
         case let .expression(e):
-            return e.evaluate(context: &context)
+            return try e.evaluate(context: &context)
         case let .deref(symbol):
-            // TODO: raise errors instead of silently failing
-            return context?.variables[symbol] ?? .double(0)
+            guard let value = context?.variables[symbol] else {
+                throw ExecutionHandoff.error(.missingSymbol, "Value not found for \(symbol)")
+            }
+            return value
         case let .number(n):
             return .double(n)
         }
