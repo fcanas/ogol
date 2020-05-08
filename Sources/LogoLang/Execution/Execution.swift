@@ -34,7 +34,7 @@ struct NOP: Command {
 public extension Scope {
 
     func execute(context: inout ExecutionContext?) throws {
-        var context: ExecutionContext? = ExecutionContext(parent: context, procedures: procedures)
+        var context: ExecutionContext? = try ExecutionContext(parent: context, procedures: procedures)
         for command in commands {
             try command.execute(context: &context)
         }
@@ -42,14 +42,15 @@ public extension Scope {
 
 }
 
-enum ExecutionHandoff: Error {
+public enum ExecutionHandoff: Error {
     case stop
     case error(Runtime, String) // TODO: node that can be tied back to source?
     case output(Bottom)
     
-    enum Runtime {
+    public enum Runtime {
         case typeError
         case missingSymbol
+        case maxDepth
     }
 }
 
@@ -101,7 +102,7 @@ public class Procedure: ExecutionNode, Scope {
     }
     
     public func execute(context: inout ExecutionContext?) throws {
-        var context: ExecutionContext? = ExecutionContext(parent: context, procedures: procedures)
+        var context: ExecutionContext? = try ExecutionContext(parent: context, procedures: procedures)
         for command in commands {
             do {
                 try command.execute(context: &context)
@@ -182,7 +183,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             let parameters = Dictionary(zip(parameterNames, parameterValues)) { (k1, k2) in
                 return k2
             }
-            var newScope: ExecutionContext? = ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameters)
+            var newScope: ExecutionContext? = try ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameters)
             try procedure.execute(context: &newScope)
         }
 

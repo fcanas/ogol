@@ -78,7 +78,7 @@ public class SVGEncoder {
     public init() {}
     
     public func encode(program: Program) throws -> String {
-        var context: ExecutionContext? = ExecutionContext(parent: nil)
+        var context: ExecutionContext? = try ExecutionContext(parent: nil)
         
         var c = Canvas(turtle: Turtle())
         context?.issueCommand = { turtleCommand in

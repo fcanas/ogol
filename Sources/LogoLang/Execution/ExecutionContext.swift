@@ -8,6 +8,8 @@
 import Foundation
 
 public class ExecutionContext: TurtleCommandSource {
+    
+    public static var MaxDepth: Int = 500
 
     public var issueCommand: (Turtle.Command) -> Void
 
@@ -55,6 +57,7 @@ public class ExecutionContext: TurtleCommandSource {
 
     var procedures: NestedKeyValueStore<Procedure>
     var variables: NestedKeyValueStore<Bottom>
+    private var depth: Int
 
     public func allVariables() -> [String:Bottom] {
         return variables.flattened()
@@ -68,7 +71,11 @@ public class ExecutionContext: TurtleCommandSource {
         return child?.deepestChild() ?? self
     }
 
-    public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
+    public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) throws {
+        self.depth = parent.map({ $0.depth + 1 }) ?? 0
+        if self.depth > ExecutionContext.MaxDepth {
+            throw ExecutionHandoff.error(.maxDepth, "Number of execution contexts exceeded")
+        }
         self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
         self.variables = NestedKeyValueStore(parent: parent?.variables, items: variables)
         self.issueCommand = { [weak parent] t in parent?.issueCommand(t) }
