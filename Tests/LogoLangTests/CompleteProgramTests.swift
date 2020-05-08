@@ -23,18 +23,16 @@ class CompleteProgramTests: XCTestCase {
                           forward :size/6
                           back :size
                       end
-                      tree 1
+                      tree 720
                       """
-        let parser = LogoParser()
-        let parseResult = parser.program(substring: Substring(program))
         
-        switch parseResult {
-        case .error(_):
-            XCTFail("Failed to parse program")
-        case let .success(program, _, parseError):
-            XCTAssert(parseError.count == 0)
-            let svgOut = try! SVGEncoder().encode(program: program)
-            print(svgOut)
+        self.measure {
+            guard case let .success(program, _, _) = LogoParser().program(substring: Substring(program)) else {
+                XCTFail("Failed to parse performance program")
+                return
+            }
+            var context: ExecutionContext? = ExecutionContext(parent: nil)
+            try! program.execute(context: &context)
         }
     }
     
