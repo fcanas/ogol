@@ -8,7 +8,15 @@
 
 import Foundation
 
-struct SignExpression: ExecutionNode, Equatable {
+public enum Bottom {
+    case double(Double)
+}
+
+protocol Evaluatable {
+    func evaluate(context: inout ExecutionContext?) -> Bottom
+}
+
+struct SignExpression: Evaluatable, Equatable {
     enum Sign {
         case positive
         case negative
@@ -20,7 +28,7 @@ struct SignExpression: ExecutionNode, Equatable {
         self.value = value
     }
     
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func evaluate(context: inout ExecutionContext?) -> Bottom {
         let multiplier: Double
         switch sign {
         case .negative:
@@ -28,7 +36,13 @@ struct SignExpression: ExecutionNode, Equatable {
         default:
             multiplier = 1.0
         }
-        return multiplier * self.value.execute(context: &context)!
+        
+        guard case let .double(value) = self.value.evaluate(context: &context) else {
+            // TODO: Runtime error
+            fatalError()
+        }
+        
+        return .double(multiplier * value)
     }
 }
 
@@ -57,23 +71,30 @@ struct MultiplyingExpression: Equatable {
     var lhs: SignExpression
     var rhs: [Rhs]
 
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func evaluate(context: inout ExecutionContext?) -> Bottom {
 
         // TODO : LHS shouldn't be nil
-        let lhsv = self.lhs.execute(context: &context)!
+        
+        guard case let .double(lhsv) = self.lhs.evaluate(context: &context) else {
+            fatalError()
+        }
 
-        return rhs.reduce(lhsv) { (result, rhs) -> Double in
+        return .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
+            guard case let .double(rhsv) = rhs.rhs.evaluate(context: &context) else {
+                // TODO: Runtime error
+                fatalError()
+            }
             switch rhs.operation {
             case .multiply:
-                return result * rhs.rhs.execute(context: &context)!
+                return result * rhsv
             case .divide:
-                return result / rhs.rhs.execute(context: &context)!
+                return result / rhsv
             }
-        }
+        })
     }
 }
 
-struct Expression: ExecutionNode, Equatable {
+struct Expression: Evaluatable, Equatable {
 
     internal init(lhs: MultiplyingExpression, rhs: Expression.Rhs) {
         self.lhs = lhs
@@ -98,33 +119,39 @@ struct Expression: ExecutionNode, Equatable {
     var lhs: MultiplyingExpression
     var rhs: [Rhs]
 
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func evaluate(context: inout ExecutionContext?) -> Bottom {
+        
+        guard case let .double(lhsv) = self.lhs.evaluate(context: &context) else {
+            // TODO: Runtime error
+            fatalError()
+        }
 
-        // TODO : LHS shouldn't be nil
-        let lhsv = self.lhs.execute(context: &context)!
-
-        return rhs.reduce(lhsv) { (result, rhs) -> Double in
+        return .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
+            guard case let .double(rhsv) = rhs.rhs.evaluate(context: &context) else {
+                // TODO: Runtime Error
+                fatalError()
+            }
             switch rhs.operation {
             case .add:
-                return result + rhs.rhs.execute(context: &context)!
+                return result + rhsv
             case .subtract:
-                return result - rhs.rhs.execute(context: &context)!
+                return result - rhsv
             }
-        }
+        })
 
     }
 }
 
-enum Value: ExecutionNode, Equatable {
-    func execute(context: inout ExecutionContext?) -> Double? {
+enum Value: Evaluatable, Equatable {
+    func evaluate(context: inout ExecutionContext?) -> Bottom {
         switch self {
         case let .expression(e):
-            return e.execute(context: &context)
+            return e.evaluate(context: &context)
         case let .deref(symbol):
             // TODO: raise errors instead of silently failing
-            return context?.variables[symbol] ?? 0.0
+            return context?.variables[symbol] ?? .double(0)
         case let .number(n):
-            return n
+            return .double(n)
         }
     }
 

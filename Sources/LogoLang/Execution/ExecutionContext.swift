@@ -54,9 +54,9 @@ public class ExecutionContext: TurtleCommandSource {
     }
 
     var procedures: NestedKeyValueStore<Procedure>
-    var variables: NestedKeyValueStore<Double>
+    var variables: NestedKeyValueStore<Bottom>
 
-    public func allVariables() -> [String:Double] {
+    public func allVariables() -> [String:Bottom] {
         return variables.flattened()
     }
 
@@ -68,7 +68,7 @@ public class ExecutionContext: TurtleCommandSource {
         return child?.deepestChild() ?? self
     }
 
-    public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Double] = [:]) {
+    public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
         self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
         self.variables = NestedKeyValueStore(parent: parent?.variables, items: variables)
         self.issueCommand = { [weak parent] t in parent?.issueCommand(t) }

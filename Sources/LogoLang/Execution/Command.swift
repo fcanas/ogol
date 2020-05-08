@@ -12,7 +12,7 @@ import Foundation
 public protocol Command: ExecutionNode { }
 
 struct Stop: Command {
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func execute(context: inout ExecutionContext?) {
         // TODO: Stop
         abort()
     }
@@ -20,14 +20,15 @@ struct Stop: Command {
 
 struct Repeat: Command {
 
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func execute(context: inout ExecutionContext?) {
         var executed = 0
-        let limit = count.execute(context: &context)!
+        guard case let .double(limit) = count.evaluate(context: &context) else {
+            fatalError("Tried to use non-numeric repeat value")
+        }
         while executed < Int(limit) {
             _ = block.execute(context: &context)
             executed += 1
         }
-        return nil
     }
 
     init(count: SignExpression, block: Block) {
@@ -41,10 +42,9 @@ struct Repeat: Command {
 }
 
 struct Make: Command {
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func execute(context: inout ExecutionContext?) {
         assert(context != nil)
-        context!.variables[symbol] = value.execute(context: &context)
-        return nil
+        context!.variables[symbol] = value.evaluate(context: &context)
     }
 
     var value: Value
@@ -90,20 +90,28 @@ enum TurtleCommand: Command, Equatable {
     case home
     case setXY(Expression, Expression)
 
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func execute(context: inout ExecutionContext?) {
         switch self {
         case let .fd(e):
-            let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.fd(Double(value)))
+            guard case let .double(value) = e.evaluate(context: &context) else {
+                fatalError()
+            }
+            context?.issueCommand(Turtle.Command.fd(value))
         case let .bk(e):
-            let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.bk(Double(value)))
+            guard case let .double(value) = e.evaluate(context: &context) else {
+                fatalError()
+            }
+            context?.issueCommand(Turtle.Command.bk(value))
         case let .rt(e):
-            let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.rt(Double(value)))
+            guard case let .double(value) = e.evaluate(context: &context) else {
+                fatalError()
+            }
+            context?.issueCommand(Turtle.Command.rt(value))
         case let .lt(e):
-            let value = e.execute(context: &context)!
-            context?.issueCommand(Turtle.Command.lt(Double(value)))
+            guard case let .double(value) = e.evaluate(context: &context) else {
+                fatalError()
+            }
+            context?.issueCommand(Turtle.Command.lt(value))
         case .cs:
             fatalError()
         // context?.issueCommand(Turtle.Command.cs)
@@ -118,11 +126,12 @@ enum TurtleCommand: Command, Equatable {
         case .home:
             context?.issueCommand(Turtle.Command.home)
         case let .setXY(xExpression, yExpression):
-            let x = xExpression.execute(context: &context)!
-            let y = yExpression.execute(context: &context)!
+            guard case let .double(x) = xExpression.evaluate(context: &context),
+                case let .double(y) = yExpression.evaluate(context: &context) else {
+                    fatalError()
+            }
             context?.issueCommand(Turtle.Command.setxy(Point(x: x, y: y)))
         }
-        return nil
     }
 }
 
@@ -146,10 +155,12 @@ struct Conditional: Command {
         self.block = block
     }
 
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func execute(context: inout ExecutionContext?) {
         // TODO : raise errors
-        let lhsv = lhs.execute(context: &context)!
-        let rhsv = rhs.execute(context: &context)!
+        guard case let .double(lhsv) = lhs.evaluate(context: &context),
+            case let .double(rhsv) = rhs.evaluate(context: &context) else {
+                fatalError()
+        }
         switch self.comparisonOp {
         case .lt:
             if lhsv < rhsv {
@@ -164,14 +175,13 @@ struct Conditional: Command {
                 _ = block.execute(context: &context)
             }
         }
-        return nil
     }
 
 }
 
 struct For: Command {
 
-    func execute(context: inout ExecutionContext?) -> Double? {
+    func execute(context: inout ExecutionContext?) {
         // TODO
         fatalError()
     }
