@@ -51,6 +51,7 @@ public enum ExecutionHandoff: Error {
         case typeError
         case missingSymbol
         case maxDepth
+        case corruptAST
     }
 }
 
@@ -172,13 +173,14 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             let parameterValues = try parameters.map { (e) -> Bottom in
                 try e.evaluate(context: &context)
             }
-            let parameterNames = procedure.parameters.map { (parameterValue) -> String in
+            let parameterNames = try procedure.parameters.map { (parameterValue) -> String in
                 switch parameterValue {
                 case let .deref(parameterName):
                     return parameterName
                 default:
                     assert(false, "This shouldn't have been parsed, but was for some reason")
                 }
+                throw ExecutionHandoff.error(.corruptAST, "Please file a bug: procedure believes its parameter value is \(parameterValue)")
             }
             let parameters = Dictionary(zip(parameterNames, parameterValues)) { (k1, k2) in
                 return k2
