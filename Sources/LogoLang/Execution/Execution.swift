@@ -115,6 +115,29 @@ public class Procedure: ExecutionNode, Scope {
 
 }
 
+public class NativeProcedure: Procedure {
+    
+    let action: ([Bottom]) -> Bottom?
+    
+    public init(name: String, parameters: [Value], action: @escaping ([Bottom]) -> Bottom?) {
+        self.action = action
+        super.init(name: name, commands: [], procedures: [:], parameters: parameters)
+    }
+    
+    public override func execute(context: inout ExecutionContext?) throws {
+        let p = try parameters.map { (deref) -> Bottom in
+            guard case let .deref(s) = deref  else {
+                throw ExecutionHandoff.error(.typeError, "Parameters should be derefs")
+            }
+            guard let v = context?.variables[s] else {
+                throw ExecutionHandoff.error(.missingSymbol, "\(s) parameter required")
+            }
+            return v
+        }
+        _ = action(p)
+    }
+}
+
 struct ProcedureInvocation: ExecutionNode, Command, Equatable {
 
     enum Identifier: Equatable {

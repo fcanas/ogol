@@ -10,6 +10,7 @@ import Foundation
 
 public enum Bottom {
     case double(Double)
+    case string(String)
 }
 
 protocol Evaluatable {
@@ -92,7 +93,7 @@ struct MultiplyingExpression: Equatable {
     }
 }
 
-struct Expression: Evaluatable, Equatable {
+public struct Expression: Evaluatable, Equatable {
 
     internal init(lhs: MultiplyingExpression, rhs: Expression.Rhs) {
         self.lhs = lhs
@@ -138,7 +139,7 @@ struct Expression: Evaluatable, Equatable {
     }
 }
 
-enum Value: Evaluatable, Equatable {
+public enum Value: Evaluatable, Equatable {
     func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         switch self {
         case let .expression(e):

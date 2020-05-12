@@ -34,7 +34,7 @@ struct SyntaxType: SyntaxColorable {
 }
 
 extension Value: SyntaxColorable {
-    func syntaxCategory() -> SyntaxCategory? {
+    public func syntaxCategory() -> SyntaxCategory? {
         switch self {
         case .number(_):
             return .number
