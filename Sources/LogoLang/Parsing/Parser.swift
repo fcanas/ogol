@@ -40,6 +40,8 @@ public class LogoParser {
     public func program(substring: Substring) -> ParseResult {
 
         hasFatalError = false
+        errors = [:]
+        allTokens = [:]
 
         var runningSubstring = eatNewlines(substring)
         var executionNodes: [ExecutionNode] = []
@@ -78,7 +80,6 @@ public class LogoParser {
     private var errors: [Range<Substring.Index>:ParseError] = [:] {
         didSet {
             #if DEBUG
-            print(errors)
             errors.forEach { (key, _) in
                 assert(key.upperBound != key.lowerBound, "Ranges should be non-zero")
             }
