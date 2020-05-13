@@ -117,9 +117,9 @@ public class Procedure: ExecutionNode, Scope {
 
 public class NativeProcedure: Procedure {
     
-    let action: ([Bottom]) -> Bottom?
+    let action: ([Bottom], ExecutionContext) -> Bottom?
     
-    public init(name: String, parameters: [Value], action: @escaping ([Bottom]) -> Bottom?) {
+    public init(name: String, parameters: [Value], action: @escaping ([Bottom], ExecutionContext) -> Bottom?) {
         self.action = action
         super.init(name: name, commands: [], procedures: [:], parameters: parameters)
     }
@@ -134,7 +134,7 @@ public class NativeProcedure: Procedure {
             }
             return v
         }
-        _ = action(p)
+        _ = action(p, context!)
     }
 }
 
@@ -146,7 +146,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
     }
 
     let identifier: Identifier
-    let parameters: [Expression]
+    let parameters: [Value]
     
     // TODO: Output?
     func execute(context: inout ExecutionContext?) throws {
@@ -161,13 +161,13 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
 
             switch partial {
             case .fd:
-                turtleCommand = .fd(parameters.first!)
+                turtleCommand = .fd(parameters.first!.expressionValue())
             case .bk:
-                turtleCommand = .bk(parameters.first!)
+                turtleCommand = .bk(parameters.first!.expressionValue())
             case .rt:
-                turtleCommand = .rt(parameters.first!)
+                turtleCommand = .rt(parameters.first!.expressionValue())
             case .lt:
-                turtleCommand = .lt(parameters.first!)
+                turtleCommand = .lt(parameters.first!.expressionValue())
             case .cs:
                 turtleCommand = .cs
             case .pu:
@@ -181,7 +181,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             case .home:
                 turtleCommand = .home
             case .setxy:
-                turtleCommand = .setXY(parameters[0], parameters[1])
+                turtleCommand = .setXY(parameters[0].expressionValue(), parameters[1].expressionValue())
             }
             return try turtleCommand.execute(context: &context)
         case let .user(name):

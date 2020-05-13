@@ -223,8 +223,7 @@ public class LogoParser {
                 runningSubstring = eatWhitespace(literal.1)
                 if let candidateLiteral = Lex.stringLiteral.run(runningSubstring) {
                     registerToken(range: runningSubstring.startIndex..<candidateLiteral.1.startIndex, token: SyntaxType(category: .stringLiteral))
-                    // TODO: implement string literals as values
-                    fatalError("Implement setting a string literal as a variable value")
+                    return (Make(value: .string(candidateLiteral.0), symbol: literal.0), candidateLiteral.1)
                 }
                 if let candidateExpression = expression(substring: runningSubstring) {
                     return (Make(value: .expression(candidateExpression.0), symbol: literal.0), candidateExpression.1)
@@ -291,9 +290,9 @@ public class LogoParser {
                 }
 
                 // TODO: parameter list
-                var expressions: [Expression] = []
+                var expressions: [Value] = []
                 while let parsedExpression = expression(substring: runningSubstring) {
-                    expressions.append(parsedExpression.0)
+                    expressions.append(.expression(parsedExpression.0))
                     runningSubstring = parsedExpression.1
                 }
 
@@ -306,16 +305,20 @@ public class LogoParser {
         if let tCommand = Lex.Commands.turtle.run(chompedString) {
             let commandTokenRange = chompedString.startIndex..<tCommand.1.startIndex
 
-            var parameters: [Expression] = []
+            var parameters: [Value] = []
             var runningSubstring = eatWhitespace(tCommand.1)
             for pIndex in 0..<tCommand.0.parameterCount {
-                guard let p = expression(substring: runningSubstring) else {
+                if let p = Lex.stringLiteral.run(runningSubstring) {
+                    runningSubstring = eatWhitespace(p.1)
+                    parameters.append(.string(p.0))
+                } else if let p = expression(substring: runningSubstring) {
+                    runningSubstring = eatWhitespace(p.1)
+                    parameters.append(.expression(p.0))
+                } else {
                     errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected \(tCommand.0.parameterCount) parameters for '\(tCommand.0.rawValue)', found \(pIndex)")
                     hasFatalError = true
                     return nil
                 }
-                runningSubstring = eatWhitespace(p.1)
-                parameters.append(p.0)
             }
             let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: parameters)
             registerToken(range: commandTokenRange, token: inv)
@@ -363,7 +366,7 @@ public class LogoParser {
     /// ;
     internal func expression(substring: Substring) -> (Expression, Substring)? {
         var runningSubstring = substring
-
+        
         guard let (lhsToken, candidateSubstring) = multiplyingExpression(substring: substring) else {
             return nil
         }

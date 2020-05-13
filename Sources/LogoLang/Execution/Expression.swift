@@ -38,11 +38,13 @@ struct SignExpression: Evaluatable, Equatable {
             multiplier = 1.0
         }
         
-        guard case let .double(value) = try self.value.evaluate(context: &context) else {
-            throw ExecutionHandoff.error(.typeError, "I can only negate a number")
+        let v = try self.value.evaluate(context: &context)
+        switch v {
+        case let .double(d):
+            return .double(multiplier * d)
+        case let .string(s):
+            return .string(s)
         }
-        
-        return .double(multiplier * value)
     }
 }
 
@@ -73,7 +75,10 @@ struct MultiplyingExpression: Equatable {
 
     func evaluate(context: inout ExecutionContext?) throws -> Bottom {
 
-        // TODO : LHS shouldn't be nil
+        // Sort-circuit strings out
+        if case let .string(s) = try self.lhs.evaluate(context: &context) {
+            return .string(s)
+        }
         
         guard case let .double(lhsv) = try self.lhs.evaluate(context: &context) else {
             throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
@@ -120,6 +125,11 @@ public struct Expression: Evaluatable, Equatable {
 
     func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         
+        // Short-circuit strings
+        if case let .string(s) = try self.lhs.evaluate(context: &context) {
+            return .string(s)
+        }
+        
         guard case let .double(lhsv) = try self.lhs.evaluate(context: &context) else {
             throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
         }
@@ -151,7 +161,16 @@ public enum Value: Evaluatable, Equatable {
             return value
         case let .number(n):
             return .double(n)
+        case let .string(s):
+            return .string(s)
         }
+    }
+    
+    func expressionValue() -> Expression {
+        guard case let .expression(e) = self else {
+            fatalError() // TODO: make things than need expressions take something else instead?
+        }
+        return e
     }
 
     indirect case expression(Expression)
@@ -159,4 +178,5 @@ public enum Value: Evaluatable, Equatable {
     // handles some expression cases nicely to keep this here.
     // TODO: revisit.
     case number(Double)
+    case string(String)
 }

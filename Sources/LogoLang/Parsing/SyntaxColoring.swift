@@ -42,6 +42,8 @@ extension Value: SyntaxColorable {
             return .variable
         case .expression(_):
             return nil
+        case .string(_):
+            return .stringLiteral
         }
     }
 }

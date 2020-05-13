@@ -10,6 +10,7 @@ let package = Package(
         .library(
             name: "LogoLang",
             targets: ["LogoLang"]),
+        .executable(name: "logo", targets: ["logo"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -25,5 +26,6 @@ let package = Package(
         .testTarget(
             name: "LogoLangTests",
             dependencies: ["LogoLang"]),
+        .target(name: "logo", dependencies: ["LogoLang"])
     ]
 )
