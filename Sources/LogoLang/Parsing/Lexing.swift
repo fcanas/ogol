@@ -10,8 +10,8 @@ import Foundation
 import FFCParserCombinator
 
 extension CharacterSet {
-    static let alphabetical = CharacterSet(charactersIn: "A"..."Z").union(CharacterSet(charactersIn: "a"..."z"))
-    static let logoAlphaNumeric = alphabetical.union(CharacterSet(charactersIn: "0"..."9"))
+    static let logoAlphabetical = CharacterSet.letters
+    static let logoAlphaNumeric = logoAlphabetical.union(CharacterSet(charactersIn: "0"..."9"))
 }
 
 // MARK: Lex
@@ -83,7 +83,7 @@ struct Lex {
         static let deref = { Value.deref($0) } <^> ":" *> string
         static let string = { (c, ca) -> String in
             return String(c) + String(ca)
-            } <^> CharacterSet.letters.parser() <&> CharacterSet.letters.parser().many1
+            } <^> CharacterSet.logoAlphabetical.parser() <&> CharacterSet.logoAlphaNumeric.parser().many1
         static let number = { Value.number($0) } <^> Double.parser
         static let comment = { String($0) } <^> ";" *> character(condition: { $0 != "\n" && $0 != "\r" }).many <* eol
         static let eol = _w *> BasicParser.newline.many
