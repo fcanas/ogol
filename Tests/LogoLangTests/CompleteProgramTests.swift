@@ -89,9 +89,9 @@ class CompleteProgramTests: XCTestCase {
             XCTAssertEqual(procedure.procedures.count, 0)
             XCTAssertEqual(procedure.parameters.count, 0)
             
-            let svgOut = try! SVGEncoder().encode(program: program)
-            
-            print(svgOut)
+            _ = try! SVGEncoder().encode(program: program)
+
+            // print(svgOut)
             // XCTAssertEqual(svgOut,
             //               "<svg version=\"1.1\" baseProfile=\"full\" width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\"><polyline fill=\"none\" stroke=\"black\" points=\"158.0, 130.0 122.08788495080478, 31.332274817479615 104.98687778452131, 78.31690585677502 138.9868777845213, 78.31690585677504 104.98687778452131, 78.31690585677502 86.1757699016095, 129.99999999999997\"/></svg>")
             
@@ -172,8 +172,8 @@ class CompleteProgramTests: XCTestCase {
             
             c = c.performing(.pu)
             
-            let svgOut = try! SVGEncoder().encode(c.multiLines)
-            print(svgOut)
+            _ = try! SVGEncoder().encode(c.multiLines)
+
             //XCTAssertEqual(svgOut,
 //                           "<svg version=\"1.1\" baseProfile=\"full\" width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\"><polyline fill=\"none\" stroke=\"black\" points=\"158.0, 130.0 122.08788495080478, 31.332274817479615 104.98687778452131, 78.31690585677502 138.9868777845213, 78.31690585677504 104.98687778452131, 78.31690585677502 86.1757699016095, 129.99999999999997\"/></svg>")
             
@@ -227,8 +227,7 @@ class CompleteProgramTests: XCTestCase {
             
             c = c.performing(.pu)
             
-            let svgOut = try! SVGEncoder().encode(c.multiLines)
-            print(svgOut)
+            _ = try! SVGEncoder().encode(c.multiLines)
         }
         
     }

@@ -195,6 +195,31 @@ class MultiplyingExpressionParserTests: XCTestCase {
         XCTAssertEqual(s, "")
     }
 
+    func testPrefixNegation() {
+        let parser = LogoParser()
+        guard let (e, s) = parser.multiplyingExpression(substring: "-3") else {
+            XCTFail("Failed to parse prefix negative number")
+            return
+        }
+        XCTAssert(s.count == 0)
+        let lhs = SignExpression(sign: .positive, value: .number(-3))
+        XCTAssertEqual(MultiplyingExpression(lhs: lhs), e)
+    }
+
+    func testVariables() {
+        let parser = LogoParser()
+
+        guard let (e, s) = parser.multiplyingExpression(substring: "-3 * :x") else {
+            XCTFail("Failed to parse prefix negative number multiplied by a single-length vairable")
+            return
+        }
+
+        XCTAssert(s.count == 0)
+        let lhs = SignExpression(sign: .positive, value: .number(-3))
+        let rhs = MultiplyingExpression.Rhs(operation: .multiply, rhs:SignExpression(sign: .positive, value: .deref("x")))
+        XCTAssertEqual(e, MultiplyingExpression(lhs: lhs, rhs: rhs))
+    }
+
     func testChaining() {
         let parser = LogoParser()
         guard let (e, s) = parser.multiplyingExpression(substring: "-3 / 1 *4 /1.5*-9 / 26 * -:x/+:y  x") else {
