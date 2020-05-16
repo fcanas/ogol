@@ -22,7 +22,7 @@ extension CharacterSet {
 
 public class LogoParser {
 
-    // MARK: Types
+    // MARK: - Types
 
     public enum ParseError {
         case basic(String)
@@ -64,7 +64,7 @@ public class LogoParser {
         return .success(program, self.allTokens, self.errors)
     }
 
-    // MARK: Bookeeping and State Accumulation
+    // MARK: - Bookeeping and State Accumulation
 
     internal var allTokens: [Range<Substring.Index>:SyntaxColorable] = [:]
 
@@ -87,7 +87,7 @@ public class LogoParser {
         }
     }
 
-    // MARK: Verify
+    // MARK: - Verify
 
     func verifyProcedureCalls(for program: Program) {
         allTokens.forEach { (range: Range<Substring.Index>, value: SyntaxColorable) in
@@ -117,7 +117,7 @@ public class LogoParser {
         }
     }
 
-    // MARK: Parse
+    // MARK: - Parse
 
     private func line(substring: Substring) -> (Either<Procedure, Command>, Substring)? {
         var previous: Substring
@@ -221,12 +221,9 @@ public class LogoParser {
 
                 registerToken(range: runningSubstring.startIndex..<literal.1.startIndex, token: SyntaxType(category: .stringLiteral))
                 runningSubstring = eatWhitespace(literal.1)
-                if let candidateLiteral = Lex.stringLiteral.run(runningSubstring) {
-                    registerToken(range: runningSubstring.startIndex..<candidateLiteral.1.startIndex, token: SyntaxType(category: .stringLiteral))
-                    return (Make(value: .string(candidateLiteral.0), symbol: literal.0), candidateLiteral.1)
-                }
-                if let candidateExpression = expression(substring: runningSubstring) {
-                    return (Make(value: .expression(candidateExpression.0), symbol: literal.0), candidateExpression.1)
+                
+                if let value = value(substring: runningSubstring) {
+                    return (Make(value: value.0, symbol: literal.0), value.1)
                 }
                 // deref
                 if let parsedDeref =  Lex.Token.deref.run(runningSubstring) {
@@ -289,11 +286,10 @@ public class LogoParser {
                     break
                 }
 
-                // TODO: parameter list
                 var expressions: [Value] = []
-                while let parsedExpression = expression(substring: runningSubstring) {
-                    expressions.append(.expression(parsedExpression.0))
-                    runningSubstring = parsedExpression.1
+                while let parsedValue = value(substring: runningSubstring) {
+                    expressions.append(parsedValue.0)
+                    runningSubstring = parsedValue.1
                 }
 
                 let invocation = ProcedureInvocation(identifier: .user(name), parameters: expressions)
@@ -359,7 +355,27 @@ public class LogoParser {
         return (Block(commands: commands, procedures: procedures), runningSubstring)
     }
 
-    // MARK: Expressions
+    // MARK: - Values
+    
+    internal func value(substring: Substring) -> (Value, Substring)? {
+        if let (string, remainder) = stringLiteral(substring: substring) {
+            return (.string(string), remainder)
+        }
+        if let (exp, remainder) = expression(substring: substring) {
+            return (.expression(exp), remainder)
+        }
+        return nil
+    }
+    
+    internal func stringLiteral(substring: Substring) -> (String, Substring)? {
+        guard let (string, remainder) = Lex.stringLiteral.run(substring) else {
+            return nil
+        }
+        registerToken(range: substring.startIndex..<remainder.startIndex, token: SyntaxType(category: .stringLiteral))
+        return (string, remainder)
+    }
+    
+    // MARK: - Expressions
 
     /// expression
     /// : multiplyingExpression (('+' | '-') multiplyingExpression)*
@@ -475,7 +491,7 @@ public class LogoParser {
         return nil
     }
 
-    // MARK: Eat Utilities
+    // MARK: - Eat Utilities
 
     private func eatComment(_ substring: Substring) -> Substring {
         let runningSubstring = eatWhitespace(substring)

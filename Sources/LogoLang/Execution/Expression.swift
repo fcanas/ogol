@@ -25,7 +25,7 @@ extension Bottom: CustomStringConvertible {
 }
 
 protocol Evaluatable {
-    func evaluate(context: inout ExecutionContext?)throws -> Bottom
+    func evaluate(context: inout ExecutionContext?) throws -> Bottom
 }
 
 struct SignExpression: Evaluatable, Equatable {
