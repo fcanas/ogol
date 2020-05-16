@@ -50,6 +50,7 @@ public enum ExecutionHandoff: Error {
     public enum Runtime {
         case typeError
         case missingSymbol
+        case parameter
         case maxDepth
         case corruptAST
     }
@@ -186,12 +187,10 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             return try turtleCommand.execute(context: &context)
         case let .user(name):
             guard let procedure = context?.procedures[name] else {
-                // TODO: Runtime error
-                return
+                throw ExecutionHandoff.error(.missingSymbol, "I don't know how to \(name)")
             }
             guard procedure.parameters.count == parameters.count else {
-                // TODO: Runtime error : expectd number of parameters
-                return
+                throw ExecutionHandoff.error(.parameter, "\(name) needs \(procedure.parameters.count) parameters. I found \(parameters.count).")
             }
             let parameterValues = try parameters.map { (e) -> Bottom in
                 try e.evaluate(context: &context)

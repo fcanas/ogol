@@ -13,6 +13,17 @@ public enum Bottom {
     case string(String)
 }
 
+extension Bottom: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case let .double(d):
+            return "\"\(d)\""
+        case let .string(s):
+            return s
+        }
+    }
+}
+
 protocol Evaluatable {
     func evaluate(context: inout ExecutionContext?)throws -> Bottom
 }

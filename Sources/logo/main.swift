@@ -2,7 +2,8 @@ import Foundation
 import LogoLang
 
 var procs: [String:Procedure] = [:]
-let p = NativeProcedure(name: "print", parameters: [Value.deref("in")]) { (params, _) in
+
+procs["print"] = NativeProcedure(name: "print", parameters: [Value.deref("in")]) { (params, _) in
     switch params.first! {
     case let .double(number):
         print("\(number)")
@@ -11,17 +12,11 @@ let p = NativeProcedure(name: "print", parameters: [Value.deref("in")]) { (param
     }
     return nil
 }
-procs["print"] = p
 
-let d = NativeProcedure(name: "dump", parameters: []) { (_, context) in
+procs["dump"] = NativeProcedure(name: "dump", parameters: []) { (_, context) in
     print(context.allVariables())
     return nil
 }
-procs["dump"] = d
-
-//extension String.Index {
-//    func distance<S: StringProtocol>(in string: S) -> Int { string.distance(from: <#String.Index#>, to: self) }
-//}
 
 extension Substring.Index {
     func idx(in substring: Substring) -> Int {
@@ -38,8 +33,26 @@ while let input = readLine() {
     let result = parser.program(substring: substringInput)
     switch result {
     case let .success(program, _, _):
-        try program.commands.forEach { (c) in
-            try c.execute(context: &context)
+        do {
+            try program.commands.forEach { (c) in
+                try c.execute(context: &context)
+            }
+        } catch let LogoLang.ExecutionHandoff.error(runtimeError, message) {
+            switch runtimeError {
+            case .typeError:
+                print("Type Error")
+            case .missingSymbol:
+                print("Missing Symbol")
+            case .maxDepth:
+                print("Stack depth exceeded")
+            case .corruptAST:
+                print("Corrupt AST")
+            case .parameter:
+                print("Parameter Error")
+            }
+            print(message)
+        } catch let runtimeError {
+            print(runtimeError)
         }
     case let .error(error):
         if let e = error.first {
@@ -55,6 +68,7 @@ while let input = readLine() {
             case let .severeInternal(e):
                 print("Severe internall error: \(e)")
             }
+            print(input)
         }
     }
     print(prompt, terminator: "")
