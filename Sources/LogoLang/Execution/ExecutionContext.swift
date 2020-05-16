@@ -71,6 +71,34 @@ public class ExecutionContext: TurtleCommandSource {
         return child?.deepestChild() ?? self
     }
 
+    /// Initialized a root execution context.
+    ///
+    /// The resulting context will have no parent.
+    ///
+    /// - Parameters:
+    ///   - procedures: Procedures that are newly available at this scope.
+    ///   - variables: Variables that are newly available at this scope.
+    public convenience init(procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
+        // As long as the designated initializer only throws on exceeding stack depth
+        // this will always succeed.
+        try! self.init(parent: nil, procedures: procedures, variables: variables)
+    }
+
+    /// Initializes a new `ExecutionContext`, which serves as a scope.
+    /// - Parameters:
+    ///   - parent:     The parent execution context. Procedures and variables defined
+    ///                 in the parent scope (recursively) are available to chil contexts.
+    ///   - procedures: Procedures that are newly available at this scope.
+    ///                 It is not necessary, and probably an error to pass procedures
+    ///                 that already exist in the parent scope.
+    ///   - variables:  Variables that are newly available at this scope.
+    ///                 It is not necessary, and probably an error to pass variables
+    ///                 that already exist in the parent scope unless they are explicitly
+    ///                 local, and will shadow the previous variable.
+    /// - Throws:       Instantiating an `ExecutionContext` will throw the error
+    ///                 `ExecutionHandoff.error(.maxDepth,...)` if adding the new
+    ///                 context as a child of `parent` would create a single context
+    ///                 chain deeper than `ExecutionContext.MaxDepth`.
     public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) throws {
         self.depth = parent.map({ $0.depth + 1 }) ?? 0
         if self.depth > ExecutionContext.MaxDepth {

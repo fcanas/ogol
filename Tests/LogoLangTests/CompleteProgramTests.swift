@@ -31,7 +31,7 @@ class CompleteProgramTests: XCTestCase {
                 XCTFail("Failed to parse performance program")
                 return
             }
-            var context: ExecutionContext? = ExecutionContext(parent: nil)
+            var context: ExecutionContext? = try! ExecutionContext(parent: nil)
             try! program.execute(context: &context)
         }
     }
@@ -161,7 +161,7 @@ class CompleteProgramTests: XCTestCase {
             
             // TODO: Procedure content
             
-            var context: ExecutionContext? = ExecutionContext(parent: nil)
+            var context: ExecutionContext? = ExecutionContext()
             
             var c = Canvas(turtle: Turtle())
             context?.issueCommand = { turtleCommand in
@@ -216,7 +216,7 @@ class CompleteProgramTests: XCTestCase {
             
             // TODO: Procedure content
             
-            var context: ExecutionContext? = ExecutionContext(parent: nil)
+            var context: ExecutionContext? = ExecutionContext()
             
             var c = Canvas(turtle: Turtle())
             context?.issueCommand = { turtleCommand in
