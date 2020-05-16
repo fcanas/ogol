@@ -200,11 +200,9 @@ public class LogoParser {
         return (Procedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters), eatNewlines(lexedEnd.1))
     }
 
-    internal func command(substring: Substring) -> (Command, Substring)? {
-        let chompedString = eatWhitespace(substring)
-
-        if let command = Lex.Commands.controlFlow.run(chompedString) {
-            let commandTokenRange = chompedString.startIndex..<command.1.startIndex
+    internal func controlFlow(substring: Substring) -> (Command, Substring)? {
+        if let command = Lex.Commands.controlFlow.run(substring) {
+            let commandTokenRange = substring.startIndex..<command.1.startIndex
 
             switch command.0 {
             case .stop:
@@ -221,7 +219,7 @@ public class LogoParser {
 
                 registerToken(range: runningSubstring.startIndex..<literal.1.startIndex, token: SyntaxType(category: .stringLiteral))
                 runningSubstring = eatWhitespace(literal.1)
-                
+
                 if let value = value(substring: runningSubstring) {
                     return (Make(value: value.0, symbol: literal.0), value.1)
                 }
@@ -283,7 +281,7 @@ public class LogoParser {
 
                 // black list
                 if LogoParser.nameBlackList.contains(name) {
-                    break
+                    return nil
                 }
 
                 var expressions: [Value] = []
@@ -296,6 +294,19 @@ public class LogoParser {
                 registerToken(range: commandTokenRange, token: invocation)
                 return (invocation, runningSubstring)
             }
+        }
+        return nil
+    }
+
+    /// Keywords and reserved functions that are not considered .user Procedure Invocations
+    /// These will basically be control flow and turtle commands
+    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show"] )
+
+    internal func command(substring: Substring) -> (Command, Substring)? {
+        let chompedString = eatWhitespace(substring)
+
+        if let controlFlowCommand = controlFlow(substring: chompedString) {
+            return controlFlowCommand
         }
 
         if let tCommand = Lex.Commands.turtle.run(chompedString) {
@@ -320,11 +331,8 @@ public class LogoParser {
             registerToken(range: commandTokenRange, token: inv)
             return (inv, runningSubstring)
         }
-
         return nil
     }
-
-    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show"] )
 
     private func block(substring: Substring) -> (Block, Substring)? {
         var runningSubstring = substring
