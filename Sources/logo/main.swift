@@ -4,16 +4,11 @@ import LogoLang
 var procs: [String:Procedure] = [:]
 
 procs["print"] = NativeProcedure(name: "print", parameters: [Value.deref("in")]) { (params, _) in
-    switch params.first! {
-    case let .double(number):
-        print("\(number)")
-    case let .string(string):
-        print(string)
-    }
+    print(params.first!.description)
     return nil
 }
 
-procs["dump"] = NativeProcedure(name: "dump", parameters: []) { (_, context) in
+procs["po"] = NativeProcedure(name: "po", parameters: []) { (_, context) in
     print(context.allVariables())
     return nil
 }

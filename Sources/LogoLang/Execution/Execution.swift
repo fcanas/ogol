@@ -218,7 +218,17 @@ public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
 }
 
 extension ProcedureInvocation: Evaluatable {
-    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+    public var description: String {
+        switch self.identifier {
+
+        case let .turtle(t):
+            return t.rawValue
+        case let .user(u):
+            return u
+        }
+    }
+
+    public func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         do {
             try execute(context: &context)
         } catch let ExecutionHandoff.output(bottom) {

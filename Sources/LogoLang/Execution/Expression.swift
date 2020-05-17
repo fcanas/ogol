@@ -11,6 +11,7 @@ import Foundation
 public enum Bottom {
     case double(Double)
     case string(String)
+    case list([Evaluatable])
 }
 
 extension Bottom: CustomStringConvertible {
@@ -20,15 +21,28 @@ extension Bottom: CustomStringConvertible {
             return "\"\(d)\""
         case let .string(s):
             return s
+        case let .list(list):
+            return "[ " +  list.map( { $0.description } ).joined(separator: " ") + " ]"
         }
     }
 }
 
-protocol Evaluatable {
+public protocol Evaluatable: CustomStringConvertible {
     func evaluate(context: inout ExecutionContext?) throws -> Bottom
 }
 
 struct SignExpression: Evaluatable, Equatable {
+
+    var description: String {
+        let prefix :String
+        if sign == .negative {
+            prefix = "-"
+        } else {
+            prefix = ""
+        }
+        return prefix + value.description
+    }
+
     enum Sign {
         case positive
         case negative
@@ -53,13 +67,18 @@ struct SignExpression: Evaluatable, Equatable {
         switch v {
         case let .double(d):
             return .double(multiplier * d)
-        case let .string(s):
-            return .string(s)
+        case .string(_), .list(_):
+            return v
         }
     }
 }
 
-struct MultiplyingExpression: Equatable {
+struct MultiplyingExpression: Equatable, CustomStringConvertible {
+
+    public var description: String {
+        return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
+    }
+
 
     init(lhs: SignExpression, rhs: MultiplyingExpression.Rhs) {
         self.lhs = lhs
@@ -71,12 +90,23 @@ struct MultiplyingExpression: Equatable {
         self.rhs = rhs
     }
 
-    struct Rhs: Equatable {
+    struct Rhs: Equatable, CustomStringConvertible {
+        var description: String {
+            return operation.description + " " + rhs.description
+        }
         var operation: MultiplyingOperation
         var rhs: SignExpression
     }
 
     enum MultiplyingOperation {
+        var description: String {
+            switch self {
+            case .multiply:
+                return "*"
+            case .divide:
+                return "/"
+            }
+        }
         case multiply
         case divide
     }
@@ -111,6 +141,10 @@ struct MultiplyingExpression: Equatable {
 
 public struct Expression: Evaluatable, Equatable {
 
+    public var description: String {
+        return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
+    }
+
     internal init(lhs: MultiplyingExpression, rhs: Expression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
@@ -121,12 +155,25 @@ public struct Expression: Evaluatable, Equatable {
         self.rhs = rhs
     }
 
-    struct Rhs: Equatable {
+    struct Rhs: Equatable, CustomStringConvertible {
+
+        var description: String {
+            return operation.description + " " + rhs.description
+        }
+
         var operation: ExpressionOperation
         var rhs: MultiplyingExpression
     }
 
-    enum ExpressionOperation: Equatable {
+    enum ExpressionOperation: Equatable, CustomStringConvertible {
+        var description: String {
+            switch self {
+            case .add:
+                return "+"
+            case .subtract:
+                return "-"
+            }
+        }
         case add
         case subtract
     }
@@ -134,7 +181,7 @@ public struct Expression: Evaluatable, Equatable {
     var lhs: MultiplyingExpression
     var rhs: [Rhs]
 
-    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+    public func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         
         // Short-circuit strings
         if case let .string(s) = try self.lhs.evaluate(context: &context) {
@@ -161,7 +208,23 @@ public struct Expression: Evaluatable, Equatable {
 }
 
 public enum Value: Evaluatable, Equatable {
-    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+
+    public var description: String {
+        switch self {
+        case let .deref(d):
+            return ":\(d)"
+        case let .expression(e):
+            return e.description
+        case let .number(n):
+            return n.description
+        case let .string(s):
+            return s
+        case let .procedure(p):
+            return "{\(p)}"
+        }
+    }
+
+    public func evaluate(context: inout ExecutionContext?) throws -> Bottom {
         switch self {
         case let .expression(e):
             return try e.evaluate(context: &context)
