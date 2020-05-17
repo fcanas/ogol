@@ -46,8 +46,15 @@ struct Make: Command {
         context!.variables[symbol] = try value.evaluate(context: &context)
     }
 
-    var value: Value
+    var value: Evaluatable
     var symbol: String
+}
+
+struct Output: Command {
+    func execute(context: inout ExecutionContext?) throws {
+        throw ExecutionHandoff.output(try value.evaluate(context: &context))
+    }
+    var value: Evaluatable
 }
 
 enum TurtleCommand: Command, Equatable {

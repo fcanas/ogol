@@ -276,6 +276,10 @@ public class LogoParser {
                 }
                 runningSubstring = eatWhitespace(block.1)
                 return (Conditional(lhs: lhs.0, comparison: comparison.0.additionOperator, rhs: rhs.0, block: block.0), runningSubstring)
+            case .output:
+                if let value = value(substring: eatWhitespace(command.1)) {
+                    return (Output(value: value.0), value.1)
+                }
             case let .procedureInvocation(name):
                 var runningSubstring = eatWhitespace(command.1)
 
@@ -300,7 +304,7 @@ public class LogoParser {
 
     /// Keywords and reserved functions that are not considered .user Procedure Invocations
     /// These will basically be control flow and turtle commands
-    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show"] )
+    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show", "output"] )
 
     internal func command(substring: Substring) -> (Command, Substring)? {
         let chompedString = eatWhitespace(substring)
@@ -367,10 +371,15 @@ public class LogoParser {
     
     internal func value(substring: Substring) -> (Value, Substring)? {
         if let (string, remainder) = stringLiteral(substring: substring) {
-            return (.string(string), remainder)
+            return (Value.string(string), remainder)
         }
         if let (exp, remainder) = expression(substring: substring) {
-            return (.expression(exp), remainder)
+            return (Value.expression(exp), remainder)
+        }
+        // procedure invocations _may_ return values
+        // TODO: static analysis to determine if procedures may return?
+        if let (command, remainder) = controlFlow(substring: substring), let inv = command as? ProcedureInvocation {
+            return (Value.procedure(inv), remainder)
         }
         return nil
     }

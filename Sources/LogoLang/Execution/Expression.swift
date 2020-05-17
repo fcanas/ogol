@@ -174,6 +174,8 @@ public enum Value: Evaluatable, Equatable {
             return .double(n)
         case let .string(s):
             return .string(s)
+        case let .procedure(p):
+            return try p.evaluate(context: &context)
         }
     }
     
@@ -190,4 +192,5 @@ public enum Value: Evaluatable, Equatable {
     // TODO: revisit.
     case number(Double)
     case string(String)
+    case procedure(ProcedureInvocation)
 }

@@ -53,6 +53,7 @@ public enum ExecutionHandoff: Error {
         case parameter
         case maxDepth
         case corruptAST
+        case noOutput
     }
 }
 
@@ -135,11 +136,13 @@ public class NativeProcedure: Procedure {
             }
             return v
         }
-        _ = action(p, context!)
+        if let output = action(p, context!) {
+            throw ExecutionHandoff.output(output)
+        }
     }
 }
 
-struct ProcedureInvocation: ExecutionNode, Command, Equatable {
+public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
 
     enum Identifier: Equatable {
         case turtle(TurtleCommand.Partial)
@@ -150,7 +153,7 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
     let parameters: [Value]
     
     // TODO: Output?
-    func execute(context: inout ExecutionContext?) throws {
+    public func execute(context: inout ExecutionContext?) throws {
 
         switch identifier {
         case let .turtle(partial):
@@ -214,8 +217,19 @@ struct ProcedureInvocation: ExecutionNode, Command, Equatable {
     }
 }
 
+extension ProcedureInvocation: Evaluatable {
+    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+        do {
+            try execute(context: &context)
+        } catch let ExecutionHandoff.output(bottom) {
+            return bottom
+        }
+        throw ExecutionHandoff.error(.noOutput, "No value returned from \(self).")
+    }
+}
+
 extension ProcedureInvocation: SyntaxColorable {
-    func syntaxCategory() -> SyntaxCategory? {
+    public func syntaxCategory() -> SyntaxCategory? {
         switch identifier {
         case .turtle(_):
             return .builtin

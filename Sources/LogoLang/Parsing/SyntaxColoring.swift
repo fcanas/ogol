@@ -44,6 +44,8 @@ extension Value: SyntaxColorable {
             return nil
         case .string(_):
             return .stringLiteral
+        case .procedure(_):
+            fatalError("This shouldn't be here")
         }
     }
 }

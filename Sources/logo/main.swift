@@ -23,8 +23,8 @@ extension Substring.Index {
         return substring.distance(from: substring.startIndex, to: self)
     }
 }
-
 var context: ExecutionContext? = try ExecutionContext(parent: nil, procedures: procs)
+
 let prompt = "> "
 let parser = LogoParser()
 print(prompt, terminator: "")
@@ -34,6 +34,10 @@ while let input = readLine() {
     switch result {
     case let .success(program, _, _):
         do {
+            program.procedures.forEach { (key: String, value: Procedure) in
+                procs[key] = value
+            }
+            context = try ExecutionContext(parent: nil, procedures: procs, variables: context?.allVariables() ?? [:])
             try program.commands.forEach { (c) in
                 try c.execute(context: &context)
             }
@@ -49,8 +53,12 @@ while let input = readLine() {
                 print("Corrupt AST")
             case .parameter:
                 print("Parameter Error")
+            case .noOutput:
+                print("Procedure provided no output when expected")
             }
             print(message)
+        } catch let LogoLang.ExecutionHandoff.output(v) {
+            print(v)
         } catch let runtimeError {
             print(runtimeError)
         }

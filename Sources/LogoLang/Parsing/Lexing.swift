@@ -32,7 +32,7 @@ struct Lex {
         enum ControlFlow: SyntaxColorable {
             func syntaxCategory() -> SyntaxCategory? {
                 switch self {
-                case .repeat_, .make, .ife, .stop:
+                case .repeat_, .make, .ife, .stop, .output:
                     return .keyword
                 case .procedureInvocation(_):
                     return .procedureInvocation
@@ -44,6 +44,7 @@ struct Lex {
             case procedureInvocation(String)
             case ife
             case stop
+            case output
             // TODO: case fore
             // TODO: case label
         }
@@ -65,12 +66,13 @@ struct Lex {
         static let lt: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.lt } <^> ("lt" <|> "left")
         static let setxy: Parser<Substring, TurtleCommand.Partial> = { _ in TurtleCommand.Partial.setxy } <^> "setxy" <* Lex.Token._space
 
-        static let controlFlow = ((repeat_ <|> make <|> ife) <* Lex.Token._space) <|> stop <|> procedureInvocation
+        static let controlFlow = ((repeat_ <|> make <|> ife) <* Lex.Token._space) <|> stop <|> output <|> procedureInvocation
 
         static let repeat_: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.repeat_ } <^> "repeat"
         static let make: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.make } <^> "make"
         static let ife: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.ife } <^> "if"
         static let stop: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.stop } <^> "stop"
+        static let output: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.output } <^> "output"
 
         static let procedureInvocation = { Lex.Commands.ControlFlow.procedureInvocation($0) } <^> Lex.name
 
