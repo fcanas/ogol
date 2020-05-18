@@ -127,9 +127,9 @@ public class NativeProcedure: Procedure {
         return "Native Procedure \(parameters)"
     }
 
-    let action: ([Bottom], ExecutionContext) -> Bottom?
+    let action: ([Bottom], ExecutionContext) throws -> Bottom?
     
-    public init(name: String, parameters: [Value], action: @escaping ([Bottom], ExecutionContext) -> Bottom?) {
+    public init(name: String, parameters: [Value], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
         self.action = action
         super.init(name: name, commands: [], procedures: [:], parameters: parameters)
     }
@@ -144,7 +144,7 @@ public class NativeProcedure: Procedure {
             }
             return v
         }
-        if let output = action(p, context!) {
+        if let output = try action(p, context!) {
             throw ExecutionHandoff.output(output)
         }
     }

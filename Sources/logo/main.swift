@@ -3,22 +3,6 @@ import LogoLang
 
 var procs: [String:Procedure] = [:]
 
-procs["print"] = NativeProcedure(name: "print", parameters: [Value.deref("in")]) { (params, _) in
-    print(params.first!.description)
-    return nil
-}
-
-procs["po"] = NativeProcedure(name: "po", parameters: [Value.deref("param")]) { (params, context) in
-    if params.first == .string("names") {
-        print(context.allVariables())
-    } else if params.first == .string("procedures") {
-        print(context.allProcedures())
-    } else {
-        print("unrecognized parameter \(params.first!)")
-    }
-
-    return nil
-}
 
 extension Substring.Index {
     func idx(in substring: Substring) -> Int {
@@ -26,6 +10,9 @@ extension Substring.Index {
     }
 }
 var context: ExecutionContext? = try ExecutionContext(parent: nil, procedures: procs)
+
+context?.load(CLI.self)
+context?.load(LogoMath.self)
 
 let prompt = "> "
 let parser = LogoParser()
@@ -39,7 +26,7 @@ while let input = readLine() {
             program.procedures.forEach { (key: String, value: Procedure) in
                 procs[key] = value
             }
-            context = try ExecutionContext(parent: nil, procedures: procs, variables: context?.allVariables() ?? [:])
+            context?.inject(procedures: procs)
             try program.commands.forEach { (c) in
                 try c.execute(context: &context)
             }

@@ -8,6 +8,16 @@
 import Foundation
 
 public class ExecutionContext: TurtleCommandSource {
+
+    public func load(_ module: Module.Type) {
+        inject(procedures: module.procedures)
+    }
+
+    public func inject(procedures: [String:Procedure]) {
+        procedures.forEach { (key: String, value: Procedure) in
+            self.procedures.items[key] = value
+        }
+    }
     
     public static var MaxDepth: Int = 500
 
