@@ -8,8 +8,15 @@ procs["print"] = NativeProcedure(name: "print", parameters: [Value.deref("in")])
     return nil
 }
 
-procs["po"] = NativeProcedure(name: "po", parameters: []) { (_, context) in
-    print(context.allVariables())
+procs["po"] = NativeProcedure(name: "po", parameters: [Value.deref("param")]) { (params, context) in
+    if params.first == .string("names") {
+        print(context.allVariables())
+    } else if params.first == .string("procedures") {
+        print(context.allProcedures())
+    } else {
+        print("unrecognized parameter \(params.first!)")
+    }
+
     return nil
 }
 

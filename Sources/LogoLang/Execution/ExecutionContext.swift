@@ -63,6 +63,10 @@ public class ExecutionContext: TurtleCommandSource {
         return variables.flattened()
     }
 
+    public func allProcedures() -> [String:Procedure] {
+        return procedures.flattened()
+    }
+
     // Single child, expecint more of a linked list for nested scopes rather than trees?
     // Rethink execution to support stepping, etc.
     var child: ExecutionContext?

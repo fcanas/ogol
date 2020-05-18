@@ -9,15 +9,22 @@
 import Foundation
 
 
-public protocol Command: ExecutionNode { }
+public protocol Command: ExecutionNode, CustomStringConvertible { }
 
 struct Stop: Command {
+    var description: String {
+        return "stop"
+    }
+
     func execute(context: inout ExecutionContext?) throws {
         throw ExecutionHandoff.stop
     }
 }
 
 struct Repeat: Command {
+    var description: String {
+        return "repeat " + count.description + " " + "[ TODO : Block Description]"
+    }
 
     func execute(context: inout ExecutionContext?) throws {
         var executed = 0
@@ -41,6 +48,11 @@ struct Repeat: Command {
 }
 
 struct Make: Command {
+
+    var description: String {
+        return "make \"\(symbol) \(value)"
+    }
+
     func execute(context: inout ExecutionContext?) throws {
         assert(context != nil)
         context!.variables[symbol] = try value.evaluate(context: &context)
@@ -51,6 +63,9 @@ struct Make: Command {
 }
 
 struct Output: Command {
+    var description: String {
+        return "output \(value)"
+    }
     func execute(context: inout ExecutionContext?) throws {
         throw ExecutionHandoff.output(try value.evaluate(context: &context))
     }
@@ -58,6 +73,22 @@ struct Output: Command {
 }
 
 enum TurtleCommand: Command, Equatable {
+
+    var description: String {
+        switch self {
+        case let .fd(v): return "fd \(v)"
+        case let .bk(v): return "bk \(v)"
+        case let .rt(v): return "rt \(v)"
+        case let .lt(v): return "lt \(v)"
+        case .cs: return "cs"
+        case .pu: return "pu"
+        case .pd: return "pd"
+        case .st: return "st"
+        case .ht: return "ht"
+        case .home: return "home"
+        case let .setXY(x, y): return "setxy \(x) \(y)"
+        }
+    }
 
     enum Partial: String, RawRepresentable, CaseIterable {
         case fd
@@ -143,7 +174,21 @@ enum TurtleCommand: Command, Equatable {
 
 struct Conditional: Command {
 
-    enum Comparison {
+    var description: String {
+        return "\(lhs) \(comparisonOp) \(rhs) [ TODO : Block ]"
+    }
+
+    enum Comparison: CustomStringConvertible {
+        var description: String {
+            switch self {
+            case .lt:
+                return "<"
+            case .gt:
+                return ">"
+            case .eq:
+                return "="
+            }
+        }
         case lt
         case gt
         case eq
@@ -186,6 +231,10 @@ struct Conditional: Command {
 }
 
 struct For: Command {
+
+    var description: String {
+        return "for"
+    }
 
     func execute(context: inout ExecutionContext?) {
         // TODO

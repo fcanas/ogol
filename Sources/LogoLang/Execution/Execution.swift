@@ -27,10 +27,6 @@ struct CommandList: ExecutionNode {
     let commands: [Command]
 }
 
-struct NOP: Command {
-    func execute(context: inout ExecutionContext?) { }
-}
-
 public extension Scope {
 
     func execute(context: inout ExecutionContext?) throws {
@@ -88,7 +84,7 @@ public struct Program: Scope {
     }
 }
 
-public class Procedure: ExecutionNode, Scope {
+public class Procedure: ExecutionNode, Scope, CustomStringConvertible{
 
     var name: String
     public var commands: [Command]
@@ -115,10 +111,22 @@ public class Procedure: ExecutionNode, Scope {
         }
     }
 
+    public var description: String {
+        return "to \(name) " + parameters.map( {
+            guard case let .deref(s) = $0 else {fatalError()}
+            return ":\(s) "
+        } ).joined(separator: " ") + commands.reduce("") { (result, command) -> String in
+            result + command.description
+        }
+    }
 }
 
 public class NativeProcedure: Procedure {
-    
+
+    public override var description: String {
+        return "Native Procedure \(parameters)"
+    }
+
     let action: ([Bottom], ExecutionContext) -> Bottom?
     
     public init(name: String, parameters: [Value], action: @escaping ([Bottom], ExecutionContext) -> Bottom?) {

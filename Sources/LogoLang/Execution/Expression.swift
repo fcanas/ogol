@@ -8,10 +8,21 @@
 
 import Foundation
 
-public enum Bottom {
+public enum Bottom: Equatable {
+
+    public static func == (lhs: Bottom, rhs: Bottom) -> Bool {
+        switch (lhs, rhs) {
+        case let (.double(l), .double(r)):
+            return l == r
+        case let (.string(l), .string(r)):
+            return l == r
+        case (.string(_), .double(_)), (.double(_), .string(_)):
+            return false
+        }
+    }
+
     case double(Double)
     case string(String)
-    case list([Evaluatable])
 }
 
 extension Bottom: CustomStringConvertible {
@@ -21,8 +32,6 @@ extension Bottom: CustomStringConvertible {
             return "\"\(d)\""
         case let .string(s):
             return s
-        case let .list(list):
-            return "[ " +  list.map( { $0.description } ).joined(separator: " ") + " ]"
         }
     }
 }
@@ -67,7 +76,7 @@ struct SignExpression: Evaluatable, Equatable {
         switch v {
         case let .double(d):
             return .double(multiplier * d)
-        case .string(_), .list(_):
+        case .string(_):
             return v
         }
     }
