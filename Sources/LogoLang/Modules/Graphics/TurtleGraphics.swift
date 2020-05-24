@@ -39,7 +39,7 @@ public struct Turtle: Module {
         turtleStore[turtleKey] = Turtle()
     }
 
-    static func multilines(for context:ExecutionContext) -> [MultiLine] {
+    public static func multilines(for context:ExecutionContext) -> [MultiLine] {
         return context.moduleStores[ModuleStoreKey]?[multilineKey] ?? []
     }
 
