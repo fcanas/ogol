@@ -304,7 +304,7 @@ public class LogoParser {
 
     /// Keywords and reserved functions that are not considered .user Procedure Invocations
     /// These will basically be control flow and turtle commands
-    private static let nameBlackList = Set(["end"] + TurtleCommand.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show", "output"] )
+    private static let nameBlackList = Set(["end"] + Turtle.Command.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show", "output"] )
 
     internal func command(substring: Substring) -> (Command, Substring)? {
         let chompedString = eatWhitespace(substring)

@@ -23,19 +23,105 @@ public struct Point {
     public static let zero = Point(x: 0, y: 0)
 }
 
-public struct Turtle {
+public struct Turtle: Module {
+
+    private static let ModuleStoreKey: String = "turtle"
+    let turtleKey = Turtle.turtleKey
+    static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
+    static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
+    let multilineKey = Turtle.multilineKey
+
+    public static var procedures: [String : NativeProcedure] = [:]
+
+    public static func initialize(context: ExecutionContext) {
+        let turtleStore = ExecutionContext.ModuleStore()
+        context.moduleStores[ModuleStoreKey] = turtleStore
+        turtleStore[turtleKey] = Turtle()
+    }
+
+    static func multilines(for context:ExecutionContext) -> [MultiLine] {
+        return context.moduleStores[ModuleStoreKey]?[multilineKey] ?? []
+    }
 
     public enum Command {
-        case fd(Double)
-        case bk(Double)
-        case lt(Double)
-        case rt(Double)
-        case setxy(Point)
-        case pu
-        case pd
-        case home
-        case st
-        case ht
+        var description: String {
+                switch self {
+                case let .fd(v): return "fd \(v)"
+                case let .bk(v): return "bk \(v)"
+                case let .rt(v): return "rt \(v)"
+                case let .lt(v): return "lt \(v)"
+                case .cs: return "cs"
+                case .pu: return "pu"
+                case .pd: return "pd"
+                case .st: return "st"
+                case .ht: return "ht"
+                case .home: return "home"
+                case let .setXY(point): return "setxy \(point)"
+                }
+            }
+
+            enum Partial: String, RawRepresentable, CaseIterable {
+                case fd
+                case bk
+                case rt
+                case lt
+                case cs
+                case pu
+                case pd
+                case st
+                case ht
+                case home
+                case setxy
+
+                var parameterCount: Int {
+                    switch self {
+                    case .fd, .bk, .rt, .lt:
+                        return 1
+                    case .cs, .pu, .pd, .st, .ht, .home:
+                        return 0
+                    case .setxy:
+                        return 2
+                    }
+                }
+            }
+
+            case fd(Double)
+            case bk(Double)
+            case rt(Double)
+            case lt(Double)
+            case cs
+            case pu
+            case pd
+            case st
+            case ht
+            case home
+            case setXY(Point)
+
+            func execute(context: inout ExecutionContext?) throws {
+
+                guard let store = context?.moduleStores[Turtle.ModuleStoreKey] else {
+                    throw ExecutionHandoff.error(.module, "Turle module not initialized")
+                }
+
+                guard let turtle = store[turtleKey] else {
+                    throw ExecutionHandoff.error(.module, "Turtle not found")
+                }
+
+                if case .cs = self {
+                    store[multilineKey] = []
+                    return
+                }
+
+                let (newTurtle, newMultiline) = turtle.performing(self)
+                store[turtleKey] = newTurtle
+                if let newMultiline = newMultiline {
+                    if (store[multilineKey] != nil) {
+                        store[multilineKey]?.append(newMultiline)
+                    } else {
+                        store[multilineKey] = [newMultiline]
+                    }
+                }
+            }
     }
 
     public enum Pen {
@@ -91,7 +177,7 @@ public struct Turtle {
 
         switch command {
 
-        case .pu, .setxy(_), .home:
+        case .pu, .setXY(_), .home:
             lineOut = multiline
         default:
             lineOut = nil
@@ -136,8 +222,11 @@ public struct Turtle {
             return with(visible: true)
         case .ht:
             return with(visible: false)
-        case let .setxy(position):
+        case let .setXY(position):
             return with(position: position, multiline: [])
+        case .cs:
+            // no-op for a turtle
+            return self
         }
     }
 }

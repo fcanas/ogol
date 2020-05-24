@@ -32,6 +32,7 @@ class CompleteProgramTests: XCTestCase {
                 return
             }
             var context: ExecutionContext? = try! ExecutionContext(parent: nil)
+            context?.load(Turtle.self)
             try! program.execute(context: &context)
         }
     }
@@ -162,17 +163,13 @@ class CompleteProgramTests: XCTestCase {
             // TODO: Procedure content
             
             var context: ExecutionContext? = ExecutionContext()
-            
-            var c = Canvas(turtle: Turtle())
-            context?.issueCommand = { turtleCommand in
-                c = c.performing(turtleCommand)
-            }
+            context?.load(Turtle.self)
             
             try! program.execute(context: &context)
+
+            let multiLines = Turtle.multilines(for: context!)
             
-            c = c.performing(.pu)
-            
-            _ = try! SVGEncoder().encode(c.multiLines)
+            _ = try! SVGEncoder().encode(multiLines)
 
             //XCTAssertEqual(svgOut,
 //                           "<svg version=\"1.1\" baseProfile=\"full\" width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\"><polyline fill=\"none\" stroke=\"black\" points=\"158.0, 130.0 122.08788495080478, 31.332274817479615 104.98687778452131, 78.31690585677502 138.9868777845213, 78.31690585677504 104.98687778452131, 78.31690585677502 86.1757699016095, 129.99999999999997\"/></svg>")
@@ -217,17 +214,13 @@ class CompleteProgramTests: XCTestCase {
             // TODO: Procedure content
             
             var context: ExecutionContext? = ExecutionContext()
-            
-            var c = Canvas(turtle: Turtle())
-            context?.issueCommand = { turtleCommand in
-                c = c.performing(turtleCommand)
-            }
-            
+            context?.load(Turtle.self)
+
             try! program.execute(context: &context)
+
+            let multiLines = Turtle.multilines(for: context!)
             
-            c = c.performing(.pu)
-            
-            _ = try! SVGEncoder().encode(c.multiLines)
+            _ = try! SVGEncoder().encode(multiLines)
         }
         
     }

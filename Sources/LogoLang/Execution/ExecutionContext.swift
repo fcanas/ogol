@@ -7,10 +7,31 @@
 
 import Foundation
 
-public class ExecutionContext: TurtleCommandSource {
+public class ExecutionContext {
+
+    public struct ModuleKey<T> {
+        let key: String
+    }
+
+    public class ModuleStore {
+        private var store: [String:Any] = [:]
+        subscript<T>(key: ModuleKey<T>) -> T? {
+            get {
+                return store[key.key] as? T
+            }
+            set {
+                store[key.key] = newValue
+            }
+        }
+    }
 
     public func load(_ module: Module.Type) {
+        if let p = parent {
+            p.load(module)
+            return
+        }
         inject(procedures: module.procedures)
+        module.initialize(context: self)
     }
 
     public func inject(procedures: [String:Procedure]) {
@@ -21,9 +42,7 @@ public class ExecutionContext: TurtleCommandSource {
     
     public static var MaxDepth: Int = 500
 
-    public var issueCommand: (Turtle.Command) -> Void
-
-    class NestedKeyValueStore<T> {
+    public class NestedKeyValueStore<T> {
         var parent: NestedKeyValueStore<T>?
         var items: [String : T]
         subscript(key: String)-> T? {
@@ -67,7 +86,9 @@ public class ExecutionContext: TurtleCommandSource {
 
     var procedures: NestedKeyValueStore<Procedure>
     var variables: NestedKeyValueStore<Bottom>
+    var moduleStores: NestedKeyValueStore<ModuleStore>
     private var depth: Int
+    private weak var parent: ExecutionContext?
 
     public func allVariables() -> [String:Bottom] {
         return variables.flattened()
@@ -120,7 +141,8 @@ public class ExecutionContext: TurtleCommandSource {
         }
         self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
         self.variables = NestedKeyValueStore(parent: parent?.variables, items: variables)
-        self.issueCommand = { [weak parent] t in parent?.issueCommand(t) }
+        self.moduleStores = NestedKeyValueStore(parent: parent?.moduleStores, items: [:])
+        self.parent = parent
         parent?.child = self
     }
 }

@@ -50,15 +50,12 @@ public enum ExecutionHandoff: Error {
         case maxDepth
         case corruptAST
         case noOutput
+        case module
     }
 }
 
 public protocol ExecutionNode {
     func execute(context: inout ExecutionContext?) throws
-}
-
-public protocol TurtleCommandSource {
-    var issueCommand: (Turtle.Command) -> Void { get set }
 }
 
 public struct Program: Scope {
@@ -129,9 +126,9 @@ public class NativeProcedure: Procedure {
 
     let action: ([Bottom], ExecutionContext) throws -> Bottom?
     
-    public init(name: String, parameters: [Value], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
+    public init(name: String, parameters: [String], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
         self.action = action
-        super.init(name: name, commands: [], procedures: [:], parameters: parameters)
+        super.init(name: name, commands: [], procedures: [:], parameters: parameters.map(Value.deref))
     }
     
     public override func execute(context: inout ExecutionContext?) throws {
@@ -153,7 +150,7 @@ public class NativeProcedure: Procedure {
 public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
 
     enum Identifier: Equatable {
-        case turtle(TurtleCommand.Partial)
+        case turtle(Turtle.Command.Partial)
         case user(String)
     }
 
@@ -169,17 +166,24 @@ public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
                 // TODO: Runtime error
                 return
             }
-            let turtleCommand: TurtleCommand
+            let turtleCommand: Turtle.Command
+
+            let evaluatedParameters = try parameters.map { (value) throws -> Double in
+                guard case let .double(v) = try value.evaluate(context: &context) else {
+                    throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                }
+                return v
+            }
 
             switch partial {
             case .fd:
-                turtleCommand = .fd(parameters.first!.expressionValue())
+                turtleCommand = .fd(evaluatedParameters[0])
             case .bk:
-                turtleCommand = .bk(parameters.first!.expressionValue())
+                turtleCommand = .bk(evaluatedParameters[0])
             case .rt:
-                turtleCommand = .rt(parameters.first!.expressionValue())
+                turtleCommand = .rt(evaluatedParameters[0])
             case .lt:
-                turtleCommand = .lt(parameters.first!.expressionValue())
+                turtleCommand = .lt(evaluatedParameters[0])
             case .cs:
                 turtleCommand = .cs
             case .pu:
@@ -193,7 +197,7 @@ public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             case .home:
                 turtleCommand = .home
             case .setxy:
-                turtleCommand = .setXY(parameters[0].expressionValue(), parameters[1].expressionValue())
+                turtleCommand = .setXY(Point(x: evaluatedParameters[0], y: evaluatedParameters[1]))
             }
             return try turtleCommand.execute(context: &context)
         case let .user(name):

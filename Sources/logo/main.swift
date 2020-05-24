@@ -9,7 +9,8 @@ extension Substring.Index {
         return substring.distance(from: substring.startIndex, to: self)
     }
 }
-var context: ExecutionContext? = try ExecutionContext(parent: nil, procedures: procs)
+var context: ExecutionContext? = ExecutionContext(procedures: procs)
+context?.load(Turtle.self)
 
 context?.load(CLI.self)
 context?.load(LogoMath.self)
@@ -33,19 +34,21 @@ while let input = readLine() {
         } catch let LogoLang.ExecutionHandoff.error(runtimeError, message) {
             switch runtimeError {
             case .typeError:
-                print("Type Error")
+                print("Type Error", terminator: "")
             case .missingSymbol:
-                print("Missing Symbol")
+                print("Missing Symbol", terminator: "")
             case .maxDepth:
-                print("Stack depth exceeded")
+                print("Stack depth exceeded", terminator: "")
             case .corruptAST:
-                print("Corrupt AST")
+                print("Corrupt AST", terminator: "")
             case .parameter:
-                print("Parameter Error")
+                print("Parameter Error", terminator: "")
             case .noOutput:
-                print("Procedure provided no output when expected")
+                print("Procedure provided no output when expected", terminator: "")
+            case .module:
+                print("Module error", terminator: "")
             }
-            print(message)
+            print(" - " + message)
         } catch let LogoLang.ExecutionHandoff.output(v) {
             print(v)
         } catch let runtimeError {

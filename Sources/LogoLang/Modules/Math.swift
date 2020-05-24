@@ -9,11 +9,17 @@ import Foundation
 
 public protocol Module {
     static var procedures: [String : NativeProcedure] { get }
+    static func initialize(context: ExecutionContext)
+}
+
+extension Module {
+    public static func initialize(context: ExecutionContext) {}
 }
 
 public struct LogoMath: Module {
 
     private enum SingleParameter: Module {
+
         private static let nativeFunctions: [String:(Double)->Double] = [
             "cos" : Darwin.cos,
             "sin" : Darwin.sin,
@@ -45,7 +51,7 @@ public struct LogoMath: Module {
         public static let procedures: [String : NativeProcedure] = {
             var out: [String:NativeProcedure] = [:]
             nativeFunctions.forEach { (key: String, function: @escaping (Double) -> Double) in
-                out[key] = NativeProcedure(name: key, parameters: [Value.deref("LogoMathParam")]) { (params, context) throws -> Bottom? in
+                out[key] = NativeProcedure(name: key, parameters: ["LogoMathParam"]) { (params, context) throws -> Bottom? in
                     guard case let .double(param) = params.first else {
                         throw ExecutionHandoff.error(.parameter, "\(key) needs a numeric parameter")
                     }
@@ -58,7 +64,7 @@ public struct LogoMath: Module {
 
     private enum Random: Module {
         public static let procedures: [String : NativeProcedure] = {
-            return ["random":NativeProcedure(name: "random", parameters: [Value.deref("top")], action: { (params, _) -> Bottom? in
+            return ["random":NativeProcedure(name: "random", parameters: ["top"], action: { (params, _) -> Bottom? in
                 guard case let .double(param) = params.first else {
                     throw ExecutionHandoff.error(.parameter, "random needs a numeric parameter")
                 }
