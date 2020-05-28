@@ -43,6 +43,10 @@ public struct Turtle: Module {
         return context.moduleStores[ModuleStoreKey]?[multilineKey] ?? []
     }
 
+    public static func from(context: ExecutionContext) -> Turtle? {
+        return context.moduleStores[Turtle.ModuleStoreKey]?[Turtle.turtleKey]
+    }
+
     public enum Command {
         var description: String {
                 switch self {
