@@ -108,8 +108,6 @@ public class ExecutionContext {
     ///   - procedures: Procedures that are newly available at this scope.
     ///   - variables: Variables that are newly available at this scope.
     public init(procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
-        // As long as the designated initializer only throws on exceeding stack depth
-        // this will always succeed.
         self.depth = 0
         
         self.procedures = NestedKeyValueStore(parent: nil, items: procedures)

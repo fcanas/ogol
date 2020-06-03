@@ -64,18 +64,16 @@ struct SignExpression: Evaluatable, Equatable {
     }
     
     func evaluate(context: ExecutionContext) throws -> Bottom {
-        let multiplier: Double
-        switch sign {
-        case .negative:
-            multiplier = -1.0
-        default:
-            multiplier = 1.0
-        }
-        
         let v = try self.value.evaluate(context: context)
         switch v {
-        case let .double(d):
-            return .double(multiplier * d)
+        case var .double(d):
+            switch sign {
+            case .negative:
+                d.negate()
+            default:
+                break
+            }
+            return .double(d)
         case .string(_):
             return v
         }
