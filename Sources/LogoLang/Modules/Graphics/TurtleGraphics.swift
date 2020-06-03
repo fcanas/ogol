@@ -9,6 +9,12 @@
 import Foundation
 
 public struct Point {
+    
+    public init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+    
     public let x: Double
     public let y: Double
 

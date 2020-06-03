@@ -6,15 +6,7 @@
 //
 
 import Foundation
-
-public protocol Module {
-    static var procedures: [String : NativeProcedure] { get }
-    static func initialize(context: ExecutionContext)
-}
-
-extension Module {
-    public static func initialize(context: ExecutionContext) {}
-}
+import LogoLang
 
 public struct LogoMath: Module {
 

@@ -1,5 +1,6 @@
 import Foundation
 import LogoLang
+import libLogo
 
 var procs: [String:Procedure] = [:]
 

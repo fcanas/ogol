@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LogoLang
 
 enum SVGError: Error {
     case emptyMultiLine

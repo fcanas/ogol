@@ -6,26 +6,22 @@ import PackageDescription
 let package = Package(
     name: "LogoLang",
     products: [
-        // Products define the executables and libraries produced by a package, and make them visible to other packages.
-        .library(
-            name: "LogoLang",
-            targets: ["LogoLang"]),
-        .executable(name: "logo", targets: ["logo"])
+        .library( name: "LogoLang", targets: ["LogoLang"]),
+        .executable(name: "logo", targets: ["logo"]),
+        .executable(name: "clogo", targets: ["clogo"])
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
         .package(url: "https://github.com/fcanas/FFCParserCombinator.git", .branch("substring")),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "LogoLang",
             dependencies: ["FFCParserCombinator"]),
         .testTarget(
             name: "LogoLangTests",
             dependencies: ["LogoLang"]),
-        .target(name: "logo", dependencies: ["LogoLang"])
+        .target(name: "libLogo", dependencies: ["LogoLang"]),
+        .target(name: "logo", dependencies: ["LogoLang", "libLogo"]),
+        .target(name: "clogo", dependencies: ["LogoLang"])
     ]
 )
