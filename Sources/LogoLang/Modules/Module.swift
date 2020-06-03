@@ -27,17 +27,14 @@ public class NativeProcedure: Procedure {
         super.init(name: name, commands: [], procedures: [:], parameters: parameters.map(Value.deref))
     }
     
-    public override func execute(context: inout ExecutionContext?) throws {
-        let p = try parameters.map { (deref) -> Bottom in
-            guard case let .deref(s) = deref  else {
-                throw ExecutionHandoff.error(.typeError, "Parameters should be derefs")
-            }
-            guard let v = context?.variables[s] else {
-                throw ExecutionHandoff.error(.missingSymbol, "\(s) parameter required")
+    public override func execute(context: ExecutionContext) throws {
+        let p = try parameters.map { (parameterName) -> Bottom in
+            guard let v = context.variables[parameterName] else {
+                throw ExecutionHandoff.error(.missingSymbol, "\(parameterName) parameter required")
             }
             return v
         }
-        if let output = try action(p, context!) {
+        if let output = try action(p, context) {
             throw ExecutionHandoff.output(output)
         }
     }

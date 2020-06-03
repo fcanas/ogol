@@ -116,7 +116,7 @@ public class LogoParser {
 
     // MARK: - Parse
 
-    private func line(substring: Substring) -> (Either<Procedure, Command>, Substring)? {
+    private func line(substring: Substring) -> (Either<Procedure, ExecutionNode>, Substring)? {
         var previous: Substring
         var skipCommentLine = substring
         repeat {
@@ -175,7 +175,7 @@ public class LogoParser {
 
         runningSubstring = eatNewlines(runningSubstring)
 
-        var commands: [Command] = []
+        var commands: [ExecutionNode] = []
         var subProcedures: [String : Procedure] = [:]
         while let nextLine = line(substring: runningSubstring) {
             switch nextLine.0 {
@@ -197,7 +197,7 @@ public class LogoParser {
         return (Procedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters), eatNewlines(lexedEnd.1))
     }
 
-    internal func controlFlow(substring: Substring) -> (Command, Substring)? {
+    internal func controlFlow(substring: Substring) -> (ExecutionNode, Substring)? {
         if let command = Lex.Commands.controlFlow.run(substring) {
             let commandTokenRange = substring.startIndex..<command.1.startIndex
 
@@ -300,16 +300,14 @@ public class LogoParser {
     }
 
     /// Keywords and reserved functions that are not considered .user Procedure Invocations
-    /// These will basically be control flow and turtle commands
+    /// These will basically be control flow
     private static let nameBlackList = Set(["end", "repeat", "make", "ife", "stop", "output"] )
 
-    internal func command(substring: Substring) -> (Command, Substring)? {
+    internal func command(substring: Substring) -> (ExecutionNode, Substring)? {
         let chompedString = eatWhitespace(substring)
-
         if let controlFlowCommand = controlFlow(substring: chompedString) {
             return controlFlowCommand
         }
-        
         return nil
     }
 
@@ -321,7 +319,7 @@ public class LogoParser {
         registerToken(range: runningSubstring.startIndex..<blockStart.1.startIndex, token: SyntaxType(category: .plain))
         runningSubstring = eatNewlines(blockStart.1)
 
-        var commands: [Command] = []
+        var commands: [ExecutionNode] = []
         var procedures: [String: Procedure] = [:]
         while let nextLine = line(substring: runningSubstring) {
             switch nextLine.0 {

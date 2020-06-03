@@ -10,12 +10,12 @@ extension Substring.Index {
         return substring.distance(from: substring.startIndex, to: self)
     }
 }
-var context: ExecutionContext? = ExecutionContext(procedures: procs)
-context?.load(Turtle.self)
+var context: ExecutionContext = ExecutionContext(procedures: procs)
+context.load(Turtle.self)
 
-context?.load(CLI.self)
-context?.load(LogoMath.self)
-context?.load(Turtle.self)
+context.load(CLI.self)
+context.load(LogoMath.self)
+context.load(Turtle.self)
 
 let prompt = "> "
 let parser = LogoParser()
@@ -29,9 +29,9 @@ while let input = readLine() {
             program.procedures.forEach { (key: String, value: Procedure) in
                 procs[key] = value
             }
-            context?.inject(procedures: procs)
+            context.inject(procedures: procs)
             try program.commands.forEach { (c) in
-                try c.execute(context: &context)
+                try c.execute(context: context)
             }
         } catch let LogoLang.ExecutionHandoff.error(runtimeError, message) {
             switch runtimeError {

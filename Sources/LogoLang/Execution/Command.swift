@@ -8,31 +8,28 @@
 
 import Foundation
 
-
-public protocol Command: ExecutionNode, CustomStringConvertible { }
-
-struct Stop: Command {
+struct Stop: ExecutionNode {
     var description: String {
         return "stop"
     }
 
-    func execute(context: inout ExecutionContext?) throws {
+    func execute(context: ExecutionContext) throws {
         throw ExecutionHandoff.stop
     }
 }
 
-struct Repeat: Command {
+struct Repeat: ExecutionNode {
     var description: String {
         return "repeat " + count.description + " " + "[ TODO : Block Description]"
     }
 
-    func execute(context: inout ExecutionContext?) throws {
+    func execute(context: ExecutionContext) throws {
         var executed = 0
-        guard case let .double(limit) = try count.evaluate(context: &context) else {
+        guard case let .double(limit) = try count.evaluate(context: context) else {
             throw ExecutionHandoff.error(.typeError, "Tried to use non-numeric repeat value")
         }
         while executed < Int(limit) {
-            try block.execute(context: &context)
+            try block.execute(context: context)
             executed += 1
         }
     }
@@ -47,32 +44,31 @@ struct Repeat: Command {
 
 }
 
-struct Make: Command {
+struct Make: ExecutionNode {
 
     var description: String {
         return "make \"\(symbol) \(value)"
     }
 
-    func execute(context: inout ExecutionContext?) throws {
-        assert(context != nil)
-        context!.variables[symbol] = try value.evaluate(context: &context)
+    func execute(context: ExecutionContext) throws {
+        context.variables[symbol] = try value.evaluate(context: context)
     }
 
     var value: Evaluatable
     var symbol: String
 }
 
-struct Output: Command {
+struct Output: ExecutionNode {
     var description: String {
         return "output \(value)"
     }
-    func execute(context: inout ExecutionContext?) throws {
-        throw ExecutionHandoff.output(try value.evaluate(context: &context))
+    func execute(context: ExecutionContext) throws {
+        throw ExecutionHandoff.output(try value.evaluate(context: context))
     }
     var value: Evaluatable
 }
 
-struct Conditional: Command {
+struct Conditional: ExecutionNode {
 
     var description: String {
         return "\(lhs) \(comparisonOp) \(rhs) [ TODO : Block ]"
@@ -106,37 +102,37 @@ struct Conditional: Command {
         self.block = block
     }
 
-    func execute(context: inout ExecutionContext?) throws {
+    func execute(context: ExecutionContext) throws {
         // TODO : raise errors
-        guard case let .double(lhsv) = try lhs.evaluate(context: &context),
-            case let .double(rhsv) = try rhs.evaluate(context: &context) else {
+        guard case let .double(lhsv) = try lhs.evaluate(context: context),
+            case let .double(rhsv) = try rhs.evaluate(context: context) else {
                 throw ExecutionHandoff.error(.typeError, "Conditional statements can only compare numbers")
         }
         switch self.comparisonOp {
         case .lt:
             if lhsv < rhsv {
-                try block.execute(context: &context)
+                try block.execute(context: context)
             }
         case .gt:
             if lhsv > rhsv {
-                try block.execute(context: &context)
+                try block.execute(context: context)
             }
         case .eq:
             if lhsv == rhsv {
-                try block.execute(context: &context)
+                try block.execute(context: context)
             }
         }
     }
 
 }
 
-struct For: Command {
+struct For: ExecutionNode {
 
     var description: String {
         return "for"
     }
 
-    func execute(context: inout ExecutionContext?) {
+    func execute(context: ExecutionContext) {
         // TODO
         fatalError()
     }

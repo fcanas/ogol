@@ -37,7 +37,7 @@ extension Bottom: CustomStringConvertible {
 }
 
 public protocol Evaluatable: CustomStringConvertible {
-    func evaluate(context: inout ExecutionContext?) throws -> Bottom
+    func evaluate(context: ExecutionContext) throws -> Bottom
 }
 
 struct SignExpression: Evaluatable, Equatable {
@@ -63,7 +63,7 @@ struct SignExpression: Evaluatable, Equatable {
         self.value = value
     }
     
-    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+    func evaluate(context: ExecutionContext) throws -> Bottom {
         let multiplier: Double
         switch sign {
         case .negative:
@@ -72,7 +72,7 @@ struct SignExpression: Evaluatable, Equatable {
             multiplier = 1.0
         }
         
-        let v = try self.value.evaluate(context: &context)
+        let v = try self.value.evaluate(context: context)
         switch v {
         case let .double(d):
             return .double(multiplier * d)
@@ -123,19 +123,19 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible {
     var lhs: SignExpression
     var rhs: [Rhs]
 
-    func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+    func evaluate(context: ExecutionContext) throws -> Bottom {
 
         // Sort-circuit strings out
-        if case let .string(s) = try self.lhs.evaluate(context: &context) {
+        if case let .string(s) = try self.lhs.evaluate(context: context) {
             return .string(s)
         }
         
-        guard case let .double(lhsv) = try self.lhs.evaluate(context: &context) else {
+        guard case let .double(lhsv) = try self.lhs.evaluate(context: context) else {
             throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
         }
 
         return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
-            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: &context) else {
+            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
                 throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
             }
             switch rhs.operation {
@@ -190,19 +190,19 @@ public struct Expression: Evaluatable, Equatable {
     var lhs: MultiplyingExpression
     var rhs: [Rhs]
 
-    public func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+    public func evaluate(context: ExecutionContext) throws -> Bottom {
         
         // Short-circuit strings
-        if case let .string(s) = try self.lhs.evaluate(context: &context) {
+        if case let .string(s) = try self.lhs.evaluate(context: context) {
             return .string(s)
         }
         
-        guard case let .double(lhsv) = try self.lhs.evaluate(context: &context) else {
+        guard case let .double(lhsv) = try self.lhs.evaluate(context: context) else {
             throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
         }
 
         return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
-            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: &context) else {
+            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
                 throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
             }
             switch rhs.operation {
@@ -233,12 +233,12 @@ public enum Value: Evaluatable, Equatable {
         }
     }
 
-    public func evaluate(context: inout ExecutionContext?) throws -> Bottom {
+    public func evaluate(context: ExecutionContext) throws -> Bottom {
         switch self {
         case let .expression(e):
-            return try e.evaluate(context: &context)
+            return try e.evaluate(context: context)
         case let .deref(symbol):
-            guard let value = context?.variables[symbol] else {
+            guard let value = context.variables[symbol] else {
                 throw ExecutionHandoff.error(.missingSymbol, "Value not found for \(symbol)")
             }
             return value
@@ -247,7 +247,7 @@ public enum Value: Evaluatable, Equatable {
         case let .string(s):
             return .string(s)
         case let .procedure(p):
-            return try p.evaluate(context: &context)
+            return try p.evaluate(context: context)
         }
     }
     

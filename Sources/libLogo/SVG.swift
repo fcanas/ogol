@@ -79,12 +79,12 @@ public class SVGEncoder {
     public init() {}
     
     public func encode(program: Program) throws -> String {
-        var context: ExecutionContext? = try ExecutionContext(parent: nil)
-        context?.load(Turtle.self)
+        let context: ExecutionContext = try ExecutionContext(parent: nil)
+        context.load(Turtle.self)
 
-        try program.execute(context: &context)
+        try program.execute(context: context)
 
-        let multiLines = Turtle.multilines(for: context!)
+        let multiLines = Turtle.multilines(for: context)
         
         return try SVGEncoder().encode(multiLines)
     }

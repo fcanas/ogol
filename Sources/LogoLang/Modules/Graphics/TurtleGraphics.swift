@@ -17,26 +17,24 @@ public struct Point {
     
     public let x: Double
     public let y: Double
-
+    
     public static func + (_ lhs: Point, _ rhs: Point) -> Point {
         return Point(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
-
+    
     public static func - (_ lhs: Point, _ rhs: Point) -> Point {
         return Point(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
-
+    
     public static let zero = Point(x: 0, y: 0)
 }
 
-public struct Turtle: Module {
-
+public class Turtle: Module {
+    
     private static let ModuleStoreKey: String = "turtle"
-//    let turtleKey = Turtle.turtleKey
     static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
     static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
-//    let multilineKey = Turtle.multilineKey
-
+    
     public static var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
         Command.Partial.allCases.forEach { (partial) in
@@ -44,275 +42,261 @@ public struct Turtle: Module {
         }
         return out
     }()
-
+    
     public static func initialize(context: ExecutionContext) {
         let turtleStore = ExecutionContext.ModuleStore()
         context.moduleStores[ModuleStoreKey] = turtleStore
         turtleStore[turtleKey] = Turtle()
     }
-
+    
     public static func multilines(for context:ExecutionContext) -> [MultiLine] {
         return context.moduleStores[ModuleStoreKey]?[multilineKey] ?? []
     }
-
+    
     public static func from(context: ExecutionContext) -> Turtle? {
         return context.moduleStores[Turtle.ModuleStoreKey]?[Turtle.turtleKey]
     }
-
+    
     public enum Command {
         var description: String {
-                switch self {
-                case let .fd(v): return "fd \(v)"
-                case let .bk(v): return "bk \(v)"
-                case let .rt(v): return "rt \(v)"
-                case let .lt(v): return "lt \(v)"
-                case .cs: return "cs"
-                case .pu: return "pu"
-                case .pd: return "pd"
-                case .st: return "st"
-                case .ht: return "ht"
-                case .home: return "home"
-                case let .setXY(point): return "setxy \(point)"
-                }
+            switch self {
+            case let .fd(v): return "fd \(v)"
+            case let .bk(v): return "bk \(v)"
+            case let .rt(v): return "rt \(v)"
+            case let .lt(v): return "lt \(v)"
+            case .cs: return "cs"
+            case .pu: return "pu"
+            case .pd: return "pd"
+            case .st: return "st"
+            case .ht: return "ht"
+            case .home: return "home"
+            case let .setXY(point): return "setxy \(point)"
             }
-
-            fileprivate enum Partial: String, RawRepresentable, CaseIterable {
-                case fd
-                case bk
-                case rt
-                case lt
-                case cs
-                case pu
-                case pd
-                case st
-                case ht
-                case home
-                case setxy
-
-                var parameterCount: Int {
-                    switch self {
-                    case .fd, .bk, .rt, .lt:
-                        return 1
-                    case .cs, .pu, .pd, .st, .ht, .home:
-                        return 0
-                    case .setxy:
-                        return 2
-                    }
-                }
-                
-                func parameterNames() -> [String] {
-                    switch self {
-                    case .fd, .bk, .rt, .lt:
-                        return ["amount"]
-                    case .setxy:
-                        return ["x", "y"]
-                    default:
-                        return []
-                    }
-                }
-                
-                func procedure() -> NativeProcedure {
-                    
-                    NativeProcedure(name: self.rawValue, parameters: self.parameterNames()) { (parameters, context) -> Bottom? in
-                        guard self.parameterCount == parameters.count else {
-                            throw ExecutionHandoff.error(.parameter, "Expected \(self.parameterCount) parameters, found \(parameters.count)")
-                        }
-                        let turtleCommand: Turtle.Command
-
-                        let evaluatedParameters = try parameters.map { (value) throws -> Double in
-                            guard case let .double(v) = value else {
-                                throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                            }
-                            return v
-                        }
-
-                        switch self {
-                        case .fd:
-                            turtleCommand = .fd(evaluatedParameters[0])
-                        case .bk:
-                            turtleCommand = .bk(evaluatedParameters[0])
-                        case .rt:
-                            turtleCommand = .rt(evaluatedParameters[0])
-                        case .lt:
-                            turtleCommand = .lt(evaluatedParameters[0])
-                        case .cs:
-                            turtleCommand = .cs
-                        case .pu:
-                            turtleCommand = .pu
-                        case .pd:
-                            turtleCommand = .pd
-                        case .st:
-                            turtleCommand = .st
-                        case .ht:
-                            turtleCommand = .ht
-                        case .home:
-                            turtleCommand = .home
-                        case .setxy:
-                            turtleCommand = .setXY(Point(x: evaluatedParameters[0], y: evaluatedParameters[1]))
-                        }
-                        try turtleCommand.execute(context: context)
-                        return nil
-                    }
-                }
-            }
-
-            case fd(Double)
-            case bk(Double)
-            case rt(Double)
-            case lt(Double)
+        }
+        
+        fileprivate enum Partial: String, RawRepresentable, CaseIterable {
+            case fd
+            case bk
+            case rt
+            case lt
             case cs
             case pu
             case pd
             case st
             case ht
             case home
-            case setXY(Point)
-
-            func execute(context: ExecutionContext) throws {
-
-                guard let store = context.moduleStores[Turtle.ModuleStoreKey] else {
-                    throw ExecutionHandoff.error(.module, "Turtle module not initialized")
-                }
-
-                guard let turtle = store[turtleKey] else {
-                    throw ExecutionHandoff.error(.module, "Turtle not found")
-                }
-
-                if case .cs = self {
-                    store[multilineKey] = []
-                    return
-                }
-
-                let (newTurtle, newMultiline) = turtle.performing(self)
-                store[turtleKey] = newTurtle
-                if let newMultiline = newMultiline {
-                    if (store[multilineKey] != nil) {
-                        store[multilineKey]?.append(newMultiline)
-                    } else {
-                        store[multilineKey] = [newMultiline]
-                    }
+            case setxy
+            
+            var parameterCount: Int {
+                switch self {
+                case .fd, .bk, .rt, .lt:
+                    return 1
+                case .cs, .pu, .pd, .st, .ht, .home:
+                    return 0
+                case .setxy:
+                    return 2
                 }
             }
+            
+            func parameterNames() -> [String] {
+                switch self {
+                case .fd, .bk, .rt, .lt:
+                    return ["amount"]
+                case .setxy:
+                    return ["x", "y"]
+                default:
+                    return []
+                }
+            }
+            
+            func procedure() -> NativeProcedure {
+                
+                let exec: ([Bottom], ExecutionContext) throws -> Bottom?
+                
+                switch self {
+                case .cs:
+                    exec = { (_,ctx) in try Turtle.Command.cs.execute(context: ctx); return nil }
+                case .pu:
+                    exec = { (_,ctx) in try Turtle.Command.pu.execute(context: ctx); return nil }
+                case .pd:
+                    exec = { (_,ctx) in try Turtle.Command.pd.execute(context: ctx); return nil }
+                case .st:
+                    exec = { (_,ctx) in try Turtle.Command.st.execute(context: ctx); return nil }
+                case .ht:
+                    exec = { (_,ctx) in try Turtle.Command.ht.execute(context: ctx); return nil }
+                case .home:
+                    exec = { (_,ctx) in try Turtle.Command.home.execute(context: ctx); return nil }
+                case .fd:
+                    exec = { (params,ctx) in
+                        guard case let .double(v) = params.first else {
+                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        }
+                        try Turtle.Command.fd(v).execute(context: ctx)
+                        return nil
+                    }
+                case .bk:
+                    exec = { (params,ctx) in
+                        guard case let .double(v) = params.first else {
+                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        }
+                        try Turtle.Command.bk(v).execute(context: ctx)
+                        return nil
+                    }
+                case .rt:
+                    exec = { (params,ctx) in
+                        guard case let .double(v) = params.first else {
+                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        }
+                        try Turtle.Command.rt(v).execute(context: ctx)
+                        return nil
+                    }
+                case .lt:
+                    exec = { (params,ctx) in
+                        guard case let .double(v) = params.first else {
+                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        }
+                        try Turtle.Command.lt(v).execute(context: ctx)
+                        return nil
+                    }
+                    
+                case .setxy:
+                    exec = { (parameters, context) -> Bottom? in
+                        guard self.parameterCount == parameters.count else {
+                            throw ExecutionHandoff.error(.parameter, "Expected \(self.parameterCount) parameters, found \(parameters.count)")
+                        }
+                        
+                        let evaluatedParameters = try parameters.map { (value) throws -> Double in
+                            guard case let .double(v) = value else {
+                                throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                            }
+                            return v
+                        }
+                        
+                        try Turtle.Command.setXY(Point(x: evaluatedParameters[0], y: evaluatedParameters[1])).execute(context: context)
+                        return nil
+                    }
+                }
+                return NativeProcedure(name: self.rawValue, parameters: self.parameterNames(), action: exec)
+            }
+        }
+        
+        case fd(Double)
+        case bk(Double)
+        case rt(Double)
+        case lt(Double)
+        case cs
+        case pu
+        case pd
+        case st
+        case ht
+        case home
+        case setXY(Point)
+        
+        func execute(context: ExecutionContext) throws {
+            
+            guard let store = context.moduleStores[Turtle.ModuleStoreKey] else {
+                throw ExecutionHandoff.error(.module, "Turtle module not initialized")
+            }
+            
+            guard let turtle = store[turtleKey] else {
+                throw ExecutionHandoff.error(.module, "Turtle not found")
+            }
+            
+            if case .cs = self {
+                store[multilineKey] = []
+                return
+            }
+            
+            let newMultiline = turtle.performing(self)
+            if let newMultiline = newMultiline {
+                if (store[multilineKey] != nil) {
+                    store[multilineKey]?.append(newMultiline)
+                } else {
+                    store[multilineKey] = [newMultiline]
+                }
+            }
+        }
     }
-
+    
     public enum Pen {
         case up
         case down
     }
-
+    
     public struct Segment {
         public let start: Point
         public let end: Point
     }
-
+    
     public typealias MultiLine = Array<Turtle.Segment>
-
+    
     public static let defaultAngle: Double = -90
-
+    
     public var position: Point
     public var angle: Double
     public var pen: Pen
     public var visible: Bool
     public var multiline: MultiLine
-
+    
     public init(position: Point = .zero,
                 angle: Double = Turtle.defaultAngle,
                 pen: Pen = .down,
                 visible: Bool = true,
                 multiline: MultiLine = []
-        ) {
+    ) {
         self.position = position
         self.angle = angle
         self.pen = pen
         self.visible = visible
         self.multiline = multiline
     }
-
-    func with(position: Point? = nil,
-              angle: Double? = nil,
-              pen: Pen? = nil,
-              visible: Bool? = nil,
-              multiline: MultiLine? = nil
-        ) -> Turtle {
-        return Turtle(position: position ?? self.position,
-                      angle: angle ?? self.angle,
-                      pen: pen ?? self.pen,
-                      visible: visible ?? self.visible,
-                      multiline: multiline ?? self.multiline
-        )
-    }
-
-    func performing(_ command: Turtle.Command) -> (Turtle, MultiLine?) {
-        let out = with(command)
-        let lineOut: MultiLine?
-
-        switch command {
-
-        case .pu, .setXY(_), .home:
-            lineOut = multiline
-        default:
-            lineOut = nil
-        }
-
-        return (out, lineOut)
-    }
-
-    func with(_ command: Turtle.Command) -> Turtle {
+    
+    func performing(_ command: Turtle.Command) -> MultiLine? {
         switch command {
         case let .fd(dist):
             let a = angle * .pi / 180
-            let multiLine: MultiLine
             let newPosition = position + Point(x: cos(a) * dist, y: sin(a) * dist)
             if pen == .down {
-                multiLine = self.multiline + [Segment(start: position, end: newPosition)]
-            } else {
-                multiLine = self.multiline
+                self.multiline.append(Segment(start: position, end: newPosition))
             }
-            return with(position: newPosition, multiline: multiLine)
+            position = newPosition
         case let .bk(dist):
             let a = angle * .pi / 180
-            let multiLine: MultiLine
             let newPosition = position - Point(x: cos(a) * dist, y: sin(a) * dist)
             if pen == .down {
-                multiLine = self.multiline + [Segment(start: position, end: newPosition)]
-            } else {
-                multiLine = self.multiline
+                self.multiline.append(Segment(start: position, end: newPosition))
             }
-            return with(position: newPosition, multiline: multiLine)
+            position = newPosition
         case let .lt(a):
-            return with(angle: angle + a)
+            angle += a
         case let .rt(a):
-            return with(angle: angle - a)
+            angle -= a
         case .pu:
-            return with(pen: .up, multiline: [])
+            pen = .up
+            let oldML = multiline
+            multiline = []
+            return oldML
         case .pd:
-            return with(pen: .down)
+            pen = .down
         case .home:
-            return with(position:.zero, angle: Turtle.defaultAngle, multiline: [])
+            position = .zero
+            angle = Turtle.defaultAngle
+            let oldML = multiline
+            multiline = []
+            return oldML
         case .st:
-            return with(visible: true)
+            visible = true
         case .ht:
-            return with(visible: false)
+            visible = false
         case let .setXY(position):
-            return with(position: position, multiline: [])
+            self.position = position
+            let oldML = multiline
+            multiline = []
+            return oldML
         case .cs:
-            return with(multiline: [])
+            multiline = []
         }
-    }
-}
-
-public struct Canvas {
-    public let turtle: Turtle
-    public let multiLines: [Turtle.MultiLine]
-
-    public init(turtle: Turtle, multiLines: [Turtle.MultiLine] = []) {
-        self.turtle = turtle
-        self.multiLines = multiLines
-    }
-
-    public func performing(_ command: Turtle.Command) -> Canvas {
-        let (t, m) = turtle.performing(command)
-        return Canvas(turtle: t, multiLines: m.map { self.multiLines + [$0] } ?? multiLines )
+        return nil
     }
 }
 

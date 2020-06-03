@@ -32,9 +32,9 @@ class CompleteProgramTests: XCTestCase {
                 XCTFail("Failed to parse performance program")
                 return
             }
-            var context: ExecutionContext? = try! ExecutionContext(parent: nil)
-            context?.load(Turtle.self)
-            try! program.execute(context: &context)
+            let context: ExecutionContext = try! ExecutionContext(parent: nil)
+            context.load(Turtle.self)
+            try! program.execute(context: context)
         }
     }
     
@@ -183,12 +183,12 @@ class CompleteProgramTests: XCTestCase {
             
             // TODO: Procedure content
             
-            var context: ExecutionContext? = ExecutionContext()
-            context?.load(Turtle.self)
+            let context: ExecutionContext = ExecutionContext()
+            context.load(Turtle.self)
             
-            try! program.execute(context: &context)
+            try! program.execute(context: context)
 
-            let multiLines = Turtle.multilines(for: context!)
+            let multiLines = Turtle.multilines(for: context)
             
             _ = try! SVGEncoder().encode(multiLines)
 
@@ -242,12 +242,12 @@ class CompleteProgramTests: XCTestCase {
             
             // TODO: Procedure content
             
-            var context: ExecutionContext? = ExecutionContext()
-            context?.load(Turtle.self)
+            let context: ExecutionContext = ExecutionContext()
+            context.load(Turtle.self)
 
-            try! program.execute(context: &context)
+            try! program.execute(context: context)
 
-            let multiLines = Turtle.multilines(for: context!)
+            let multiLines = Turtle.multilines(for: context)
             
             _ = try! SVGEncoder().encode(multiLines)
         }

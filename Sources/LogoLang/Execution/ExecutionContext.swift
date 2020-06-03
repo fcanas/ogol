@@ -8,7 +8,9 @@
 import Foundation
 
 public class ExecutionContext {
-
+    
+    private weak var _root: ExecutionContext!
+    
     public struct ModuleKey<T> {
         let key: String
     }
@@ -135,14 +137,28 @@ public class ExecutionContext {
     ///                 context as a child of `parent` would create a single context
     ///                 chain deeper than `ExecutionContext.MaxDepth`.
     public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) throws {
-        self.depth = parent.map({ $0.depth + 1 }) ?? 0
+        self.depth = (parent?.depth ?? 0) + 1
         if self.depth > ExecutionContext.MaxDepth {
             throw ExecutionHandoff.error(.maxDepth, "Number of execution contexts exceeded")
         }
-        self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
+        
+        if procedures.count != 0 || parent == nil {
+            self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
+        } else {
+            self.procedures = parent!.procedures
+        }
+        
         self.variables = NestedKeyValueStore(parent: parent?.variables, items: variables)
-        self.moduleStores = NestedKeyValueStore(parent: parent?.moduleStores, items: [:])
+        
         self.parent = parent
+        
+        if parent == nil {
+            self.moduleStores = NestedKeyValueStore(parent: nil, items: [:])
+            _root = self
+        } else {
+            self.moduleStores = parent!._root.moduleStores
+            _root = parent!._root
+        }
         parent?.child = self
     }
 }
