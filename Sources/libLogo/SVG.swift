@@ -89,7 +89,7 @@ public class SVGEncoder {
         return try SVGEncoder().encode(multiLines)
     }
     
-    func encode(_ items: [SVGEncodable]) throws -> String {
+    public func encode(_ items: [Turtle.MultiLine]) throws -> String { // formerly accepted SVGEncodable
         
         let bounds = items.reduce(Bounds(min: Point.zero, max: .zero)) { (bounds, encodable) -> Bounds in
             return encodable.bounds().map {bounds.extend(bounds: $0)} ?? bounds

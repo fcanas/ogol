@@ -32,12 +32,18 @@ public struct Point {
 public struct Turtle: Module {
 
     private static let ModuleStoreKey: String = "turtle"
-    let turtleKey = Turtle.turtleKey
+//    let turtleKey = Turtle.turtleKey
     static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
     static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
-    let multilineKey = Turtle.multilineKey
+//    let multilineKey = Turtle.multilineKey
 
-    public static var procedures: [String : NativeProcedure] = [:]
+    public static var procedures: [String : Procedure] = {
+        var out: [String:Procedure] = [:]
+        Command.Partial.allCases.forEach { (partial) in
+            out[partial.rawValue] = partial.procedure()
+        }
+        return out
+    }()
 
     public static func initialize(context: ExecutionContext) {
         let turtleStore = ExecutionContext.ModuleStore()
@@ -70,7 +76,7 @@ public struct Turtle: Module {
                 }
             }
 
-            enum Partial: String, RawRepresentable, CaseIterable {
+            fileprivate enum Partial: String, RawRepresentable, CaseIterable {
                 case fd
                 case bk
                 case rt
@@ -93,6 +99,61 @@ public struct Turtle: Module {
                         return 2
                     }
                 }
+                
+                func parameterNames() -> [String] {
+                    switch self {
+                    case .fd, .bk, .rt, .lt:
+                        return ["amount"]
+                    case .setxy:
+                        return ["x", "y"]
+                    default:
+                        return []
+                    }
+                }
+                
+                func procedure() -> NativeProcedure {
+                    
+                    NativeProcedure(name: self.rawValue, parameters: self.parameterNames()) { (parameters, context) -> Bottom? in
+                        guard self.parameterCount == parameters.count else {
+                            throw ExecutionHandoff.error(.parameter, "Expected \(self.parameterCount) parameters, found \(parameters.count)")
+                        }
+                        let turtleCommand: Turtle.Command
+
+                        let evaluatedParameters = try parameters.map { (value) throws -> Double in
+                            guard case let .double(v) = value else {
+                                throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                            }
+                            return v
+                        }
+
+                        switch self {
+                        case .fd:
+                            turtleCommand = .fd(evaluatedParameters[0])
+                        case .bk:
+                            turtleCommand = .bk(evaluatedParameters[0])
+                        case .rt:
+                            turtleCommand = .rt(evaluatedParameters[0])
+                        case .lt:
+                            turtleCommand = .lt(evaluatedParameters[0])
+                        case .cs:
+                            turtleCommand = .cs
+                        case .pu:
+                            turtleCommand = .pu
+                        case .pd:
+                            turtleCommand = .pd
+                        case .st:
+                            turtleCommand = .st
+                        case .ht:
+                            turtleCommand = .ht
+                        case .home:
+                            turtleCommand = .home
+                        case .setxy:
+                            turtleCommand = .setXY(Point(x: evaluatedParameters[0], y: evaluatedParameters[1]))
+                        }
+                        try turtleCommand.execute(context: context)
+                        return nil
+                    }
+                }
             }
 
             case fd(Double)
@@ -107,10 +168,10 @@ public struct Turtle: Module {
             case home
             case setXY(Point)
 
-            func execute(context: inout ExecutionContext?) throws {
+            func execute(context: ExecutionContext) throws {
 
-                guard let store = context?.moduleStores[Turtle.ModuleStoreKey] else {
-                    throw ExecutionHandoff.error(.module, "Turle module not initialized")
+                guard let store = context.moduleStores[Turtle.ModuleStoreKey] else {
+                    throw ExecutionHandoff.error(.module, "Turtle module not initialized")
                 }
 
                 guard let turtle = store[turtleKey] else {
@@ -235,8 +296,7 @@ public struct Turtle: Module {
         case let .setXY(position):
             return with(position: position, multiline: [])
         case .cs:
-            // no-op for a turtle
-            return self
+            return with(multiline: [])
         }
     }
 }

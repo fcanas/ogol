@@ -9,7 +9,7 @@ import Foundation
 import LogoLang
 
 struct CLI: Module {
-    static var procedures: [String : NativeProcedure] {
+    static var procedures: [String : Procedure] {
         return [
             "print" : _print,
             "po" : po

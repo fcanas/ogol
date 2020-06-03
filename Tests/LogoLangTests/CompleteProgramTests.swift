@@ -6,6 +6,7 @@
 //
 
 @testable import LogoLang
+import libLogo
 import XCTest
 
 class CompleteProgramTests: XCTestCase {
@@ -13,15 +14,15 @@ class CompleteProgramTests: XCTestCase {
     func testTreeDrawing() {
         let program = """
                       to tree :size
-                          if :size < 5 [forward :size back :size stop]
-                          forward :size/3
-                          left 30 tree :size*2/3 right 30
-                          forward :size/6
-                          right 25 tree :size/2 left 25
-                          forward :size/3
-                          right 25 tree :size/2 left 25
-                          forward :size/6
-                          back :size
+                          if :size < 5 [fd :size bk :size stop]
+                          fd :size/3
+                          lt 30 tree :size*2/3 rt 30
+                          fd :size/6
+                          rt 25 tree :size/2 lt 25
+                          fd :size/3
+                          rt 25 tree :size/2 lt 25
+                          fd :size/6
+                          bk :size
                       end
                       tree 720
                       """
@@ -76,7 +77,15 @@ class CompleteProgramTests: XCTestCase {
         case .error(_):
             XCTFail("Failed to parse program")
         case let .success(program, _, parseError):
-            XCTAssert(parseError.count == 0, "Program should not contain any parse errors")
+            let fatalErrors = parseError.filter { (_, e) -> Bool in
+                switch e {
+                case .anticipatedRuntime(_):
+                    return false
+                default:
+                    return true
+                }
+            }
+            XCTAssert(fatalErrors.count == 0, "Program should not contain any parse errors")
             
             XCTAssertEqual(program.commands.count, 9, "This program should have 9 commands")
             XCTAssertEqual(program.procedures.count, 1, "This program should have 1 procedure")
@@ -123,10 +132,13 @@ class CompleteProgramTests: XCTestCase {
                         rt :arcAngle / 2
                         repeat :halfCircle [ fd :cStep rt :arcAngle ]
                         lt :arcAngle / 2
-                        pu rt 90 fd :radius lt 90 pd fd :radius rt 90 fd :radius rt 180
+                        pu
+                        rt 90 fd :radius lt 90 pd
+                        fd :radius rt 90 fd :radius rt 180
                     end
                     to next :charSpace
-                        pu rt 90 fd :charSpace lt 90 pd lt 90
+                        pu
+                        rt 90 fd :charSpace lt 90 lt 90 pd
                     end
 
                     make "nRadius -:radius
@@ -146,7 +158,8 @@ class CompleteProgramTests: XCTestCase {
 
                     printO
 
-                    pu fd :radius
+                    pu
+                    fd :radius
                     """
         let parser = LogoParser()
         let parseResult = parser.program(substring: Substring(program))
@@ -155,7 +168,15 @@ class CompleteProgramTests: XCTestCase {
         case .error(_):
             XCTFail("Failed to parse program")
         case let .success(program, _, parseError):
-            XCTAssert(parseError.count == 0, "Program should not contain any parse errors")
+            let fatalErrors = parseError.filter { (_, e) -> Bool in
+                switch e {
+                case .anticipatedRuntime(_):
+                    return false
+                default:
+                    return true
+                }
+            }
+            XCTAssert(fatalErrors.count == 0, "Program should not contain any parse errors")
             
             XCTAssertEqual(program.commands.count, 18)
             XCTAssertEqual(program.procedures.count, 4)
@@ -206,7 +227,15 @@ class CompleteProgramTests: XCTestCase {
         case .error(_):
             XCTFail("Failed to parse program")
         case let .success(program, _, parseError):
-            XCTAssert(parseError.count == 0, "Program should not contain any parse errors")
+            let fatalErrors = parseError.filter { (_, e) -> Bool in
+                switch e {
+                case .anticipatedRuntime(_):
+                    return false
+                default:
+                    return true
+                }
+            }
+            XCTAssert(fatalErrors.count == 0, "Program should not contain any parse errors")
             
             XCTAssertEqual(program.commands.count, 5)
             XCTAssertEqual(program.procedures.count, 0)

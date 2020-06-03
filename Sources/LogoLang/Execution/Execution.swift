@@ -118,89 +118,14 @@ public class Procedure: ExecutionNode, Scope, CustomStringConvertible{
     }
 }
 
-public class NativeProcedure: Procedure {
-
-    public override var description: String {
-        return "Native Procedure \(parameters)"
-    }
-
-    let action: ([Bottom], ExecutionContext) throws -> Bottom?
-    
-    public init(name: String, parameters: [String], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
-        self.action = action
-        super.init(name: name, commands: [], procedures: [:], parameters: parameters.map(Value.deref))
-    }
-    
-    public override func execute(context: inout ExecutionContext?) throws {
-        let p = try parameters.map { (deref) -> Bottom in
-            guard case let .deref(s) = deref  else {
-                throw ExecutionHandoff.error(.typeError, "Parameters should be derefs")
-            }
-            guard let v = context?.variables[s] else {
-                throw ExecutionHandoff.error(.missingSymbol, "\(s) parameter required")
-            }
-            return v
-        }
-        if let output = try action(p, context!) {
-            throw ExecutionHandoff.output(output)
-        }
-    }
-}
-
 public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
 
-    enum Identifier: Equatable {
-        case turtle(Turtle.Command.Partial)
-        case user(String)
-    }
-
-    let identifier: Identifier
+    let name: String
     let parameters: [Value]
     
     // TODO: Output?
     public func execute(context: inout ExecutionContext?) throws {
 
-        switch identifier {
-        case let .turtle(partial):
-            guard partial.parameterCount == parameters.count else {
-                // TODO: Runtime error
-                return
-            }
-            let turtleCommand: Turtle.Command
-
-            let evaluatedParameters = try parameters.map { (value) throws -> Double in
-                guard case let .double(v) = try value.evaluate(context: &context) else {
-                    throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                }
-                return v
-            }
-
-            switch partial {
-            case .fd:
-                turtleCommand = .fd(evaluatedParameters[0])
-            case .bk:
-                turtleCommand = .bk(evaluatedParameters[0])
-            case .rt:
-                turtleCommand = .rt(evaluatedParameters[0])
-            case .lt:
-                turtleCommand = .lt(evaluatedParameters[0])
-            case .cs:
-                turtleCommand = .cs
-            case .pu:
-                turtleCommand = .pu
-            case .pd:
-                turtleCommand = .pd
-            case .st:
-                turtleCommand = .st
-            case .ht:
-                turtleCommand = .ht
-            case .home:
-                turtleCommand = .home
-            case .setxy:
-                turtleCommand = .setXY(Point(x: evaluatedParameters[0], y: evaluatedParameters[1]))
-            }
-            return try turtleCommand.execute(context: &context)
-        case let .user(name):
             guard let procedure = context?.procedures[name] else {
                 throw ExecutionHandoff.error(.missingSymbol, "I don't know how to \(name)")
             }
@@ -224,20 +149,13 @@ public struct ProcedureInvocation: ExecutionNode, Command, Equatable {
             }
             var newScope: ExecutionContext? = try ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameters)
             try procedure.execute(context: &newScope)
-        }
 
     }
 }
 
 extension ProcedureInvocation: Evaluatable {
     public var description: String {
-        switch self.identifier {
-
-        case let .turtle(t):
-            return t.rawValue
-        case let .user(u):
-            return u
-        }
+        return "p:->" + name
     }
 
     public func evaluate(context: inout ExecutionContext?) throws -> Bottom {
@@ -252,12 +170,7 @@ extension ProcedureInvocation: Evaluatable {
 
 extension ProcedureInvocation: SyntaxColorable {
     public func syntaxCategory() -> SyntaxCategory? {
-        switch identifier {
-        case .turtle(_):
-            return .builtin
-        case .user(_):
-            return .procedureInvocation
-        }
+        return .procedureInvocation
     }
 }
 

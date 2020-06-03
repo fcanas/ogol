@@ -40,7 +40,7 @@ public struct LogoMath: Module {
             "sqrt" : Darwin.sqrt,
         ]
 
-        public static let procedures: [String : NativeProcedure] = {
+        public static let procedures: [String : Procedure] = {
             var out: [String:NativeProcedure] = [:]
             nativeFunctions.forEach { (key: String, function: @escaping (Double) -> Double) in
                 out[key] = NativeProcedure(name: key, parameters: ["LogoMathParam"]) { (params, context) throws -> Bottom? in
@@ -55,7 +55,7 @@ public struct LogoMath: Module {
     }
 
     private enum Random: Module {
-        public static let procedures: [String : NativeProcedure] = {
+        public static let procedures: [String : Procedure] = {
             return ["random":NativeProcedure(name: "random", parameters: ["top"], action: { (params, _) -> Bottom? in
                 guard case let .double(param) = params.first else {
                     throw ExecutionHandoff.error(.parameter, "random needs a numeric parameter")
@@ -65,7 +65,7 @@ public struct LogoMath: Module {
         }()
     }
 
-    public static let procedures: [String : NativeProcedure] = {
+    public static let procedures: [String : Procedure] = {
         return SingleParameter.procedures.merging(Random.procedures, uniquingKeysWith: { (a,b) in a })
     }()
 

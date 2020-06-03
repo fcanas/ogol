@@ -49,23 +49,6 @@ struct Lex {
             // TODO: case label
         }
 
-        static let expressionless = (cs <|> pu <|> pd <|> ht <|> st <|> home) <* Lex.Token._space.optional
-
-        static let cs: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.cs } <^> ("cs" <|> "clearscreen") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let pu: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.pu } <^> ("pu" <|> "penup") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let pd: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.pd } <^> ("pd" <|> "pendown") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let ht: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.ht } <^> ("ht" <|> "hide") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let st: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.st } <^> ("st" <|> "show") <* (Lex.Token._space  <|>  Lex.Token.eol)
-        static let home: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.home } <^> "home" <* (Lex.Token._space  <|> Lex.Token.eol)
-
-        static let singleExpression = (fd <|> bk <|> rt <|> lt) <* Lex.Token._space
-
-        static let fd: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.fd } <^> ("fd" <|> "forward")
-        static let bk: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.bk } <^> ("bk" <|> "backward" <|> "back")
-        static let rt: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.rt } <^> ("rt" <|> "right")
-        static let lt: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.lt } <^> ("lt" <|> "left")
-        static let setxy: Parser<Substring, Turtle.Command.Partial> = { _ in Turtle.Command.Partial.setxy } <^> "setxy" <* Lex.Token._space
-
         static let controlFlow = ((repeat_ <|> make <|> ife) <* Lex.Token._space) <|> stop <|> output <|> procedureInvocation
 
         static let repeat_: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.repeat_ } <^> "repeat"
@@ -75,8 +58,6 @@ struct Lex {
         static let output: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.output } <^> "output"
 
         static let procedureInvocation = { Lex.Commands.ControlFlow.procedureInvocation($0) } <^> Lex.name
-
-        static let turtle = expressionless <|> singleExpression <|> setxy
     }
 
     struct Token {

@@ -97,22 +97,19 @@ public class LogoParser {
                     break
                 }
 
-                switch invocation.identifier {
-                case .turtle(_):
-                break // Turtle commands succeed
-                case let .user(procedureName):
-                    if let procedure = program.procedures[procedureName] {
-                        let invocationCount = invocation.parameters.count
-                        let declarationCount = procedure.parameters.count
-                        if invocationCount != declarationCount {
-                            errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
-                        }
-                    } else {
-                        errors[range] = .anticipatedRuntime("Cannot find implementation for '\(procedureName)'")
+                let procedureName = invocation.name
+                
+                if let procedure = program.procedures[procedureName] {
+                    let invocationCount = invocation.parameters.count
+                    let declarationCount = procedure.parameters.count
+                    if invocationCount != declarationCount {
+                        errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
                     }
+                } else {
+                    errors[range] = .anticipatedRuntime("Cannot find implementation for '\(procedureName)'")
                 }
             default:
-                break
+                break;
             }
         }
     }
@@ -294,7 +291,7 @@ public class LogoParser {
                     runningSubstring = parsedValue.1
                 }
 
-                let invocation = ProcedureInvocation(identifier: .user(name), parameters: expressions)
+                let invocation = ProcedureInvocation(name: name, parameters: expressions)
                 registerToken(range: commandTokenRange, token: invocation)
                 return (invocation, runningSubstring)
             }
@@ -304,7 +301,7 @@ public class LogoParser {
 
     /// Keywords and reserved functions that are not considered .user Procedure Invocations
     /// These will basically be control flow and turtle commands
-    private static let nameBlackList = Set(["end"] + Turtle.Command.Partial.allCases.map { $0.rawValue } + ["repeat", "make", "ife", "stop", "forward", "back", "backward", "left", "right", "penup", "pendown", "hide", "show", "output"] )
+    private static let nameBlackList = Set(["end", "repeat", "make", "ife", "stop", "output"] )
 
     internal func command(substring: Substring) -> (Command, Substring)? {
         let chompedString = eatWhitespace(substring)
@@ -312,29 +309,7 @@ public class LogoParser {
         if let controlFlowCommand = controlFlow(substring: chompedString) {
             return controlFlowCommand
         }
-
-        if let tCommand = Lex.Commands.turtle.run(chompedString) {
-            let commandTokenRange = chompedString.startIndex..<tCommand.1.startIndex
-
-            var parameters: [Value] = []
-            var runningSubstring = eatWhitespace(tCommand.1)
-            for pIndex in 0..<tCommand.0.parameterCount {
-                if let p = Lex.stringLiteral.run(runningSubstring) {
-                    runningSubstring = eatWhitespace(p.1)
-                    parameters.append(.string(p.0))
-                } else if let p = expression(substring: runningSubstring) {
-                    runningSubstring = eatWhitespace(p.1)
-                    parameters.append(.expression(p.0))
-                } else {
-                    errors[substring.startIndex..<tCommand.1.startIndex] = ParseError.basic("Expected \(tCommand.0.parameterCount) parameters for '\(tCommand.0.rawValue)', found \(pIndex)")
-                    hasFatalError = true
-                    return nil
-                }
-            }
-            let inv = ProcedureInvocation(identifier: .turtle(tCommand.0), parameters: parameters)
-            registerToken(range: commandTokenRange, token: inv)
-            return (inv, runningSubstring)
-        }
+        
         return nil
     }
 

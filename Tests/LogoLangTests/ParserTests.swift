@@ -76,7 +76,7 @@ class SimpleCommandParserTests: XCTestCase {
         }
         let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .turtle(.fd), parameters:[.expression(exp)]))
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "fd", parameters:[.expression(exp)]))
     }
     
     func testBasicCommandAlternateName() {
@@ -88,7 +88,7 @@ class SimpleCommandParserTests: XCTestCase {
         }
         let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .turtle(.fd), parameters:[.expression(exp)]))
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "forward", parameters:[.expression(exp)]))
     }
     
     func testBasicInvocation() {
@@ -100,7 +100,7 @@ class SimpleCommandParserTests: XCTestCase {
     	}
 		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .user("par"), parameters:[.expression(exp)]))
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "par", parameters:[.expression(exp)]))
     }
     
     func testInvocationPrefixedWithBuiltin() {
@@ -112,7 +112,7 @@ class SimpleCommandParserTests: XCTestCase {
     	}
 		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression(sign: .positive, value: .number(5))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(identifier: .user("star"), parameters:[.expression(exp)]))
+        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name:"star", parameters:[.expression(exp)]))
     }
 
 }
