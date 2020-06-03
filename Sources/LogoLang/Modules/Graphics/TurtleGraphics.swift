@@ -38,7 +38,7 @@ public class Turtle: Module {
     public static var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
         Command.Partial.allCases.forEach { (partial) in
-            out[partial.rawValue] = partial.procedure()
+            out[partial.rawValue] = partial
         }
         return out
     }()
@@ -74,7 +74,61 @@ public class Turtle: Module {
             }
         }
         
-        fileprivate enum Partial: String, RawRepresentable, CaseIterable {
+        fileprivate enum Partial: String, RawRepresentable, CaseIterable, Procedure {
+
+            var description: String { self.rawValue }
+            
+            var name: String { self.rawValue }
+            
+            private static let emptyProcedure: [String:Procedure] = [:]
+            
+            var procedures: [String : Procedure] { Partial.emptyProcedure }
+            
+            func execute(context: ExecutionContext) throws {
+                switch self {
+                case .cs:
+                    try Turtle.Command.cs.execute(context: context)
+                case .pu:
+                    try Turtle.Command.pu.execute(context: context)
+                case .pd:
+                    try Turtle.Command.pd.execute(context: context)
+                case .st:
+                    try Turtle.Command.st.execute(context: context)
+                case .ht:
+                    try Turtle.Command.ht.execute(context: context)
+                case .home:
+                    try Turtle.Command.home.execute(context: context)
+                case .fd:
+                    guard case let .double(v) = context.variables["amount"] else {
+                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                    }
+                    try Turtle.Command.fd(v).execute(context: context)
+                case .bk:
+                    guard case let .double(v) = context.variables["amount"] else {
+                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                    }
+                    try Turtle.Command.bk(v).execute(context: context)
+                case .lt:
+                    guard case let .double(v) = context.variables["amount"] else {
+                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                    }
+                    try Turtle.Command.lt(v).execute(context: context)
+                case .rt:
+                    guard case let .double(v) = context.variables["amount"] else {
+                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                    }
+                    try Turtle.Command.rt(v).execute(context: context)
+                case .setxy:
+                    guard case let .double(x) = context.variables["x"] else {
+                        throw ExecutionHandoff.error(.typeError, "Expected a number for X.")
+                    }
+                    guard case let .double(y) = context.variables["x"] else {
+                        throw ExecutionHandoff.error(.typeError, "Expected a number for Y.")
+                    }
+                    try Turtle.Command.setXY(Point(x: x, y: y)).execute(context: context)
+                }
+            }
+            
             case fd
             case bk
             case rt
@@ -98,7 +152,7 @@ public class Turtle: Module {
                 }
             }
             
-            func parameterNames() -> [String] {
+            public var parameters: [String] {
                 switch self {
                 case .fd, .bk, .rt, .lt:
                     return ["amount"]
@@ -109,75 +163,6 @@ public class Turtle: Module {
                 }
             }
             
-            func procedure() -> NativeProcedure {
-                
-                let exec: ([Bottom], ExecutionContext) throws -> Bottom?
-                
-                switch self {
-                case .cs:
-                    exec = { (_,ctx) in try Turtle.Command.cs.execute(context: ctx); return nil }
-                case .pu:
-                    exec = { (_,ctx) in try Turtle.Command.pu.execute(context: ctx); return nil }
-                case .pd:
-                    exec = { (_,ctx) in try Turtle.Command.pd.execute(context: ctx); return nil }
-                case .st:
-                    exec = { (_,ctx) in try Turtle.Command.st.execute(context: ctx); return nil }
-                case .ht:
-                    exec = { (_,ctx) in try Turtle.Command.ht.execute(context: ctx); return nil }
-                case .home:
-                    exec = { (_,ctx) in try Turtle.Command.home.execute(context: ctx); return nil }
-                case .fd:
-                    exec = { (params,ctx) in
-                        guard case let .double(v) = params.first else {
-                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                        }
-                        try Turtle.Command.fd(v).execute(context: ctx)
-                        return nil
-                    }
-                case .bk:
-                    exec = { (params,ctx) in
-                        guard case let .double(v) = params.first else {
-                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                        }
-                        try Turtle.Command.bk(v).execute(context: ctx)
-                        return nil
-                    }
-                case .rt:
-                    exec = { (params,ctx) in
-                        guard case let .double(v) = params.first else {
-                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                        }
-                        try Turtle.Command.rt(v).execute(context: ctx)
-                        return nil
-                    }
-                case .lt:
-                    exec = { (params,ctx) in
-                        guard case let .double(v) = params.first else {
-                            throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                        }
-                        try Turtle.Command.lt(v).execute(context: ctx)
-                        return nil
-                    }
-                    
-                case .setxy:
-                    exec = { (parameters, context) -> Bottom? in
-                        guard self.parameterCount == parameters.count else {
-                            throw ExecutionHandoff.error(.parameter, "Expected \(self.parameterCount) parameters, found \(parameters.count)")
-                        }
-                        
-                        let evaluatedParameters = try parameters.map { (value) throws -> Double in
-                            guard case let .double(v) = value else {
-                                throw ExecutionHandoff.error(.typeError, "Expected a number.")
-                            }
-                            return v
-                        }
-                        
-                        try Turtle.Command.setXY(Point(x: evaluatedParameters[0], y: evaluatedParameters[1])).execute(context: context)
-                        return nil
-                    }
-                }
-                return NativeProcedure(name: self.rawValue, parameters: self.parameterNames(), action: exec)
-            }
         }
         
         case fd(Double)

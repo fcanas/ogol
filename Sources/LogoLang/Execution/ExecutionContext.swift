@@ -100,14 +100,6 @@ public class ExecutionContext {
         return procedures.flattened()
     }
 
-    // Single child, expecint more of a linked list for nested scopes rather than trees?
-    // Rethink execution to support stepping, etc.
-    var child: ExecutionContext?
-
-    public func deepestChild() -> ExecutionContext {
-        return child?.deepestChild() ?? self
-    }
-
     /// Initialized a root execution context.
     ///
     /// The resulting context will have no parent.
@@ -115,10 +107,16 @@ public class ExecutionContext {
     /// - Parameters:
     ///   - procedures: Procedures that are newly available at this scope.
     ///   - variables: Variables that are newly available at this scope.
-    public convenience init(procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
+    public init(procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
         // As long as the designated initializer only throws on exceeding stack depth
         // this will always succeed.
-        try! self.init(parent: nil, procedures: procedures, variables: variables)
+        self.depth = 0
+        
+        self.procedures = NestedKeyValueStore(parent: nil, items: procedures)
+        self.variables = NestedKeyValueStore(parent: nil, items: variables)
+        
+        self.moduleStores = NestedKeyValueStore(parent: nil, items: [:])
+        _root = self
     }
 
     /// Initializes a new `ExecutionContext`, which serves as a scope.
@@ -136,29 +134,23 @@ public class ExecutionContext {
     ///                 `ExecutionHandoff.error(.maxDepth,...)` if adding the new
     ///                 context as a child of `parent` would create a single context
     ///                 chain deeper than `ExecutionContext.MaxDepth`.
-    public init(parent: ExecutionContext?, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) throws {
-        self.depth = (parent?.depth ?? 0) + 1
-        if self.depth > ExecutionContext.MaxDepth {
+    public init(parent: ExecutionContext, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) throws {
+        self.depth = parent.depth + 1
+        if depth > ExecutionContext.MaxDepth {
             throw ExecutionHandoff.error(.maxDepth, "Number of execution contexts exceeded")
         }
         
-        if procedures.count != 0 || parent == nil {
-            self.procedures = NestedKeyValueStore(parent: parent?.procedures, items: procedures)
+        if procedures.count != 0 {
+            self.procedures = NestedKeyValueStore(parent: parent.procedures, items: procedures)
         } else {
-            self.procedures = parent!.procedures
+            self.procedures = parent.procedures
         }
         
-        self.variables = NestedKeyValueStore(parent: parent?.variables, items: variables)
+        self.variables = NestedKeyValueStore(parent: parent.variables, items: variables)
         
         self.parent = parent
-        
-        if parent == nil {
-            self.moduleStores = NestedKeyValueStore(parent: nil, items: [:])
-            _root = self
-        } else {
-            self.moduleStores = parent!._root.moduleStores
-            _root = parent!._root
-        }
-        parent?.child = self
+        self.moduleStores = parent._root.moduleStores
+        _root = parent._root
     }
+    
 }

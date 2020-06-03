@@ -194,7 +194,7 @@ public class LogoParser {
         }
         registerToken(range: runningSubstring.startIndex..<lexedEnd.1.startIndex, token: SyntaxType(category: .keyword))
 
-        return (Procedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters), eatNewlines(lexedEnd.1))
+        return (ConcreteProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters), eatNewlines(lexedEnd.1))
     }
 
     internal func controlFlow(substring: Substring) -> (ExecutionNode, Substring)? {

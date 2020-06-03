@@ -81,13 +81,19 @@ public struct Program: Scope {
     }
 }
 
-public class Procedure: ExecutionNode, Scope, CustomStringConvertible{
+public protocol Procedure: ExecutionNode {
+    var name: String { get }
+    var parameters: [String] { get }
+    var procedures: [String : Procedure] { get }
+}
 
-    var name: String
+public class ConcreteProcedure: Procedure, Scope, CustomStringConvertible{
+
+    public var name: String
     public var commands: [ExecutionNode]
     public var procedures: [String : Procedure]
     /// Ordered, named parameters for the procedure.
-    var parameters: [String]
+    public var parameters: [String]
 
     init(name: String, commands: [ExecutionNode], procedures: [String: Procedure], parameters: [Value]) {
         self.name = name

@@ -16,18 +16,24 @@ extension Module {
 
 public class NativeProcedure: Procedure {
 
-    public override var description: String {
+    public var name: String
+    public var parameters: [String]
+    public var procedures: [String : Procedure]
+    
+    public var description: String {
         return "Native Procedure \(parameters)"
     }
 
     let action: ([Bottom], ExecutionContext) throws -> Bottom?
     
     public init(name: String, parameters: [String], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
+        self.name = name
+        self.parameters = parameters
         self.action = action
-        super.init(name: name, commands: [], procedures: [:], parameters: parameters.map(Value.deref))
+        self.procedures = [:]
     }
     
-    public override func execute(context: ExecutionContext) throws {
+    public func execute(context: ExecutionContext) throws {
         let p = try parameters.map { (parameterName) -> Bottom in
             guard let v = context.variables[parameterName] else {
                 throw ExecutionHandoff.error(.missingSymbol, "\(parameterName) parameter required")

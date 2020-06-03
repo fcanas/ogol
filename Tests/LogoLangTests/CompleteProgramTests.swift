@@ -32,7 +32,7 @@ class CompleteProgramTests: XCTestCase {
                 XCTFail("Failed to parse performance program")
                 return
             }
-            let context: ExecutionContext = try! ExecutionContext(parent: nil)
+            let context: ExecutionContext = ExecutionContext()
             context.load(Turtle.self)
             try! program.execute(context: context)
         }
@@ -95,7 +95,7 @@ class CompleteProgramTests: XCTestCase {
                 return
             }
             XCTAssertEqual(procedureName, "writeA", "Parsed procedure name does not match")
-            XCTAssertEqual(procedure.commands.count, 15)
+            XCTAssertEqual((procedure as! ConcreteProcedure).commands.count, 15)
             XCTAssertEqual(procedure.procedures.count, 0)
             XCTAssertEqual(procedure.parameters.count, 0)
             
