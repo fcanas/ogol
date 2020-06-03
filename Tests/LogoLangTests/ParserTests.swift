@@ -38,7 +38,7 @@ class SimpleCommandParserTests: XCTestCase {
     func _test(_ command: String, file: StaticString = #file, line: UInt = #line) throws {
         let parser = LogoParser()
         let programString: Substring = Substring(command)
-        guard let (c, s) = parser.command(substring: programString) else {
+        guard let (_, s) = parser.command(substring: programString) else {
             XCTFail("Failed to parse basic command \(command)", file: file, line: line)
             return
         }
