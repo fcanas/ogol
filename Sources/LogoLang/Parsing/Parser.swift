@@ -36,6 +36,8 @@ public class LogoParser {
     }
 
     public init() {}
+    
+    public var modules: [Module.Type] = []
 
     public func program(substring: Substring) -> ParseResult {
 
@@ -59,7 +61,7 @@ public class LogoParser {
             return .error(self.errors)
         }
         let program = Program(executionNodes: executionNodes)
-        verifyProcedureCalls(for: program)
+        verifyProcedureCalls(for: program, modules: modules)
 
         return .success(program, self.allTokens, self.errors)
     }
@@ -89,7 +91,16 @@ public class LogoParser {
 
     // MARK: - Verify
 
-    func verifyProcedureCalls(for program: Program) {
+    func verifyProcedureCalls(for program: Program, modules: [Module.Type]) {
+        
+        var procedures: [String:Procedure] = program.procedures
+        
+        for module in modules {
+            procedures.merge(module.procedures) { (a, b) -> Procedure in
+                return a
+            }
+        }
+        
         allTokens.forEach { (range: Range<Substring.Index>, value: SyntaxColorable) in
             switch value.syntaxCategory() {
             case .procedureInvocation:
@@ -99,7 +110,7 @@ public class LogoParser {
 
                 let procedureName = invocation.name
                 
-                if let procedure = program.procedures[procedureName] {
+                if let procedure = procedures[procedureName] {
                     let invocationCount = invocation.parameters.count
                     let declarationCount = procedure.parameters.count
                     if invocationCount != declarationCount {
