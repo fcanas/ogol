@@ -7,6 +7,7 @@ let package = Package(
     name: "LogoLang",
     products: [
         .library( name: "LogoLang", targets: ["LogoLang"]),
+        .library( name: "libLogo", targets: ["libLogo"]),
         .executable(name: "logo", targets: ["logo"]),
         .executable(name: "clogo", targets: ["clogo"])
     ],
