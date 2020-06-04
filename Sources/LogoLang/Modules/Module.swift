@@ -33,7 +33,7 @@ public class NativeProcedure: Procedure {
         self.procedures = [:]
     }
     
-    public func execute(context: ExecutionContext) throws {
+    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         let p = try parameters.map { (parameterName) -> Bottom in
             guard let v = context.variables[parameterName] else {
                 throw ExecutionHandoff.error(.missingSymbol, "\(parameterName) parameter required")

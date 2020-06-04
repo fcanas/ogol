@@ -84,7 +84,7 @@ public class Turtle: Module {
             
             var procedures: [String : Procedure] { Partial.emptyProcedure }
             
-            func execute(context: ExecutionContext) throws {
+            func execute(context: ExecutionContext, reuseScope: Bool) throws {
                 switch self {
                 case .cs:
                     try Turtle.Command.cs.execute(context: context)

@@ -31,7 +31,7 @@ while let input = readLine() {
             }
             context.inject(procedures: procs)
             try program.commands.forEach { (c) in
-                try c.execute(context: context)
+                try c.execute(context: context, reuseScope: false)
             }
         } catch let LogoLang.ExecutionHandoff.error(runtimeError, message) {
             switch runtimeError {

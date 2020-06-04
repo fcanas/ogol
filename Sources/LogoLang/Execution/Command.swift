@@ -13,7 +13,7 @@ struct Stop: ExecutionNode {
         return "stop"
     }
 
-    func execute(context: ExecutionContext) throws {
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
         throw ExecutionHandoff.stop
     }
 }
@@ -23,13 +23,13 @@ struct Repeat: ExecutionNode {
         return "repeat " + count.description + " " + "[ TODO : Block Description]"
     }
 
-    func execute(context: ExecutionContext) throws {
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
         var executed = 0
         guard case let .double(limit) = try count.evaluate(context: context) else {
             throw ExecutionHandoff.error(.typeError, "Tried to use non-numeric repeat value")
         }
         while executed < Int(limit) {
-            try block.execute(context: context)
+            try block.execute(context: context, reuseScope: false) // TODO: consider tail recursion in repeat node
             executed += 1
         }
     }
@@ -50,7 +50,7 @@ struct Make: ExecutionNode {
         return "make \"\(symbol) \(value)"
     }
 
-    func execute(context: ExecutionContext) throws {
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
         context.variables[symbol] = try value.evaluate(context: context)
     }
 
@@ -62,7 +62,7 @@ struct Output: ExecutionNode {
     var description: String {
         return "output \(value)"
     }
-    func execute(context: ExecutionContext) throws {
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
         throw ExecutionHandoff.output(try value.evaluate(context: context))
     }
     var value: Evaluatable
@@ -102,7 +102,7 @@ struct Conditional: ExecutionNode {
         self.block = block
     }
 
-    func execute(context: ExecutionContext) throws {
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
         // TODO : raise errors
         guard case let .double(lhsv) = try lhs.evaluate(context: context),
             case let .double(rhsv) = try rhs.evaluate(context: context) else {
@@ -111,15 +111,15 @@ struct Conditional: ExecutionNode {
         switch self.comparisonOp {
         case .lt:
             if lhsv < rhsv {
-                try block.execute(context: context)
+                try block.execute(context: context, reuseScope: false)
             }
         case .gt:
             if lhsv > rhsv {
-                try block.execute(context: context)
+                try block.execute(context: context, reuseScope: false)
             }
         case .eq:
             if lhsv == rhsv {
-                try block.execute(context: context)
+                try block.execute(context: context, reuseScope: false)
             }
         }
     }
@@ -132,7 +132,7 @@ struct For: ExecutionNode {
         return "for"
     }
 
-    func execute(context: ExecutionContext) {
+    func execute(context: ExecutionContext, reuseScope: Bool) {
         // TODO
         fatalError()
     }

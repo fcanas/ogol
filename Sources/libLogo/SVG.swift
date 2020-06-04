@@ -82,7 +82,7 @@ public class SVGEncoder {
         let context: ExecutionContext = ExecutionContext()
         context.load(Turtle.self)
 
-        try program.execute(context: context)
+        try program.execute(context: context, reuseScope: false)
 
         let multiLines = Turtle.multilines(for: context)
         

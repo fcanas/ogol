@@ -21,9 +21,9 @@ public protocol Scope: ExecutionNode {
 struct CommandList: ExecutionNode {
     var description: String { get { commands.description } }
     
-    func execute(context: ExecutionContext) throws {
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
         for command in commands {
-            try command.execute(context: context)
+            try command.execute(context: context, reuseScope: false) // TODO: look
         }
     }
     let commands: [ExecutionNode]
@@ -46,7 +46,7 @@ public enum ExecutionHandoff: Error {
 }
 
 public protocol ExecutionNode: CustomStringConvertible {
-    func execute(context: ExecutionContext) throws
+    func execute(context: ExecutionContext, reuseScope: Bool) throws
 }
 
 public struct Program: Scope {
@@ -73,10 +73,10 @@ public struct Program: Scope {
         self.procedures = p
     }
     
-    public func execute(context: ExecutionContext) throws {
+    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         let context: ExecutionContext = try ExecutionContext(parent: context, procedures: procedures)
         for command in commands {
-            try command.execute(context: context)
+            try command.execute(context: context, reuseScope: false)
         }
     }
 }
@@ -102,11 +102,11 @@ public class ConcreteProcedure: Procedure, Scope, CustomStringConvertible{
         self.parameters = parameters.map({ guard case let .deref(s) = $0 else {fatalError()}; return s })
     }
     
-    public func execute(context: ExecutionContext) throws {
-        let context: ExecutionContext = try ExecutionContext(parent: context, procedures: procedures)
-        for command in commands {
+    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
+        let ctx: ExecutionContext = reuseScope ? context : try ExecutionContext(parent: context, procedures: procedures)
+        for (idx, command) in commands.enumerated() {
             do {
-                try command.execute(context: context)
+                try command.execute(context: ctx, reuseScope: idx == (commands.count - 1))
             } catch ExecutionHandoff.stop {
                 return
             }
@@ -126,7 +126,7 @@ public struct ProcedureInvocation: ExecutionNode, Equatable {
     let name: String
     let parameters: [Value]
     
-    public func execute(context: ExecutionContext) throws {
+    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         
         guard let procedure = context.procedures[name] else {
             throw ExecutionHandoff.error(.missingSymbol, "I don't know how to \(name)")
@@ -141,8 +141,18 @@ public struct ProcedureInvocation: ExecutionNode, Equatable {
             parameterMap[procedure.parameters[index]] = try parameter.evaluate(context: context)
         }
         
-        let newScope: ExecutionContext = try ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameterMap)
-        try procedure.execute(context: newScope)
+        let newScope: ExecutionContext
+        if reuseScope {
+            context.inject(procedures: procedure.procedures)
+            parameterMap.forEach { (key: String, value: Bottom) in
+                context.variables[key] = value
+            }
+            newScope = context
+        } else {
+            newScope = try ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameterMap)
+        }
+        
+        try procedure.execute(context: newScope, reuseScope: false)
         
     }
 }
@@ -154,7 +164,7 @@ extension ProcedureInvocation: Evaluatable {
 
     public func evaluate(context: ExecutionContext) throws -> Bottom {
         do {
-            try execute(context: context)
+            try execute(context: context, reuseScope: false)
         } catch let ExecutionHandoff.output(bottom) {
             return bottom
         }
@@ -175,10 +185,10 @@ struct Block: ExecutionNode, Scope {
 
     var procedures: [String : Procedure]
     
-    func execute(context: ExecutionContext) throws {
-        let context: ExecutionContext = try ExecutionContext(parent: context, procedures: procedures)
+    func execute(context: ExecutionContext, reuseScope: Bool) throws {
+        let context: ExecutionContext = reuseScope ? context : try ExecutionContext(parent: context, procedures: procedures)
         for command in commands {
-            try command.execute(context: context)
+            try command.execute(context: context, reuseScope: false) // todo, last command in block?
         }
     }
 }
