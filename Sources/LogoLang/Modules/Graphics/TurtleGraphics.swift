@@ -122,7 +122,7 @@ public class Turtle: Module {
                     guard case let .double(x) = context.variables["x"] else {
                         throw ExecutionHandoff.error(.typeError, "Expected a number for X.")
                     }
-                    guard case let .double(y) = context.variables["x"] else {
+                    guard case let .double(y) = context.variables["y"] else {
                         throw ExecutionHandoff.error(.typeError, "Expected a number for Y.")
                     }
                     try Turtle.Command.setXY(Point(x: x, y: y)).execute(context: context)
