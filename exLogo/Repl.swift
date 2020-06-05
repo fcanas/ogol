@@ -22,22 +22,28 @@ struct CLI: Module {
     }
     
     private static let _print = NativeProcedure(name: "print", parameters: ["in"]) { (params, _) in
-        message(params.first!.description)
+        DispatchQueue.main.async {
+            message(params.first!.description)
+        }
         return nil
     }
 
     private static let _clear = NativeProcedure(name: "clear", parameters: []) { (params, _) in
-        clear()
+        DispatchQueue.main.async {
+            clear()
+        }
         return nil
     }
 
     private static let po = NativeProcedure(name: "po", parameters: ["param"]) { (params, context) in
-        if params.first == .string("names") {
-            message(context.allVariables().description)
-        } else if params.first == .string("procedures") {
-            message(context.allProcedures().description)
-        } else {
-            message("unrecognized parameter \(params.first!)")
+        DispatchQueue.main.async {
+            if params.first == .string("names") {
+                message(context.allVariables().description)
+            } else if params.first == .string("procedures") {
+                message(context.allProcedures().description)
+            } else {
+                message("unrecognized parameter \(params.first!)")
+            }
         }
 
         return nil

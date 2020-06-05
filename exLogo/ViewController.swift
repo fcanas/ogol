@@ -24,6 +24,7 @@ class ViewController: NSViewController {
     @IBOutlet var textField: NSTextField!
     @IBOutlet var outputView: NSTextView!
     @IBOutlet var webRenderController: SVGRenderController!
+    @IBOutlet var statusController: StatusController!
     
     var appearanceOvserver: NSKeyValueObservation?
     
@@ -61,9 +62,7 @@ class ViewController: NSViewController {
         return p
     }()
     
-    @IBAction func handleInput(sender: NSTextField) {
-        let command = sender.stringValue
-        sender.stringValue = ""
+    func accept(command: String) {
         push(message: command)
         
         let substring = Substring(command)
@@ -99,21 +98,44 @@ class ViewController: NSViewController {
         return e
     }()
     
+    let workQ = DispatchQueue(label: "logo.q", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem, target: nil)
+    
     func execute(_ program: Program) {
-        do {
-            try program.execute(context: executionContext, reuseScope: true)
-            
-            program.procedures.forEach { (key: String, value: Procedure) in
-                executionContext.procedures[key] = value
-                parser.additionalProcedures[key] = value
+        
+        let executionContext = self.executionContext
+        let parser = self.parser
+        let webRenderController = self.webRenderController!
+        let statusController = self.statusController!
+        
+        var svg: String?
+        var err: Error?
+        
+        statusController.state = .running
+        
+        let executeProgram = DispatchWorkItem {
+            do {
+                try program.execute(context: executionContext, reuseScope: true)
+                
+                program.procedures.forEach { (key: String, value: Procedure) in
+                    executionContext.procedures[key] = value
+                    parser.additionalProcedures[key] = value
+                }
+                
+                svg = try SVGEncoder().encode(context: executionContext)
+            } catch let e {
+                err = e
             }
-            
-            let svg = try SVGEncoder().encode(context: executionContext)
-            
-            webRenderController.render(svg: svg)
-        } catch let e {
-            let alert = NSAlert(error: e)
-            alert.runModal()
         }
+        executeProgram.notify(queue: .main) {
+            if let svg = svg {
+                webRenderController.render(svg: svg)
+                statusController.state = .idle
+            } else if let err = err {
+                let alert = NSAlert(error: err)
+                alert.runModal()
+                statusController.state = .error
+            }
+        }
+        workQ.async(execute: executeProgram)
     }
 }
