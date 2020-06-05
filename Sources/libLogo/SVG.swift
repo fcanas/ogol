@@ -70,13 +70,17 @@ extension Turtle.MultiLine: SVGEncodable {
             return result + " " + stringify(point: segment.end)
         }
         
-        return Tag(name: "polyline", properties: ["points":points, "fill":"none", "stroke":"black"])
+        return Tag(name: "polyline", properties: ["points":points, "fill":"none", "stroke-width":"1px"])
     }
 }
 
 public class SVGEncoder {
     
     public init() {}
+    
+    public func encode(context: ExecutionContext) throws -> String {
+        return try encode(Turtle.fullMultiline(context: context))
+    }
     
     public func encode(program: Program) throws -> String {
         let context: ExecutionContext = ExecutionContext()
@@ -86,7 +90,7 @@ public class SVGEncoder {
 
         let multiLines = Turtle.multilines(for: context)
         
-        return try SVGEncoder().encode(multiLines)
+        return try encode(multiLines)
     }
     
     public func encode(_ items: [Turtle.MultiLine]) throws -> String { // formerly accepted SVGEncodable
@@ -95,8 +99,8 @@ public class SVGEncoder {
             return encodable.bounds().map {bounds.extend(bounds: $0)} ?? bounds
         }
         
-        let width = ceil(bounds.max.x - bounds.min.x) + 20
-        let height = ceil(bounds.max.y - bounds.min.y) + 20
+        let width = max(abs(ceil(bounds.max.x)), abs(floor(bounds.min.x))) * 2 + 20
+        let height = max(abs(ceil(bounds.max.y)), abs(floor(bounds.min.y))) * 2 + 20
         
         let translation = Point(x: -width / 2, y: height / 2)
         

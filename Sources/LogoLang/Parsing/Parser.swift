@@ -38,6 +38,7 @@ public class LogoParser {
     public init() {}
     
     public var modules: [Module.Type] = []
+    public var additionalProcedures: [String:Procedure] = [:]
 
     public func program(substring: Substring) -> ParseResult {
 
@@ -61,7 +62,7 @@ public class LogoParser {
             return .error(self.errors)
         }
         let program = Program(executionNodes: executionNodes)
-        verifyProcedureCalls(for: program, modules: modules)
+        verifyProcedureCalls(for: program, modules: modules, procedures: additionalProcedures)
 
         return .success(program, self.allTokens, self.errors)
     }
@@ -91,9 +92,9 @@ public class LogoParser {
 
     // MARK: - Verify
 
-    func verifyProcedureCalls(for program: Program, modules: [Module.Type]) {
+    func verifyProcedureCalls(for program: Program, modules: [Module.Type], procedures: [String:Procedure] = [:]) {
         
-        var procedures: [String:Procedure] = program.procedures
+        var procedures: [String:Procedure] = procedures.merging(program.procedures, uniquingKeysWith: { (a, b) in return a }) 
         
         for module in modules {
             procedures.merge(module.procedures) { (a, b) -> Procedure in

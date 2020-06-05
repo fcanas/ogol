@@ -74,7 +74,7 @@ public struct Program: Scope {
     }
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        let context: ExecutionContext = try ExecutionContext(parent: context, procedures: procedures)
+        let context: ExecutionContext = reuseScope ? context : try ExecutionContext(parent: context, procedures: procedures)
         for command in commands {
             try command.execute(context: context, reuseScope: false)
         }

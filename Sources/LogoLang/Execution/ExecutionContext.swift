@@ -12,12 +12,18 @@ public class ExecutionContext {
     private weak var _root: ExecutionContext!
     
     public struct ModuleKey<T> {
+        public init(key: String) {
+            self.key = key
+        }
         let key: String
     }
 
     public class ModuleStore {
+        public init() {
+            store = [:]
+        }
         private var store: [String:Any] = [:]
-        subscript<T>(key: ModuleKey<T>) -> T? {
+        public subscript<T>(key: ModuleKey<T>) -> T? {
             get {
                 return store[key.key] as? T
             }
@@ -47,7 +53,7 @@ public class ExecutionContext {
     public class NestedKeyValueStore<T> {
         var parent: NestedKeyValueStore<T>?
         var items: [String : T]
-        subscript(key: String)-> T? {
+        public subscript(key: String)-> T? {
             get {
                 return items[key] ?? parent?[key]
             }
@@ -86,9 +92,9 @@ public class ExecutionContext {
         }
     }
 
-    var procedures: NestedKeyValueStore<Procedure>
-    var variables: NestedKeyValueStore<Bottom>
-    var moduleStores: NestedKeyValueStore<ModuleStore>
+    public var procedures: NestedKeyValueStore<Procedure>
+    public var variables: NestedKeyValueStore<Bottom>
+    public var moduleStores: NestedKeyValueStore<ModuleStore>
     private var depth: Int
     private weak var parent: ExecutionContext?
 

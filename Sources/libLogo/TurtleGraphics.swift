@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import LogoLang
 
 public struct Point {
     
@@ -31,9 +32,9 @@ public struct Point {
 
 public class Turtle: Module {
     
-    private static let ModuleStoreKey: String = "turtle"
-    static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
-    static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
+    internal static let ModuleStoreKey: String = "turtle"
+    internal static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
+    internal static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
     
     public static var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
@@ -42,6 +43,17 @@ public class Turtle: Module {
         }
         return out
     }()
+    
+    public static func fullMultiline(context: ExecutionContext) -> [MultiLine] {
+        guard let moduleStore = context.moduleStores[ModuleStoreKey] else {
+            return []
+        }
+        var multilines = moduleStore[multilineKey] ?? []
+        if let turtleMultiline = moduleStore[turtleKey]?.multiline {
+            multilines.append(turtleMultiline)
+        }
+        return multilines
+    }
     
     public static func initialize(context: ExecutionContext) {
         let turtleStore = ExecutionContext.ModuleStore()
@@ -189,7 +201,6 @@ public class Turtle: Module {
             
             if case .cs = self {
                 store[multilineKey] = []
-                return
             }
             
             let newMultiline = turtle.performing(self)
