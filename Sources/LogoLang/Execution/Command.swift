@@ -110,15 +110,15 @@ struct Conditional: ExecutionNode {
         switch self.comparisonOp {
         case .lt:
             if lhsv < rhsv {
-                try block.execute(context: context, reuseScope: false)
+                try block.execute(context: context, reuseScope: reuseScope)
             }
         case .gt:
             if lhsv > rhsv {
-                try block.execute(context: context, reuseScope: false)
+                try block.execute(context: context, reuseScope: reuseScope)
             }
         case .eq:
             if lhsv == rhsv {
-                try block.execute(context: context, reuseScope: false)
+                try block.execute(context: context, reuseScope: reuseScope)
             }
         }
     }
