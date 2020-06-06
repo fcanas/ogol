@@ -8,27 +8,6 @@
 
 import Foundation
 
-// MARK: Scope
-
-public protocol Scope: ExecutionNode {
-
-    var commands: [ExecutionNode] { get }
-
-    var procedures: [String: Procedure] { get }
-
-}
-
-struct CommandList: ExecutionNode {
-    var description: String { get { commands.description } }
-    
-    func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        for command in commands {
-            try command.execute(context: context, reuseScope: false) // TODO: look
-        }
-    }
-    let commands: [ExecutionNode]
-}
-
 public enum ExecutionHandoff: Error {
     case stop
     case error(Runtime, String) // TODO: node that can be tied back to source?
@@ -49,7 +28,7 @@ public protocol ExecutionNode: CustomStringConvertible {
     func execute(context: ExecutionContext, reuseScope: Bool) throws
 }
 
-public struct Program: Scope {
+public struct Program {
     
     public var description: String = "Program" // TODO
 
@@ -61,9 +40,7 @@ public struct Program: Scope {
         var c: [ExecutionNode] = []
         var p: [String : Procedure] = [:]
         executionNodes.forEach { (node) in
-            if let commands = node as? CommandList {
-                c.append(contentsOf: commands.commands)
-            } else if let procedure = node as? Procedure {
+            if let procedure = node as? Procedure {
                 p[procedure.name] = procedure
             } else {
                 c.append(node)
@@ -87,7 +64,7 @@ public protocol Procedure: ExecutionNode {
     var procedures: [String : Procedure] { get }
 }
 
-public class ConcreteProcedure: Procedure, Scope, CustomStringConvertible{
+public class ConcreteProcedure: Procedure, CustomStringConvertible{
 
     public var name: String
     public var commands: [ExecutionNode]
@@ -178,7 +155,7 @@ extension ProcedureInvocation: SyntaxColorable {
     }
 }
 
-struct Block: ExecutionNode, Scope {
+struct Block: ExecutionNode {
     var description: String { get { "[]-> " + commands.description } }
 
     var commands: [ExecutionNode]
