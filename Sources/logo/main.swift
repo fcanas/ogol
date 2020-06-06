@@ -68,7 +68,7 @@ while let input = readLine() {
             case .anticipatedRuntime(_):
             continue // todo : weird
             case let .severeInternal(e):
-                print("Severe internall error: \(e)")
+                print("Severe internal error: \(e)")
             }
             print(input)
         }
