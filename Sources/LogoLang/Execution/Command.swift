@@ -20,7 +20,7 @@ struct Stop: ExecutionNode {
 
 struct Repeat: ExecutionNode {
     var description: String {
-        return "repeat " + count.description + " " + "[ TODO : Block Description]"
+        return "repeat " + count.description + " " + block.description
     }
 
     func execute(context: ExecutionContext, reuseScope: Bool) throws {
@@ -71,7 +71,7 @@ struct Output: ExecutionNode {
 struct Conditional: ExecutionNode {
 
     var description: String {
-        return "\(lhs) \(comparisonOp) \(rhs) [ TODO : Block ]"
+        return "\(lhs) \(comparisonOp) \(rhs) [ \(block) ]"
     }
 
     enum Comparison: CustomStringConvertible {
@@ -103,7 +103,6 @@ struct Conditional: ExecutionNode {
     }
 
     func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        // TODO : raise errors
         guard case let .double(lhsv) = try lhs.evaluate(context: context),
             case let .double(rhsv) = try rhs.evaluate(context: context) else {
                 throw ExecutionHandoff.error(.typeError, "Conditional statements can only compare numbers")
