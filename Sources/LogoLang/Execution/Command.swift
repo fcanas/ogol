@@ -29,7 +29,7 @@ struct Repeat: ExecutionNode {
             throw ExecutionHandoff.error(.typeError, "Tried to use non-numeric repeat value")
         }
         while executed < Int(limit) {
-            try block.execute(context: context, reuseScope: false) // TODO: consider tail recursion in repeat node
+            try block.execute(context: context, reuseScope: reuseScope)
             executed += 1
         }
     }
@@ -134,6 +134,7 @@ struct For: ExecutionNode {
     func execute(context: ExecutionContext, reuseScope: Bool) {
         // TODO
         fatalError()
+        // inherit reuse scope
     }
 
     init(block: Block) {
