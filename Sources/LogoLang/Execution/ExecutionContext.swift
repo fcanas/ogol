@@ -9,6 +9,8 @@ import Foundation
 
 public class ExecutionContext {
     
+    public static var StackDepthProbe: ((UInt) -> Void)?
+    
     private weak var _root: ExecutionContext!
     
     public struct ModuleKey<T> {
@@ -48,7 +50,7 @@ public class ExecutionContext {
         }
     }
     
-    public static var MaxDepth: Int = 500
+    public static var MaxDepth: UInt = 500
 
     public class NestedKeyValueStore<T> {
         var parent: NestedKeyValueStore<T>?
@@ -95,7 +97,7 @@ public class ExecutionContext {
     public var procedures: NestedKeyValueStore<Procedure>
     public var variables: NestedKeyValueStore<Bottom>
     public var moduleStores: NestedKeyValueStore<ModuleStore>
-    private var depth: Int
+    private var depth: UInt
     private weak var parent: ExecutionContext?
 
     public func allVariables() -> [String:Bottom] {
@@ -140,6 +142,7 @@ public class ExecutionContext {
     ///                 chain deeper than `ExecutionContext.MaxDepth`.
     public init(parent: ExecutionContext, procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) throws {
         self.depth = parent.depth + 1
+        ExecutionContext.StackDepthProbe?(self.depth)
         if depth > ExecutionContext.MaxDepth {
             throw ExecutionHandoff.error(.maxDepth, "Number of execution contexts exceeded")
         }

@@ -12,12 +12,16 @@ import Foundation
 class StatusController: NSObject {
     @IBOutlet var statusLabel: NSTextField!
     @IBOutlet var activityIndicator: NSProgressIndicator!
+    @IBOutlet var stackDepthIndicator: NSProgressIndicator!
     
     enum State {
         case idle
         case error
-        case running
+        case executing(UInt)
+        case render
     }
+    
+    var maxStackDepth: UInt = 1
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -26,16 +30,26 @@ class StatusController: NSObject {
     
     var state: State = .idle {
         didSet {
-            switch state {
-            case .idle:
-                activityIndicator.stopAnimation(self)
-                statusLabel.stringValue = ""
-            case .running:
-                activityIndicator.startAnimation(self)
-                statusLabel.stringValue = "running..."
-            case .error:
-                activityIndicator.stopAnimation(self)
-                statusLabel.stringValue = "error"
+            DispatchQueue.main.async {
+                switch self.state {
+                case .idle:
+                    self.activityIndicator.stopAnimation(self)
+                    self.statusLabel.stringValue = ""
+                    self.stackDepthIndicator.isHidden = true
+                case let .executing(depth):
+                    self.activityIndicator.startAnimation(self)
+                    self.statusLabel.stringValue = "executing..."
+                    self.stackDepthIndicator.startAnimation(self)
+                    self.stackDepthIndicator.isHidden = false
+                    self.stackDepthIndicator.doubleValue = self.stackDepthIndicator.maxValue * Double(depth) / Double(self.maxStackDepth)
+                case .render:
+                    self.activityIndicator.startAnimation(self)
+                    self.statusLabel.stringValue = "rendering..."
+                    self.stackDepthIndicator.isHidden = true
+                case .error:
+                    self.activityIndicator.stopAnimation(self)
+                    self.statusLabel.stringValue = "error"
+                }
             }
         }
     }

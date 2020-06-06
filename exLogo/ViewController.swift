@@ -35,6 +35,10 @@ class ViewController: NSViewController {
         appearanceOvserver = view.observe(\.effectiveAppearance) { [weak self] (_, _) in
             self?.updateAppearance()
         }
+        
+        // Executor
+        ExecutionContext.StackDepthProbe = { [weak self] depth in self?.statusController.state = .executing(depth) }
+        statusController.maxStackDepth = ExecutionContext.MaxDepth
     }
     
     func updateAppearance() {
@@ -110,7 +114,7 @@ class ViewController: NSViewController {
         var svg: String?
         var err: Error?
         
-        statusController.state = .running
+        statusController.state = .executing(0)
         
         let executeProgram = DispatchWorkItem {
             do {
@@ -120,13 +124,14 @@ class ViewController: NSViewController {
                     executionContext.procedures[key] = value
                     parser.additionalProcedures[key] = value
                 }
-                
+                self.statusController.state = .render
                 svg = try SVGEncoder().encode(context: executionContext)
             } catch let e {
                 err = e
             }
         }
         executeProgram.notify(queue: .main) {
+            
             if let svg = svg {
                 webRenderController.render(svg: svg)
                 statusController.state = .idle
