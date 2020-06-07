@@ -67,7 +67,7 @@ struct Lex {
         static let string = { (c, ca) -> String in
             return String(c) + String(ca)
             } <^> CharacterSet.logoAlphabetical.parser() <&> CharacterSet.logoAlphaNumeric.parser().many
-        static let number = { Value.number($0) } <^> Double.parser
+        static let number = { Value.bottom(.double(($0))) } <^> Double.parser
         static let comment = { String($0) } <^> ";" *> character(condition: { $0 != "\n" && $0 != "\r" }).many <* eol
         static let eol = _w *> BasicParser.newline.many
         static let _space = CharacterSet.whitespaces.parser().many1

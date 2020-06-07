@@ -74,7 +74,7 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("Failed to parse fd")
             return
         }
-        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.number(5))))
+        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
         XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "fd", parameters:[.expression(exp)]))
     }
@@ -86,7 +86,7 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("Failed to parse fd")
             return
         }
-        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.number(5))))
+        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
         XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "forward", parameters:[.expression(exp)]))
     }
@@ -98,7 +98,7 @@ class SimpleCommandParserTests: XCTestCase {
     		XCTFail("Failed to parse invocation")
     		return
     	}
-		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.number(5))))
+        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
         XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "par", parameters:[.expression(exp)]))
     }
@@ -110,7 +110,7 @@ class SimpleCommandParserTests: XCTestCase {
     		XCTFail("Failed to parse invocation")
     		return
     	}
-		let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.number(5))))
+        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
         XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name:"star", parameters:[.expression(exp)]))
     }
@@ -120,10 +120,10 @@ class SimpleCommandParserTests: XCTestCase {
 class SignExpressionParserTests: XCTestCase {
 
     func testNumbers() {
-        _testSignExpression("-4", SignExpression.positive(.number(-4)), ["-4"])
-        _testSignExpression("1234", SignExpression.positive(.number(1234)), ["1234"])
-        _testSignExpression("54321", SignExpression.positive(.number(54321)), ["54321"])
-        _testSignExpression("-3.14", SignExpression.positive(.number(-3.14)), ["-3.14"])
+        _testSignExpression("-4", SignExpression.positive(.bottom(.double(-4))), ["-4"])
+        _testSignExpression("1234", SignExpression.positive(.bottom(.double(1234))), ["1234"])
+        _testSignExpression("54321", SignExpression.positive(.bottom(.double(54321))), ["54321"])
+        _testSignExpression("-3.14", SignExpression.positive(.bottom(.double(-3.14))), ["-3.14"])
     }
 
     func testDeref() {
@@ -167,7 +167,7 @@ class MultiplyingExpressionParserTests: XCTestCase {
             XCTFail("Failed to parse LHS of Multiplying Expression")
             return
         }
-        XCTAssertEqual(MultiplyingExpression(lhs: SignExpression.positive(.number(12.345))), e)
+        XCTAssertEqual(MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(12.345)))), e)
         XCTAssertEqual(s, " p", "A multiplying expression with no RHS shoud not eat remaining whitespace or tokens")
     }
 
@@ -177,8 +177,8 @@ class MultiplyingExpressionParserTests: XCTestCase {
             XCTFail("Failed to parse Multiplying Expression")
             return
         }
-        let lhs = SignExpression.positive(.number(-12))
-        let rhs = SignExpression.positive(.number(2))
+        let lhs = SignExpression.positive(.bottom(.double(-12)))
+        let rhs = SignExpression.positive(.bottom(.double(2)))
         XCTAssertEqual(MultiplyingExpression(lhs: lhs, rhs: MultiplyingExpression.Rhs(operation: .multiply, rhs: rhs)), e)
         XCTAssertEqual(s, "")
     }
@@ -189,8 +189,8 @@ class MultiplyingExpressionParserTests: XCTestCase {
             XCTFail("Failed to parse Multiplying Expression")
             return
         }
-        let lhs = SignExpression.positive(.number(14.2))
-        let rhs = SignExpression.positive(.number(-288.1))
+        let lhs = SignExpression.positive(.bottom(.double(14.2)))
+        let rhs = SignExpression.positive(.bottom(.double(-288.1)))
         XCTAssertEqual(MultiplyingExpression(lhs: lhs, rhs: MultiplyingExpression.Rhs(operation: .divide, rhs: rhs)), e)
         XCTAssertEqual(s, "")
     }
@@ -202,7 +202,7 @@ class MultiplyingExpressionParserTests: XCTestCase {
             return
         }
         XCTAssert(s.count == 0)
-        let lhs = SignExpression.positive(.number(-3))
+        let lhs = SignExpression.positive(.bottom(.double(-3)))
         XCTAssertEqual(MultiplyingExpression(lhs: lhs), e)
     }
 
@@ -215,7 +215,7 @@ class MultiplyingExpressionParserTests: XCTestCase {
         }
 
         XCTAssert(s.count == 0)
-        let lhs = SignExpression.positive(.number(-3))
+        let lhs = SignExpression.positive(.bottom(.double(-3)))
         let rhs = MultiplyingExpression.Rhs(operation: .multiply, rhs:SignExpression.positive(.deref("x")))
         XCTAssertEqual(e, MultiplyingExpression(lhs: lhs, rhs: rhs))
     }
@@ -226,16 +226,16 @@ class MultiplyingExpressionParserTests: XCTestCase {
             XCTFail("Failed to parse Multiplying Expression")
             return
         }
-        let lhs = SignExpression.positive(.number(-3))
+        let lhs = SignExpression.positive(.bottom(.double(-3)))
 
         let rhs = [
-            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.number(1))),
-            MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.positive(.number(4))),
-            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.number(1.5))),
-            MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.positive(.number(-9))),
-            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.number(26))),
+            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.bottom(.double(1)))),
+            MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.positive(.bottom(.double(4)))),
+            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.bottom(.double(1.5)))),
+            MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.positive(.bottom(.double(-9)))),
+            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.bottom(.double(26)))),
             MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.negative(.deref("x"))),
-            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.deref("y"))),
+            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.deref("y")))
         ]
         XCTAssertEqual(MultiplyingExpression(lhs: lhs, rhs: rhs), e)
         XCTAssertEqual(s, "  x", "Chaining multiplying expressions should not eat whitespace")
@@ -253,9 +253,9 @@ class ExpressionParserTests: XCTestCase {
     func nestBasic(sign: Sign, value: Double) -> MultiplyingExpression {
         switch sign {
         case .positive:
-            return MultiplyingExpression(lhs: SignExpression.positive(.number(value)))
+            return MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(value))))
         case .negative:
-            return MultiplyingExpression(lhs: SignExpression.negative(.number(value)))
+            return MultiplyingExpression(lhs: SignExpression.negative(.bottom(.double(value))))
         }
     }
 
@@ -299,20 +299,20 @@ class ExpressionParserTests: XCTestCase {
             XCTFail("Failed to parse Multiplying Expression")
             return
         }
-        let lhs = MultiplyingExpression(lhs: SignExpression.positive(.number(-3)))
+        let lhs = MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(-3))))
 
 
         let mRhs1 = [
-            MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.positive(.number(4))),
-            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.number(1.5)))
+            MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.positive(.bottom(.double(4)))),
+            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.bottom(.double(1.5))))
         ]
-        let m1 = MultiplyingExpression(lhs: SignExpression.positive(.number(1)), rhs: mRhs1)
+        let m1 = MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(1))), rhs: mRhs1)
 
         let mRhs2 = [
-            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.number(26))),
+            MultiplyingExpression.Rhs(operation: .divide, rhs: SignExpression.positive(.bottom(.double(26)))),
             MultiplyingExpression.Rhs(operation: .multiply, rhs: SignExpression.negative(.deref("x"))),
         ]
-        let m2 = MultiplyingExpression(lhs: SignExpression.positive(.number(-9)), rhs: mRhs2)
+        let m2 = MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(-9))), rhs: mRhs2)
 
         let rhs: [Expression.Rhs] = [
             Expression.Rhs(operation: .add, rhs: m1),

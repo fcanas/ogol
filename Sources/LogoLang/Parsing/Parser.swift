@@ -356,7 +356,7 @@ public class LogoParser {
     
     internal func value(substring: Substring) -> (Value, Substring)? {
         if let (string, remainder) = stringLiteral(substring: substring) {
-            return (Value.string(string), remainder)
+            return (Value.bottom(.string(string)), remainder)
         }
         if let (exp, remainder) = expression(substring: substring) {
             return (Value.expression(exp), remainder)

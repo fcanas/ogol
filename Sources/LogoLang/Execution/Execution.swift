@@ -81,12 +81,24 @@ public class ConcreteProcedure: Procedure, CustomStringConvertible{
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         let ctx: ExecutionContext = reuseScope ? context : try ExecutionContext(parent: context, procedures: procedures)
-        for (idx, command) in commands.enumerated() {
+        
+        var idx = 0
+        while idx < commands.count {
+            let command = commands[idx]
             do {
-                try command.execute(context: ctx, reuseScope: idx == (commands.count - 1))
+                if idx == commands.count - 1, let invocation = command as? ProcedureInvocation, invocation.name == self.name {
+                    let (_, parameterMap) = try invocation.evaluateParameters(in: ctx)
+                    parameterMap.forEach { (key: String, value: Bottom) in
+                        ctx.variables[key] = value
+                    }
+                    idx = 0
+                    continue
+                }
+                try command.execute(context: ctx, reuseScope: false)
             } catch ExecutionHandoff.stop {
                 return
             }
+            idx += 1
         }
     }
 
@@ -103,8 +115,7 @@ public struct ProcedureInvocation: ExecutionNode, Equatable {
     let name: String
     let parameters: [Value]
     
-    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        
+    public func evaluateParameters(in context: ExecutionContext) throws -> (Procedure, Dictionary<String,Bottom>) {
         guard let procedure = context.procedures[name] else {
             throw ExecutionHandoff.error(.missingSymbol, "I don't know how to \(name)")
         }
@@ -118,6 +129,13 @@ public struct ProcedureInvocation: ExecutionNode, Equatable {
             parameterMap[procedure.parameters[index]] = try parameter.evaluate(context: context)
         }
         
+        return (procedure, parameterMap)
+    }
+    
+    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
+        
+        let (procedure, parameterMap) = try evaluateParameters(in: context)
+        
         let newScope: ExecutionContext
         if reuseScope {
             context.inject(procedures: procedure.procedures)
@@ -129,7 +147,7 @@ public struct ProcedureInvocation: ExecutionNode, Equatable {
             newScope = try ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameterMap)
         }
         
-        try procedure.execute(context: newScope, reuseScope: false)
+        try procedure.execute(context: newScope, reuseScope: reuseScope)
         
     }
 }

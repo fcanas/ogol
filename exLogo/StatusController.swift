@@ -38,7 +38,7 @@ class StatusController: NSObject {
                     self.stackDepthIndicator.isHidden = true
                 case let .executing(depth):
                     self.activityIndicator.startAnimation(self)
-                    self.statusLabel.stringValue = "executing..."
+                    self.statusLabel.stringValue = "executing...\(depth)"
                     self.stackDepthIndicator.startAnimation(self)
                     self.stackDepthIndicator.isHidden = false
                     self.stackDepthIndicator.doubleValue = self.stackDepthIndicator.maxValue * Double(depth) / Double(self.maxStackDepth)

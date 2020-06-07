@@ -12,7 +12,7 @@ import XCTest
 class CompleteProgramTests: XCTestCase {
     
     func testTreeDrawing() {
-        let program = """
+        let source = """
                       to tree :size
                           if :size < 5 [fd :size bk :size stop]
                           fd :size/3
@@ -27,11 +27,36 @@ class CompleteProgramTests: XCTestCase {
                       tree 720
                       """
         
+        guard case let .success(program, _, _) = LogoParser().program(substring: Substring(source)) else {
+            XCTFail("Failed to parse performance program")
+            return
+        }
+        
         self.measure {
-            guard case let .success(program, _, _) = LogoParser().program(substring: Substring(program)) else {
-                XCTFail("Failed to parse performance program")
-                return
-            }
+            let context: ExecutionContext = ExecutionContext()
+            context.load(Turtle.self)
+            try! program.execute(context: context, reuseScope: false)
+        }
+    }
+    
+    func testTailRecursion() {
+        let source = """
+                      to swirl :far
+                          if :far < 0.01 [ stop ]
+                          fd :far
+                          rt 0.01
+                          swirl :far * 0.99987
+                      end
+                      swirl 400
+                      """
+        
+        guard case let .success(program, _, _) = LogoParser().program(substring: Substring(source)) else {
+            XCTFail("Failed to parse performance program")
+            return
+        }
+        
+        // execute
+        self.measure {
             let context: ExecutionContext = ExecutionContext()
             context.load(Turtle.self)
             try! program.execute(context: context, reuseScope: false)

@@ -186,10 +186,8 @@ public enum Value: Evaluatable, Equatable {
             return ":\(d)"
         case let .expression(e):
             return e.description
-        case let .number(n):
-            return n.description
-        case let .string(s):
-            return s
+        case let .bottom(b):
+            return b.description
         case let .procedure(p):
             return "{\(p)}"
         }
@@ -204,10 +202,8 @@ public enum Value: Evaluatable, Equatable {
                 throw ExecutionHandoff.error(.missingSymbol, "Value not found for \(symbol)")
             }
             return value
-        case let .number(n):
-            return .double(n)
-        case let .string(s):
-            return .string(s)
+        case let .bottom(bottom):
+            return bottom
         case let .procedure(p):
             return try p.evaluate(context: context)
         }
@@ -224,7 +220,6 @@ public enum Value: Evaluatable, Equatable {
     case deref(String)
     // handles some expression cases nicely to keep this here.
     // TODO: revisit.
-    case number(Double)
-    case string(String)
+    case bottom(Bottom)
     case procedure(ProcedureInvocation)
 }

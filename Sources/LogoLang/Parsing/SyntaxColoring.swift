@@ -36,14 +36,17 @@ struct SyntaxType: SyntaxColorable {
 extension Value: SyntaxColorable {
     public func syntaxCategory() -> SyntaxCategory? {
         switch self {
-        case .number(_):
-            return .number
+        case let .bottom(b):
+            switch b {
+            case .string(_):
+                return .stringLiteral
+            case .double(_):
+                return .number
+            }
         case .deref(_):
             return .variable
         case .expression(_):
             return nil
-        case .string(_):
-            return .stringLiteral
         case .procedure(_):
             fatalError("This shouldn't be here")
         }
