@@ -9,12 +9,12 @@
 import Foundation
 
 
-public protocol Evaluatable: CustomStringConvertible {
+public protocol Evaluatable: CustomStringConvertible, Codable {
     func evaluate(context: ExecutionContext) throws -> Bottom
 }
 
 enum SignExpression: Evaluatable, Equatable {
-
+    
     case positive(Value)
     case negative(Value)
     
@@ -44,49 +44,77 @@ enum SignExpression: Evaluatable, Equatable {
     }
 }
 
-struct MultiplyingExpression: Equatable, CustomStringConvertible {
+extension SignExpression: Codable {
+    
+    enum Key: CodingKey {
+        case rawValue
+        case associatedValue
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        let rawValue = try container.decode(String.self, forKey: .rawValue)
+        let value = try container.decode(Value.self, forKey: .associatedValue)
+        switch rawValue {
+        case "positive":
+            self = .positive(value)
+        case "negative":
+            self = .negative(value)
+        default:
+            throw LogoCodingError.signExpression
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Key.self)
+        switch self {
+        case let .positive(value):
+            try container.encode("positive", forKey: .rawValue)
+            try container.encode(value, forKey: .associatedValue)
+        case let .negative(value):
+            try container.encode("negative", forKey: .rawValue)
+            try container.encode(value, forKey: .associatedValue)
+        }
+    }
+    
+    
+}
 
+struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
+    
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
     }
-
-
+    
+    
     init(lhs: SignExpression, rhs: MultiplyingExpression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
     }
-
+    
     init(lhs: SignExpression, rhs: [MultiplyingExpression.Rhs] = []) {
         self.lhs = lhs
         self.rhs = rhs
     }
-
-    struct Rhs: Equatable, CustomStringConvertible {
+    
+    struct Rhs: Equatable, CustomStringConvertible, Codable {
         var description: String {
-            return operation.description + " " + rhs.description
+            return operation.rawValue + " " + rhs.description
         }
         var operation: MultiplyingOperation
         var rhs: SignExpression
     }
-
-    enum MultiplyingOperation {
-        var description: String {
-            switch self {
-            case .multiply:
-                return "*"
-            case .divide:
-                return "/"
-            }
-        }
+    
+    enum MultiplyingOperation: String, Codable {
         case multiply
         case divide
     }
-
+    
     var lhs: SignExpression
     var rhs: [Rhs]
-
+    
     func evaluate(context: ExecutionContext) throws -> Bottom {
-
+        
         // Sort-circuit strings out
         if case let .string(s) = try self.lhs.evaluate(context: context) {
             return .string(s)
@@ -95,7 +123,7 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible {
         guard case let .double(lhsv) = try self.lhs.evaluate(context: context) else {
             throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
         }
-
+        
         return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
             guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
                 throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
@@ -110,48 +138,40 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible {
     }
 }
 
-public struct Expression: Evaluatable, Equatable {
-
+public struct Expression: Evaluatable, Equatable, Codable {
+    
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
     }
-
+    
     internal init(lhs: MultiplyingExpression, rhs: Expression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
     }
-
+    
     internal init(lhs: MultiplyingExpression, rhs: [Expression.Rhs] = []) {
         self.lhs = lhs
         self.rhs = rhs
     }
-
-    struct Rhs: Equatable, CustomStringConvertible {
-
+    
+    struct Rhs: Equatable, CustomStringConvertible, Codable {
+        
         var description: String {
-            return operation.description + " " + rhs.description
+            return operation.rawValue + " " + rhs.description
         }
-
+        
         var operation: ExpressionOperation
         var rhs: MultiplyingExpression
     }
-
-    enum ExpressionOperation: Equatable, CustomStringConvertible {
-        var description: String {
-            switch self {
-            case .add:
-                return "+"
-            case .subtract:
-                return "-"
-            }
-        }
+    
+    enum ExpressionOperation: String, Codable {
         case add
         case subtract
     }
-
+    
     var lhs: MultiplyingExpression
     var rhs: [Rhs]
-
+    
     public func evaluate(context: ExecutionContext) throws -> Bottom {
         
         // Short-circuit strings
@@ -162,7 +182,7 @@ public struct Expression: Evaluatable, Equatable {
         guard case let .double(lhsv) = try self.lhs.evaluate(context: context) else {
             throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
         }
-
+        
         return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
             guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
                 throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
@@ -174,12 +194,12 @@ public struct Expression: Evaluatable, Equatable {
                 return result - rhsv
             }
         })
-
+        
     }
 }
 
 public enum Value: Evaluatable, Equatable {
-
+    
     public var description: String {
         switch self {
         case let .deref(d):
@@ -192,7 +212,7 @@ public enum Value: Evaluatable, Equatable {
             return "{\(p)}"
         }
     }
-
+    
     public func evaluate(context: ExecutionContext) throws -> Bottom {
         switch self {
         case let .expression(e):
@@ -215,11 +235,56 @@ public enum Value: Evaluatable, Equatable {
         }
         return e
     }
-
+    
     indirect case expression(Expression)
     case deref(String)
-    // handles some expression cases nicely to keep this here.
-    // TODO: revisit.
     case bottom(Bottom)
     case procedure(ProcedureInvocation)
+}
+
+extension Value: Codable {
+    enum Key: CodingKey {
+        case rawValue
+        case associatedValue
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        let rawValue = try container.decode(String.self, forKey: .rawValue)
+        switch rawValue {
+        case "deref":
+            let value = try container.decode(String.self, forKey: .associatedValue)
+            self = .deref(value)
+        case "expression":
+            let value = try container.decode(Expression.self, forKey: .associatedValue)
+            self = .expression(value)
+        case "bottom":
+            let value = try container.decode(Bottom.self, forKey: .associatedValue)
+            self = .bottom(value)
+        case "procedure":
+            let value = try container.decode(ProcedureInvocation.self, forKey: .associatedValue)
+            self = .procedure(value)
+        default:
+            throw LogoCodingError.signExpression
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Key.self)
+        
+        switch self {
+        case let .deref(name):
+            try container.encode("deref", forKey: .rawValue)
+            try container.encode(name, forKey: .associatedValue)
+        case let .expression(expression):
+            try container.encode("expression", forKey: .rawValue)
+            try container.encode(expression, forKey: .associatedValue)
+        case let .bottom(bottom):
+            try container.encode("bottom", forKey: .rawValue)
+            try container.encode(bottom, forKey: .associatedValue)
+        case let .procedure(proc):
+            try container.encode("procedure", forKey: .rawValue)
+            try container.encode(proc, forKey: .associatedValue)
+        }
+    }
 }

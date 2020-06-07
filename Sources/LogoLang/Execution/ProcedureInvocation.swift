@@ -69,3 +69,7 @@ extension ProcedureInvocation: SyntaxColorable {
         return .procedureInvocation
     }
 }
+
+extension ProcedureInvocation: Codable {
+    
+}

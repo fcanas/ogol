@@ -35,6 +35,12 @@ extension Bottom: CustomStringConvertible {
     }
 }
 
+enum LogoCodingError: Error {
+    case bottom
+    case signExpression
+    case value
+}
+
 extension Bottom: Codable {
     
     enum Key: CodingKey {
@@ -42,9 +48,6 @@ extension Bottom: Codable {
         case associatedValue
     }
     
-    enum BottomCodingError: Error {
-        case unknownCase
-    }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
@@ -57,7 +60,7 @@ extension Bottom: Codable {
             let stringValue = try container.decode(String.self, forKey: .associatedValue)
             self = .string(stringValue)
         default:
-            throw BottomCodingError.unknownCase
+            throw LogoCodingError.bottom
         }
     }
     

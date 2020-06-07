@@ -11,8 +11,8 @@ import LogoLang
 struct CLI: Module {
     static var procedures: [String : Procedure] {
         return [
-            "print" : _print,
-            "po" : po
+            "print" : .extern(_print),
+            "po" : .extern(po)
         ]
     }
 

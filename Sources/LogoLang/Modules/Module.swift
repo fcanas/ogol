@@ -14,7 +14,7 @@ extension Module {
     public static func initialize(context: ExecutionContext) {}
 }
 
-public class NativeProcedure: Procedure {
+public class NativeProcedure: GenericProcedure {
 
     public var name: String
     public var parameters: [String]

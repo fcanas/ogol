@@ -58,13 +58,41 @@ public struct Program {
     }
 }
 
-public protocol Procedure: ExecutionNode {
+public protocol GenericProcedure: ExecutionNode {
     var name: String { get }
     var parameters: [String] { get }
     var procedures: [String : Procedure] { get }
 }
 
-public class ConcreteProcedure: Procedure, CustomStringConvertible{
+public enum Procedure: GenericProcedure {
+    
+    public var description: String {
+        return _procedure.description
+    }
+    
+    private var _procedure: GenericProcedure {
+        switch self {
+        case let .extern(p):
+            return p
+        case let .native(p):
+            return p
+        }
+    }
+    
+    public var name: String { self._procedure.name }
+    public var parameters: [String] { self._procedure.parameters }
+    public var procedures: [String : Procedure] { self._procedure.procedures }
+    
+    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
+        try _procedure.execute(context: context, reuseScope: reuseScope)
+    }
+    
+    case native(ConcreteProcedure)
+    case extern(GenericProcedure)
+    
+}
+
+public class ConcreteProcedure: GenericProcedure, CustomStringConvertible {
 
     public var name: String
     public var commands: [ExecutionNode]
@@ -124,3 +152,4 @@ struct Block: ExecutionNode {
         }
     }
 }
+

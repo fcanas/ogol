@@ -39,7 +39,7 @@ public class Turtle: Module {
     public static var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
         Command.Partial.allCases.forEach { (partial) in
-            out[partial.rawValue] = partial
+            out[partial.rawValue] = .extern(partial)
         }
         return out
     }()
@@ -86,7 +86,7 @@ public class Turtle: Module {
             }
         }
         
-        fileprivate enum Partial: String, RawRepresentable, CaseIterable, Procedure {
+        fileprivate enum Partial: String, RawRepresentable, CaseIterable, GenericProcedure {
 
             var description: String { self.rawValue }
             

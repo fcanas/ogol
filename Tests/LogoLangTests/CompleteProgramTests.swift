@@ -115,12 +115,12 @@ class CompleteProgramTests: XCTestCase {
             XCTAssertEqual(program.commands.count, 9, "This program should have 9 commands")
             XCTAssertEqual(program.procedures.count, 1, "This program should have 1 procedure")
             
-            guard let procedureName = program.procedures.keys.first, let procedure = program.procedures[procedureName] else {
+            guard let procedureName = program.procedures.keys.first, case let .native(procedure) = program.procedures[procedureName] else {
                 XCTFail("Cannot complete testing without a procedure name")
                 return
             }
             XCTAssertEqual(procedureName, "writeA", "Parsed procedure name does not match")
-            XCTAssertEqual((procedure as! ConcreteProcedure).commands.count, 15)
+            XCTAssertEqual(procedure.commands.count, 15)
             XCTAssertEqual(procedure.procedures.count, 0)
             XCTAssertEqual(procedure.parameters.count, 0)
             
