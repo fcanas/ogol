@@ -8,74 +8,38 @@
 
 import Foundation
 
-public enum Bottom: Equatable {
-
-    public static func == (lhs: Bottom, rhs: Bottom) -> Bool {
-        switch (lhs, rhs) {
-        case let (.double(l), .double(r)):
-            return l == r
-        case let (.string(l), .string(r)):
-            return l == r
-        case (.string(_), .double(_)), (.double(_), .string(_)):
-            return false
-        }
-    }
-
-    case double(Double)
-    case string(String)
-}
-
-extension Bottom: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case let .double(d):
-            return "\"\(d)\""
-        case let .string(s):
-            return s
-        }
-    }
-}
 
 public protocol Evaluatable: CustomStringConvertible {
     func evaluate(context: ExecutionContext) throws -> Bottom
 }
 
-struct SignExpression: Evaluatable, Equatable {
+enum SignExpression: Evaluatable, Equatable {
 
+    case positive(Value)
+    case negative(Value)
+    
     var description: String {
-        let prefix :String
-        if sign == .negative {
-            prefix = "-"
-        } else {
-            prefix = ""
+        switch self {
+        case let .negative(value):
+            return "-\(value.description)"
+        case let .positive(value):
+            return value.description
         }
-        return prefix + value.description
-    }
-
-    enum Sign {
-        case positive
-        case negative
-    }
-    var sign: Sign?
-    var value: Value
-    init(sign: Sign, value: Value) {
-        self.sign = sign
-        self.value = value
     }
     
     func evaluate(context: ExecutionContext) throws -> Bottom {
-        let v = try self.value.evaluate(context: context)
-        switch v {
-        case var .double(d):
-            switch sign {
-            case .negative:
-                d.negate()
+        switch self {
+        case let .negative(value):
+            let v = try value.evaluate(context: context)
+            switch v {
+            case var .double(doubleValue):
+                doubleValue.negate()
+                return .double(doubleValue)
             default:
-                break
+                return v
             }
-            return .double(d)
-        case .string(_):
-            return v
+        case let .positive(value):
+            return try value.evaluate(context: context)
         }
     }
 }

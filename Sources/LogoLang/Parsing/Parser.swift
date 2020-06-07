@@ -466,13 +466,18 @@ public class LogoParser {
         if let parsedNumber =  Lex.Token.number.run(runningSubstring) {
             let range = runningSubstring.startIndex..<parsedNumber.1.startIndex
             registerToken(range: range, token: parsedNumber.0)
-            return (SignExpression(sign: .positive, value: parsedNumber.0), parsedNumber.1)
+            return (SignExpression.positive(parsedNumber.0), parsedNumber.1)
         }
 
-        let signParser = ({ _ in SignExpression.Sign.positive } <^> "+")
-            <|> ({ _ in SignExpression.Sign.negative } <^> "-")
+        enum PartialSign {
+            case positive
+            case negative
+        }
+        
+        let signParser = ({ _ in PartialSign.positive } <^> "+")
+            <|> ({ _ in PartialSign.negative } <^> "-")
 
-        let sign: SignExpression.Sign
+        let sign: PartialSign
         if let parsedSign = signParser.run(substring) {
             registerToken(range: substring.startIndex..<parsedSign.1.startIndex, token: SyntaxType(category: .operation))
             runningSubstring = parsedSign.1
@@ -487,7 +492,13 @@ public class LogoParser {
         if let parsedDeref =  Lex.Token.deref.run(runningSubstring) {
             let range = runningSubstring.startIndex..<parsedDeref.1.startIndex
             registerToken(range: range, token: parsedDeref.0)
-            return (SignExpression(sign: sign, value: parsedDeref.0), parsedDeref.1)
+            
+            switch sign {
+            case .positive:
+                return (SignExpression.positive(parsedDeref.0), parsedDeref.1)
+            case .negative:
+                return (SignExpression.negative(parsedDeref.0), parsedDeref.1)
+            }
         }
 
         return nil
