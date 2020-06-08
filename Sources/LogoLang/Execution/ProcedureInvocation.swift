@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ProcedureInvocation: _Executable, Equatable {
+public struct ProcedureInvocation: Equatable {
 
     let name: String
     let parameters: [Value]

@@ -15,9 +15,9 @@ struct CLI: Module {
     
     static var procedures: [String : Procedure] {
         return [
-            "print" : _print,
-            "po" : po,
-            "clear" : _clear
+            "print" : .extern(_print),
+            "po" : .extern(po),
+            "clear" : .extern(_clear)
         ]
     }
     

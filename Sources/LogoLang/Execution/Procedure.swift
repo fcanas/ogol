@@ -7,10 +7,11 @@
 
 import Foundation
 
-public protocol GenericProcedure: _Executable {
+public protocol GenericProcedure: CustomStringConvertible {
     var name: String { get }
     var parameters: [String] { get }
     var procedures: [String : Procedure] { get }
+    func execute(context: ExecutionContext, reuseScope: Bool) throws
 }
 
 public enum Procedure: GenericProcedure {

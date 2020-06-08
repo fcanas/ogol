@@ -24,10 +24,6 @@ public enum ExecutionHandoff: Error {
     }
 }
 
-public protocol _Executable: CustomStringConvertible {
-    func execute(context: ExecutionContext, reuseScope: Bool) throws
-}
-
 public struct Program: Codable {
     
     public var description: String = "Program" // TODO

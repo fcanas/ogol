@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ExecutionNode: CustomStringConvertible, _Executable {
+public enum ExecutionNode: CustomStringConvertible {
     
     public var description: String { "{{ Execution Node }}" }
     
@@ -115,7 +115,7 @@ extension ExecutionNode: Codable {
     
 }
 
-public struct Block: _Executable, Codable {
+public struct Block: Codable {
     public var description: String { get { "[]-> " + commands.description } }
 
     var commands: [ExecutionNode]
@@ -130,7 +130,7 @@ public struct Block: _Executable, Codable {
     }
 }
 
-public struct Stop: _Executable, Codable {
+public struct Stop: Codable {
     public var description: String {
         return "stop"
     }
@@ -140,7 +140,7 @@ public struct Stop: _Executable, Codable {
     }
 }
 
-public struct Repeat: _Executable, Codable {
+public struct Repeat: Codable {
     public var description: String {
         return "repeat " + count.description + " " + block.description
     }
@@ -166,7 +166,7 @@ public struct Repeat: _Executable, Codable {
 
 }
 
-public struct Make: _Executable, Codable {
+public struct Make: Codable {
 
     public var description: String {
         return "make \"\(symbol) \(value)"
@@ -180,7 +180,7 @@ public struct Make: _Executable, Codable {
     var symbol: String
 }
 
-public struct Output: _Executable, Codable {
+public struct Output: Codable {
     public var description: String {
         return "output \(value)"
     }
@@ -190,7 +190,7 @@ public struct Output: _Executable, Codable {
     var value: Value
 }
 
-public struct Conditional: _Executable, Codable {
+public struct Conditional: Codable {
 
     public var description: String {
         return "\(lhs) \(comparisonOp) \(rhs) [ \(block) ]"
@@ -247,7 +247,7 @@ public struct Conditional: _Executable, Codable {
 
 }
 
-public struct For: _Executable, Codable {
+public struct For: Codable {
 
     public var description: String {
         return "for"
