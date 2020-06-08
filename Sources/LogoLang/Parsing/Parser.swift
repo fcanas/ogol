@@ -48,10 +48,11 @@ public class LogoParser {
 
         var runningSubstring = eatNewlines(substring)
         var executionNodes: [ExecutionNode] = []
+        var procedures: [Procedure] = []
         while let parsedLine = line(substring: runningSubstring) {
             switch parsedLine.0 {
-            case let .left(x):
-                executionNodes.append(x)
+            case let .left(p):
+                procedures.append(p)
             case let .right(x):
                 executionNodes.append(x)
             }
@@ -61,7 +62,7 @@ public class LogoParser {
         if hasFatalError {
             return .error(self.errors)
         }
-        let program = Program(executionNodes: executionNodes)
+        let program = Program(executionNodes: executionNodes, procedures: procedures)
         verifyProcedureCalls(for: program, modules: modules, procedures: additionalProcedures)
 
         return .success(program, self.allTokens, self.errors)
@@ -206,7 +207,7 @@ public class LogoParser {
         }
         registerToken(range: runningSubstring.startIndex..<lexedEnd.1.startIndex, token: SyntaxType(category: .keyword))
 
-        return (.native(ConcreteProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters)), eatNewlines(lexedEnd.1))
+        return (.native(NativeProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters)), eatNewlines(lexedEnd.1))
     }
 
     internal func controlFlow(substring: Substring) -> (ExecutionNode, Substring)? {
@@ -216,7 +217,7 @@ public class LogoParser {
             switch command.0 {
             case .stop:
                 registerToken(range: commandTokenRange, token: command.0)
-                return (Stop(), command.1)
+                return (.stop(Stop()), command.1)
             case .make:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -230,13 +231,13 @@ public class LogoParser {
                 runningSubstring = eatWhitespace(literal.1)
 
                 if let value = value(substring: runningSubstring) {
-                    return (Make(value: value.0, symbol: literal.0), value.1)
+                    return (.make(Make(value: value.0, symbol: literal.0)), value.1)
                 }
                 // deref
                 if let parsedDeref =  Lex.Token.deref.run(runningSubstring) {
                     let range = runningSubstring.startIndex..<parsedDeref.1.startIndex
                     registerToken(range: range, token: parsedDeref.0)
-                    return (Make(value: parsedDeref.0, symbol: literal.0), parsedDeref.1)
+                    return (.make(Make(value: parsedDeref.0, symbol: literal.0)), parsedDeref.1)
                 }
                 errors[command.1.startIndex..<literal.1.startIndex] = .basic("Expected value to assign to '\(literal.0)'")
                 hasFatalError = true
@@ -255,7 +256,7 @@ public class LogoParser {
                     hasFatalError = true
                     return nil
                 }
-                return (Repeat(count: repitions.0, block: block.0), block.1)
+                return (.rep(Repeat(count: repitions.0, block: block.0)), block.1)
             case .ife:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -284,10 +285,10 @@ public class LogoParser {
                     return nil
                 }
                 runningSubstring = eatWhitespace(block.1)
-                return (Conditional(lhs: lhs.0, comparison: comparison.0.additionOperator, rhs: rhs.0, block: block.0), runningSubstring)
+                return (.conditional(Conditional(lhs: lhs.0, comparison: comparison.0.additionOperator, rhs: rhs.0, block: block.0)), runningSubstring)
             case .output:
                 if let value = value(substring: eatWhitespace(command.1)) {
-                    return (Output(value: value.0), value.1)
+                    return (.output(Output(value: value.0)), value.1)
                 }
             case let .procedureInvocation(name):
                 var runningSubstring = eatWhitespace(command.1)
@@ -305,7 +306,7 @@ public class LogoParser {
 
                 let invocation = ProcedureInvocation(name: name, parameters: expressions)
                 registerToken(range: commandTokenRange, token: invocation)
-                return (invocation, runningSubstring)
+                return (.invocation(invocation), runningSubstring)
             }
         }
         return nil
@@ -363,7 +364,7 @@ public class LogoParser {
         }
         // procedure invocations _may_ return values
         // TODO: static analysis to determine if procedures may return?
-        if let (command, remainder) = controlFlow(substring: substring), let inv = command as? ProcedureInvocation {
+        if let (command, remainder) = controlFlow(substring: substring), case let .invocation(inv) = command {
             return (Value.procedure(inv), remainder)
         }
         return nil

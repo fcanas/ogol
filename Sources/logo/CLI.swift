@@ -16,12 +16,12 @@ struct CLI: Module {
         ]
     }
 
-    private static let _print = NativeProcedure(name: "print", parameters: ["in"]) { (params, _) in
+    private static let _print = ExternalProcedure(name: "print", parameters: ["in"]) { (params, _) in
         print(params.first!.description)
         return nil
     }
 
-    private static let po = NativeProcedure(name: "po", parameters: ["param"]) { (params, context) in
+    private static let po = ExternalProcedure(name: "po", parameters: ["param"]) { (params, context) in
         if params.first == .string("names") {
             print(context.allVariables())
         } else if params.first == .string("procedures") {

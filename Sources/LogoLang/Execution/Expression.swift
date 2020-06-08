@@ -8,12 +8,7 @@
 
 import Foundation
 
-
-public protocol Evaluatable: CustomStringConvertible, Codable {
-    func evaluate(context: ExecutionContext) throws -> Bottom
-}
-
-enum SignExpression: Evaluatable, Equatable {
+enum SignExpression: Equatable {
     
     case positive(Value)
     case negative(Value)
@@ -138,7 +133,7 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
     }
 }
 
-public struct Expression: Evaluatable, Equatable, Codable {
+public struct Expression: Equatable, Codable {
     
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
@@ -198,7 +193,7 @@ public struct Expression: Evaluatable, Equatable, Codable {
     }
 }
 
-public enum Value: Evaluatable, Equatable {
+public enum Value: Equatable {
     
     public var description: String {
         switch self {

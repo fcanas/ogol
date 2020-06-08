@@ -43,7 +43,7 @@ public struct LogoMath: Module {
         public static let procedures: [String : Procedure] = {
             var out: [String:Procedure] = [:]
             nativeFunctions.forEach { (key: String, function: @escaping (Double) -> Double) in
-                out[key] = Procedure.extern(NativeProcedure(name: key, parameters: ["LogoMathParam"]) { (params, context) throws -> Bottom? in
+                out[key] = Procedure.extern(ExternalProcedure(name: key, parameters: ["LogoMathParam"]) { (params, context) throws -> Bottom? in
                     guard case let .double(param) = params.first else {
                         throw ExecutionHandoff.error(.parameter, "\(key) needs a numeric parameter")
                     }
@@ -56,7 +56,7 @@ public struct LogoMath: Module {
 
     private enum Random: Module {
         public static let procedures: [String : Procedure] = {
-            return ["random":.extern(NativeProcedure(name: "random", parameters: ["top"], action: { (params, _) -> Bottom? in
+            return ["random":.extern(ExternalProcedure(name: "random", parameters: ["top"], action: { (params, _) -> Bottom? in
                 guard case let .double(param) = params.first else {
                     throw ExecutionHandoff.error(.parameter, "random needs a numeric parameter")
                 }

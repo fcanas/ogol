@@ -62,7 +62,10 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("No token for stop")
             return
         }
-        XCTAssertNotNil(c as? Stop)
+        guard case .stop(_) = c else {
+            XCTFail("Should parse a stop")
+            return
+        }
         XCTAssertEqual(programString[tokenKey], programString)
         XCTAssertEqual(s, "")
     }
@@ -75,8 +78,11 @@ class SimpleCommandParserTests: XCTestCase {
             return
         }
         let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
-
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "fd", parameters:[.expression(exp)]))
+        guard case let .invocation(inv) = i else {
+            XCTFail("Should parse a stop")
+            return
+        }
+        XCTAssertEqual(inv, ProcedureInvocation(name: "fd", parameters:[.expression(exp)]))
     }
     
     func testBasicCommandAlternateName() {
@@ -88,7 +94,12 @@ class SimpleCommandParserTests: XCTestCase {
         }
         let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "forward", parameters:[.expression(exp)]))
+        guard case let .invocation(inv) = i else {
+            XCTFail("Should parse an invocation")
+            return
+        }
+        
+        XCTAssertEqual(inv, ProcedureInvocation(name: "forward", parameters:[.expression(exp)]))
     }
     
     func testBasicInvocation() {
@@ -100,7 +111,12 @@ class SimpleCommandParserTests: XCTestCase {
     	}
         let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name: "par", parameters:[.expression(exp)]))
+        guard case let .invocation(inv) = i else {
+            XCTFail("Should parse an invocation")
+            return
+        }
+        
+        XCTAssertEqual(inv, ProcedureInvocation(name: "par", parameters:[.expression(exp)]))
     }
     
     func testInvocationPrefixedWithBuiltin() {
@@ -112,7 +128,12 @@ class SimpleCommandParserTests: XCTestCase {
     	}
         let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
 
-        XCTAssertEqual(i as? ProcedureInvocation, ProcedureInvocation(name:"star", parameters:[.expression(exp)]))
+        guard case let .invocation(inv) = i else {
+            XCTFail("Should parse an invocation")
+            return
+        }
+        
+        XCTAssertEqual(inv, ProcedureInvocation(name:"star", parameters:[.expression(exp)]))
     }
 
 }

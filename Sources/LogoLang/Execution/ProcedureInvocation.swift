@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ProcedureInvocation: ExecutionNode, Equatable {
+public struct ProcedureInvocation: _Executable, Equatable {
 
     let name: String
     let parameters: [Value]
@@ -49,7 +49,7 @@ public struct ProcedureInvocation: ExecutionNode, Equatable {
     }
 }
 
-extension ProcedureInvocation: Evaluatable {
+extension ProcedureInvocation { // Value
     public var description: String {
         return "p:->" + name
     }

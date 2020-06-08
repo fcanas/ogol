@@ -21,21 +21,21 @@ struct CLI: Module {
         ]
     }
     
-    private static let _print = NativeProcedure(name: "print", parameters: ["in"]) { (params, _) in
+    private static let _print = ExternalProcedure(name: "print", parameters: ["in"]) { (params, _) in
         DispatchQueue.main.async {
             message(params.first!.description)
         }
         return nil
     }
 
-    private static let _clear = NativeProcedure(name: "clear", parameters: []) { (params, _) in
+    private static let _clear = ExternalProcedure(name: "clear", parameters: []) { (params, _) in
         DispatchQueue.main.async {
             clear()
         }
         return nil
     }
 
-    private static let po = NativeProcedure(name: "po", parameters: ["param"]) { (params, context) in
+    private static let po = ExternalProcedure(name: "po", parameters: ["param"]) { (params, context) in
         DispatchQueue.main.async {
             if params.first == .string("names") {
                 message(context.allVariables().description)

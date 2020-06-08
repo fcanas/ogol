@@ -39,6 +39,8 @@ enum LogoCodingError: Error {
     case bottom
     case signExpression
     case value
+    case procedure
+    case ExecutionNode
 }
 
 extension Bottom: Codable {
@@ -47,7 +49,6 @@ extension Bottom: Codable {
         case rawValue
         case associatedValue
     }
-    
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
