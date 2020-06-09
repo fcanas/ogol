@@ -35,7 +35,7 @@ extension Bottom: CustomStringConvertible {
     }
 }
 
-enum LogoCodingError: Error {
+public enum LogoCodingError: Error {
     case bottom
     case signExpression
     case value
@@ -46,19 +46,19 @@ enum LogoCodingError: Error {
 extension Bottom: Codable {
     
     enum Key: CodingKey {
-        case rawValue
-        case associatedValue
+        case type
+        case value
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .rawValue)
+        let rawValue = try container.decode(String.self, forKey: .type)
         switch rawValue {
         case "double":
-            let doubleValue = try container.decode(Double.self, forKey: .associatedValue)
+            let doubleValue = try container.decode(Double.self, forKey: .value)
             self = .double(doubleValue)
         case "string":
-            let stringValue = try container.decode(String.self, forKey: .associatedValue)
+            let stringValue = try container.decode(String.self, forKey: .value)
             self = .string(stringValue)
         default:
             throw LogoCodingError.bottom
@@ -69,11 +69,11 @@ extension Bottom: Codable {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .double(doubleValue):
-            try container.encode("double", forKey: .rawValue)
-            try container.encode(doubleValue, forKey: .associatedValue)
+            try container.encode("double", forKey: .type)
+            try container.encode(doubleValue, forKey: .value)
         case let.string(stringValue):
-            try container.encode("string", forKey: .rawValue)
-            try container.encode(stringValue, forKey: .associatedValue)
+            try container.encode("string", forKey: .type)
+            try container.encode(stringValue, forKey: .value)
         }
     }
     

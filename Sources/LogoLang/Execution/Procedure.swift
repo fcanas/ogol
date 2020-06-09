@@ -45,19 +45,19 @@ public enum Procedure: GenericProcedure {
 extension Procedure: Codable {
     
     enum Key: CodingKey {
-        case rawValue
-        case associatedValue
+        case type
+        case value
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .rawValue)
+        let rawValue = try container.decode(String.self, forKey: .type)
         switch rawValue {
         case "native":
-            let nativeProcedure = try container.decode(NativeProcedure.self, forKey: .associatedValue)
+            let nativeProcedure = try container.decode(NativeProcedure.self, forKey: .value)
             self = .native(nativeProcedure)
         case "extern":
-            let standin = try container.decode(StandinProcedure.self, forKey: .associatedValue)
+            let standin = try container.decode(StandinProcedure.self, forKey: .value)
             self = .extern(standin)
         default:
             throw LogoCodingError.procedure
@@ -68,12 +68,12 @@ extension Procedure: Codable {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .native(native):
-            try container.encode("native", forKey: .rawValue)
-            try container.encode(native, forKey: .associatedValue)
+            try container.encode("native", forKey: .type)
+            try container.encode(native, forKey: .value)
         case let .extern(extern):
-            try container.encode("extern", forKey: .rawValue)
+            try container.encode("extern", forKey: .type)
             let standIn = StandinProcedure(name: extern.name, parameters: extern.parameters, procedures: [:])
-            try container.encode(standIn, forKey: .associatedValue)
+            try container.encode(standIn, forKey: .value)
         }
     }
     

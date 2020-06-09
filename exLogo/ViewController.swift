@@ -99,6 +99,7 @@ class ViewController: NSViewController {
         e.load(LogoMath.self)
         e.load(Turtle.self)
         e.load(CLI.self)
+        e.load(Serialization.self)
         return e
     }()
     

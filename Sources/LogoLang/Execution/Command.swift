@@ -47,31 +47,31 @@ extension ExecutionNode: Codable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .rawValue)
+        let rawValue = try container.decode(String.self, forKey: .type)
         switch rawValue {
         case "block":
-            let value = try container.decode(Block.self, forKey: .associatedValue)
+            let value = try container.decode(Block.self, forKey: .value)
             self = .block(value)
         case "stop":
-            let value = try container.decode(Stop.self, forKey: .associatedValue)
+            let value = try container.decode(Stop.self, forKey: .value)
             self = .stop(value)
         case "rep":
-            let value = try container.decode(Repeat.self, forKey: .associatedValue)
+            let value = try container.decode(Repeat.self, forKey: .value)
             self = .rep(value)
         case "make":
-            let value = try container.decode(Make.self, forKey: .associatedValue)
+            let value = try container.decode(Make.self, forKey: .value)
             self = .make(value)
         case "output":
-            let value = try container.decode(Output.self, forKey: .associatedValue)
+            let value = try container.decode(Output.self, forKey: .value)
             self = .output(value)
         case "conditional":
-            let value = try container.decode(Conditional.self, forKey: .associatedValue)
+            let value = try container.decode(Conditional.self, forKey: .value)
             self = .conditional(value)
         case "foreach":
-            let value = try container.decode(For.self, forKey: .associatedValue)
+            let value = try container.decode(For.self, forKey: .value)
             self = .foreach(value)
         case "invocation":
-            let value = try container.decode(ProcedureInvocation.self, forKey: .associatedValue)
+            let value = try container.decode(ProcedureInvocation.self, forKey: .value)
             self = .invocation(value)
         default:
             throw LogoCodingError.ExecutionNode
@@ -82,35 +82,35 @@ extension ExecutionNode: Codable {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .block(block):
-            try container.encode("block", forKey: .rawValue)
-            try container.encode(block, forKey: .associatedValue)
+            try container.encode("block", forKey: .type)
+            try container.encode(block, forKey: .value)
         case let .stop(stop):
-            try container.encode("stop", forKey: .rawValue)
-            try container.encode(stop, forKey: .associatedValue)
+            try container.encode("stop", forKey: .type)
+            try container.encode(stop, forKey: .value)
         case let .rep(rep):
-            try container.encode("rep", forKey: .rawValue)
-            try container.encode(rep, forKey: .associatedValue)
+            try container.encode("rep", forKey: .type)
+            try container.encode(rep, forKey: .value)
         case let .make(make):
-            try container.encode("make", forKey: .rawValue)
-            try container.encode(make, forKey: .associatedValue)
+            try container.encode("make", forKey: .type)
+            try container.encode(make, forKey: .value)
         case let .output(output):
-            try container.encode("output", forKey: .rawValue)
-            try container.encode(output, forKey: .associatedValue)
+            try container.encode("output", forKey: .type)
+            try container.encode(output, forKey: .value)
         case let .conditional(conditional):
-            try container.encode("conditional", forKey: .rawValue)
-            try container.encode(conditional, forKey: .associatedValue)
+            try container.encode("conditional", forKey: .type)
+            try container.encode(conditional, forKey: .value)
         case let .foreach(foreach):
-            try container.encode("foreach", forKey: .rawValue)
-            try container.encode(foreach, forKey: .associatedValue)
+            try container.encode("foreach", forKey: .type)
+            try container.encode(foreach, forKey: .value)
         case let .invocation(invocation):
-            try container.encode("invocation", forKey: .rawValue)
-            try container.encode(invocation, forKey: .associatedValue)
+            try container.encode("invocation", forKey: .type)
+            try container.encode(invocation, forKey: .value)
         }
     }
     
     enum Key: CodingKey {
-        case rawValue
-        case associatedValue
+        case type
+        case value
     }
     
 }
