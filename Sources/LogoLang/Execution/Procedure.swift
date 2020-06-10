@@ -45,35 +45,32 @@ public enum Procedure: GenericProcedure {
 extension Procedure: Codable {
     
     enum Key: CodingKey {
-        case type
-        case value
+        case native
+        case extern
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .type)
-        switch rawValue {
-        case "native":
-            let nativeProcedure = try container.decode(NativeProcedure.self, forKey: .value)
-            self = .native(nativeProcedure)
-        case "extern":
-            let standin = try container.decode(StandinProcedure.self, forKey: .value)
-            self = .extern(standin)
-        default:
-            throw LogoCodingError.procedure
+
+        if let native = try container.decodeIfPresent(NativeProcedure.self, forKey: .native) {
+            self = .native(native)
+            return
+        } else if let extern = try container.decodeIfPresent(StandinProcedure.self, forKey: .extern) {
+            self = .extern(extern)
+            return
         }
+        
+        throw LogoCodingError.procedure
     }
     
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .native(native):
-            try container.encode("native", forKey: .type)
-            try container.encode(native, forKey: .value)
+            try container.encode(native, forKey: .native)
         case let .extern(extern):
-            try container.encode("extern", forKey: .type)
             let standIn = StandinProcedure(name: extern.name, parameters: extern.parameters, procedures: [:])
-            try container.encode(standIn, forKey: .value)
+            try container.encode(standIn, forKey: .extern)
         }
     }
     

@@ -43,33 +43,29 @@ enum SignExpression: Equatable {
 extension SignExpression: Codable {
     
     enum Key: CodingKey {
-        case type
-        case value
+        case positive
+        case negative
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .type)
-        let value = try container.decode(Value.self, forKey: .value)
-        switch rawValue {
-        case "positive":
+        if let value = try container.decodeIfPresent(Value.self, forKey: .positive) {
             self = .positive(value)
-        case "negative":
+            return
+        } else if let value = try container.decodeIfPresent(Value.self, forKey: .negative) {
             self = .negative(value)
-        default:
-            throw LogoCodingError.signExpression
+            return
         }
+        throw LogoCodingError.signExpression
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .positive(value):
-            try container.encode("positive", forKey: .type)
-            try container.encode(value, forKey: .value)
+            try container.encode(value, forKey: .positive)
         case let .negative(value):
-            try container.encode("negative", forKey: .type)
-            try container.encode(value, forKey: .value)
+            try container.encode(value, forKey: .negative)
         }
     }
 }
@@ -238,29 +234,28 @@ public enum Value: Equatable {
 
 extension Value: Codable {
     enum Key: CodingKey {
-        case type
-        case value
+        case expression
+        case deref
+        case bottom
+        case procedure
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .type)
-        switch rawValue {
-        case "deref":
-            let value = try container.decode(String.self, forKey: .value)
-            self = .deref(value)
-        case "expression":
-            let value = try container.decode(Expression.self, forKey: .value)
-            self = .expression(value)
-        case "bottom":
-            let value = try container.decode(Bottom.self, forKey: .value)
-            self = .bottom(value)
-        case "procedure":
-            let value = try container.decode(ProcedureInvocation.self, forKey: .value)
-            self = .procedure(value)
-        default:
-            throw LogoCodingError.signExpression
+        if let expression = try container.decodeIfPresent(Expression.self, forKey: .expression) {
+            self = .expression(expression)
+            return
+        } else if let deref = try container.decodeIfPresent(String.self, forKey: .deref) {
+            self = .deref(deref)
+            return
+        } else if let bottom = try container.decodeIfPresent(Bottom.self, forKey: .bottom) {
+            self = .bottom(bottom)
+            return
+        } else if let procedure = try container.decodeIfPresent(ProcedureInvocation.self, forKey: .procedure) {
+            self = .procedure(procedure)
+            return
         }
+        throw LogoCodingError.signExpression
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -268,17 +263,13 @@ extension Value: Codable {
         
         switch self {
         case let .deref(name):
-            try container.encode("deref", forKey: .type)
-            try container.encode(name, forKey: .value)
+            try container.encode(name, forKey: .deref)
         case let .expression(expression):
-            try container.encode("expression", forKey: .type)
-            try container.encode(expression, forKey: .value)
+            try container.encode(expression, forKey: .expression)
         case let .bottom(bottom):
-            try container.encode("bottom", forKey: .type)
-            try container.encode(bottom, forKey: .value)
+            try container.encode(bottom, forKey: .bottom)
         case let .procedure(proc):
-            try container.encode("procedure", forKey: .type)
-            try container.encode(proc, forKey: .value)
+            try container.encode(proc, forKey: .procedure)
         }
     }
 }

@@ -47,70 +47,66 @@ extension ExecutionNode: Codable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
-        let rawValue = try container.decode(String.self, forKey: .type)
-        switch rawValue {
-        case "block":
-            let value = try container.decode(Block.self, forKey: .value)
-            self = .block(value)
-        case "stop":
-            let value = try container.decode(Stop.self, forKey: .value)
-            self = .stop(value)
-        case "rep":
-            let value = try container.decode(Repeat.self, forKey: .value)
-            self = .rep(value)
-        case "make":
-            let value = try container.decode(Make.self, forKey: .value)
-            self = .make(value)
-        case "output":
-            let value = try container.decode(Output.self, forKey: .value)
-            self = .output(value)
-        case "conditional":
-            let value = try container.decode(Conditional.self, forKey: .value)
-            self = .conditional(value)
-        case "foreach":
-            let value = try container.decode(For.self, forKey: .value)
-            self = .foreach(value)
-        case "invocation":
-            let value = try container.decode(ProcedureInvocation.self, forKey: .value)
-            self = .invocation(value)
-        default:
-            throw LogoCodingError.ExecutionNode
+        
+        if let block = try container.decodeIfPresent(Block.self, forKey: .block) {
+            self = .block(block)
+            return
+        } else if let stop = try container.decodeIfPresent(Stop.self, forKey: .stop) {
+            self = .stop(stop)
+            return
+        } else if let rep = try container.decodeIfPresent(Repeat.self, forKey: .rep) {
+            self = .rep(rep)
+            return
+        } else if let make = try container.decodeIfPresent(Make.self, forKey: .make) {
+            self = .make(make)
+            return
+        } else if let output = try container.decodeIfPresent(Output.self, forKey: .output) {
+            self = .output(output)
+            return
+        } else if let conditional = try container.decodeIfPresent(Conditional.self, forKey: .conditional) {
+            self = .conditional(conditional)
+            return
+        } else if let fore = try container.decodeIfPresent(For.self, forKey: .foreach) {
+            self = .foreach(fore)
+            return
+        } else if let inv = try container.decodeIfPresent(ProcedureInvocation.self, forKey: .invocation) {
+            self = .invocation(inv)
+            return
         }
+        throw LogoCodingError.ExecutionNode
     }
     
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .block(block):
-            try container.encode("block", forKey: .type)
-            try container.encode(block, forKey: .value)
+            try container.encode(block, forKey: .block)
         case let .stop(stop):
-            try container.encode("stop", forKey: .type)
-            try container.encode(stop, forKey: .value)
+            try container.encode(stop, forKey: .stop)
         case let .rep(rep):
-            try container.encode("rep", forKey: .type)
-            try container.encode(rep, forKey: .value)
+            try container.encode(rep, forKey: .rep)
         case let .make(make):
-            try container.encode("make", forKey: .type)
-            try container.encode(make, forKey: .value)
+            try container.encode(make, forKey: .make)
         case let .output(output):
-            try container.encode("output", forKey: .type)
-            try container.encode(output, forKey: .value)
+            try container.encode(output, forKey: .output)
         case let .conditional(conditional):
-            try container.encode("conditional", forKey: .type)
-            try container.encode(conditional, forKey: .value)
+            try container.encode(conditional, forKey: .conditional)
         case let .foreach(foreach):
-            try container.encode("foreach", forKey: .type)
-            try container.encode(foreach, forKey: .value)
+            try container.encode(foreach, forKey: .foreach)
         case let .invocation(invocation):
-            try container.encode("invocation", forKey: .type)
-            try container.encode(invocation, forKey: .value)
+            try container.encode(invocation, forKey: .invocation)
         }
     }
     
     enum Key: CodingKey {
-        case type
-        case value
+        case block
+        case stop
+        case rep
+        case make
+        case output
+        case conditional
+        case foreach
+        case invocation
     }
     
 }
