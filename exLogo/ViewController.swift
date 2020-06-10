@@ -39,6 +39,9 @@ class ViewController: NSViewController {
         // Executor
         ExecutionContext.StackDepthProbe = { [weak self] depth in self?.statusController.state = .executing(depth) }
         statusController.maxStackDepth = ExecutionContext.MaxDepth
+        
+        outputView.font = NSFont(name: "Fira Code Light", size: 10)
+        textField.font = NSFont(name: "Fira Code Light", size: 10)
     }
     
     func updateAppearance() {
@@ -62,7 +65,7 @@ class ViewController: NSViewController {
 
     let parser: LogoParser = {
         let p = LogoParser()
-        p.modules = [Turtle.self, LogoMath.self, CLI.self]
+        p.modules = [Turtle.self, LogoMath.self, CLI.self, Serialization.self, Optimizer.self]
         return p
     }()
     
@@ -100,6 +103,7 @@ class ViewController: NSViewController {
         e.load(Turtle.self)
         e.load(CLI.self)
         e.load(Serialization.self)
+        e.load(Optimizer.self)
         return e
     }()
     

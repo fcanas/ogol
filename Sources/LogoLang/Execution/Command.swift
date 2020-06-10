@@ -213,8 +213,8 @@ public struct Conditional: Codable {
     }
 
     let comparisonOp: Comparison
-    let lhs: Expression
-    let rhs: Expression
+    var lhs: Expression
+    var rhs: Expression
     let block: Block
 
     init(lhs: Expression, comparison: Comparison, rhs: Expression, block: Block) {

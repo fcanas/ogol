@@ -23,7 +23,9 @@ public class Serialization: Module {
                 throw ExecutionHandoff.error(ExecutionHandoff.Runtime.missingSymbol, "trying to serialize \(procedureName), procedure not found")
             }
             do {
-                let encodedProcedure = try JSONEncoder().encode(procedure)
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = .prettyPrinted
+                let encodedProcedure = try encoder.encode(procedure)
                 let encString = String(data: encodedProcedure, encoding: .utf8)!
                 return .string(encString)
             } catch is LogoCodingError {

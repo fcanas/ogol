@@ -31,6 +31,7 @@ enum SignExpression: Equatable {
                 doubleValue.negate()
                 return .double(doubleValue)
             default:
+                // TODO: What to do about negating a string?
                 return v
             }
         case let .positive(value):
@@ -71,8 +72,6 @@ extension SignExpression: Codable {
             try container.encode(value, forKey: .value)
         }
     }
-    
-    
 }
 
 struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {

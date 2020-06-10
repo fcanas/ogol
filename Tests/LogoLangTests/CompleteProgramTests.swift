@@ -24,6 +24,8 @@ class CompleteProgramTests: XCTestCase {
                           fd :size/6
                           bk :size
                       end
+                      cs
+                      optimize "tree
                       tree 720
                       """
         
@@ -32,8 +34,33 @@ class CompleteProgramTests: XCTestCase {
             return
         }
         
+        let context: ExecutionContext = ExecutionContext()
+        context.load(Optimizer.self)
+        context.load(Turtle.self)
+        self.measure {
+            try! program.execute(context: context, reuseScope: false)
+        }
+    }
+    
+    func testExpressionSimplification() {
+        let source =    """
+                        to keepbusy
+                        repeat 7000 [
+                            fd 100 * 10 * 20 / 20 + 200 + 8 + 11 * 8 + 1 + 3 + 7 * 5 / 3 / 100 * 10 * 20 / 20 + 200 + 8 + 11 * 8 + 1 + 3 + 7 * 5 / 3
+                            bk 100 * 10 * 20 / 20 + 200 + 8 + 11 * 8 + 1 + 3 + 7 * 5 / 3 / 100 * 10 * 20 / 20 + 200 + 8 + 11 * 8 + 1 + 3 + 7 * 5 / 3
+                        ]
+                        end
+                        optimize "keepbusy
+                        keepbusy
+                        """
+        guard case let .success(program, _, _) = LogoParser().program(substring: Substring(source)) else {
+            XCTFail("Failed to parse performance program")
+            return
+        }
+        
         self.measure {
             let context: ExecutionContext = ExecutionContext()
+            context.load(Optimizer.self)
             context.load(Turtle.self)
             try! program.execute(context: context, reuseScope: false)
         }

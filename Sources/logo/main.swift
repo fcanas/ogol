@@ -15,6 +15,8 @@ context.load(Turtle.self)
 context.load(CLI.self)
 context.load(LogoMath.self)
 context.load(Turtle.self)
+context.load(Serialization.self)
+context.load(Optimizer.self)
 
 let prompt = "> "
 let parser = LogoParser()

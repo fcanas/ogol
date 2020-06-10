@@ -851,6 +851,7 @@
                     <connections>
                         <outlet property="outputView" destination="CmP-kB-t5a" id="ri7-4d-4lp"/>
                         <outlet property="statusController" destination="Mi6-c5-Dzc" id="Zs8-aQ-Z7t"/>
+                        <outlet property="textField" destination="C5q-ni-eDw" id="thR-LK-SWv"/>
                         <outlet property="webRenderController" destination="THn-rn-MHH" id="Qh5-PT-OmN"/>
                     </connections>
                 </viewController>

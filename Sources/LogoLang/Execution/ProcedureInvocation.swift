@@ -10,7 +10,7 @@ import Foundation
 public struct ProcedureInvocation: Equatable {
 
     let name: String
-    let parameters: [Value]
+    var parameters: [Value]
     
     public func evaluateParameters(in context: ExecutionContext) throws -> (Procedure, Dictionary<String,Bottom>) {
         guard let procedure = context.procedures[name] else {
