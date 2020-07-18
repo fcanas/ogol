@@ -27,7 +27,12 @@ struct CLI: Module {
         } else if params.first == .string("procedures") {
             print(context.allProcedures())
         } else {
-            print("unrecognized parameter \(params.first!)")
+            print("""
+                unrecognized parameter \(params.first!)
+                usage:
+                   po "names
+                   po "procedures
+                """)
         }
 
         return nil
