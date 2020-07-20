@@ -43,17 +43,24 @@ extension SignExpression: ExpressionReducable {
         case let .negative(value):
             switch value {
             case let .bottom(bottom):
-                switch bottom {
-                case var .double(double):
-                    double.negate()
-                    return .bottom(.double(double))
-                case .string(_):
-                    // TODO: What to do about negating a string?
-                    return nil
-                }
+                return .bottom(bottom.negated())
             default:
                 return nil
             }
+        }
+    }
+}
+
+extension Bottom {
+    func negated() -> Bottom {
+        switch self {
+        case var .double(d):
+            d.negate()
+            return .double(d)
+        case .string(_):
+            return self
+        case let .list(l):
+            return .list(l.map({$0.negated()}))
         }
     }
 }

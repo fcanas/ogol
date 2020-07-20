@@ -42,6 +42,9 @@ extension Value: SyntaxColorable {
                 return .stringLiteral
             case .double(_):
                 return .number
+            case .list(_):
+                // Lists should probably be transparent to let contained values be shown?
+                return nil
             }
         case .deref(_):
             return .variable
