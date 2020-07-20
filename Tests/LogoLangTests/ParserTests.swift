@@ -35,7 +35,7 @@ class SimpleCommandParserTests: XCTestCase {
         try _test("home")
     }
 
-    func _test(_ command: String, file: StaticString = #file, line: UInt = #line) throws {
+    func _test(_ command: String, file: StaticString = #filePath, line: UInt = #line) throws {
         let parser = LogoParser()
         let programString: Substring = Substring(command)
         guard let (_, s) = parser.command(substring: programString) else {
@@ -165,7 +165,7 @@ class SignExpressionParserTests: XCTestCase {
         XCTAssertEqual(remainder, " / 12")
     }
 
-    func _testSignExpression(_ programString: Substring, _ expression: SignExpression, _ tokens: Array<Substring>, file: StaticString = #file, line: UInt = #line) {
+    func _testSignExpression(_ programString: Substring, _ expression: SignExpression, _ tokens: Array<Substring>, file: StaticString = #filePath, line: UInt = #line) {
         let parser = LogoParser()
         guard let (s, _) = parser.signExpression(substring: programString) else {
             XCTFail("Failed to parse sign expression", file: file, line: line)
