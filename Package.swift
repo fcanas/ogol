@@ -20,7 +20,7 @@ let package = Package(
             dependencies: ["FFCParserCombinator"]),
         .testTarget(
             name: "LogoLangTests",
-            dependencies: ["LogoLang"]),
+            dependencies: ["LogoLang", "libLogo"]),
         .target(name: "libLogo", dependencies: ["LogoLang"]),
         .target(name: "logo", dependencies: ["LogoLang", "libLogo"]),
         .target(name: "clogo", dependencies: ["LogoLang"])
