@@ -53,3 +53,11 @@ extension Value: SyntaxColorable {
     }
 }
 
+// MARK: Operators
+
+extension Op {
+    func syntaxCategory() -> SyntaxCategory? {
+        return .operation
+    }
+}
+

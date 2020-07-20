@@ -79,13 +79,11 @@ struct Lex {
 
 // MARK: Operators
 
-protocol Op: SyntaxColorable{}
-
-extension Op {
-    func syntaxCategory() -> SyntaxCategory? {
-        return .operation
-    }
-}
+/// A protocol that ought to be able to be trivially adopted by a type defining an `Operator`.
+///
+/// Default implementations give the `Operator` types appropriate syntax coloring/categorization behavior,
+/// and a reasonable generated parser for `Operator` types that are `RawRepresentable` by  a `Character`.
+protocol Op: SyntaxColorable {}
 
 extension Op where Self: RawRepresentable, Self.RawValue == Character, Self: CaseIterable {
 
@@ -100,7 +98,6 @@ extension Op where Self: RawRepresentable, Self.RawValue == Character, Self: Cas
         }!
         return { self.init(rawValue: $0.first!)! } <^>  Lex.Token._w *> combinedParser
     }
-
 }
 
 enum AdditionOperator: Character, CaseIterable, Op {
@@ -155,3 +152,4 @@ enum ComparisonOperator: Character, CaseIterable, Op {
         }
     }
 }
+
