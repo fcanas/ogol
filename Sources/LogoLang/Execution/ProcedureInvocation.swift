@@ -17,13 +17,30 @@ public struct ProcedureInvocation: Equatable {
             throw ExecutionHandoff.error(.missingSymbol, "I don't know how to \(name)")
         }
         
-        guard procedure.parameters.count == parameters.count else {
-            throw ExecutionHandoff.error(.parameter, "\(name) needs \(procedure.parameters.count) parameters. I found \(parameters.count).")
+        let minimumParameters = procedure.parameters.count - (procedure.hasRest ? 1 : 0)
+        
+        guard minimumParameters <= parameters.count else {
+            throw ExecutionHandoff.error(.parameter, "\(name) needs \(minimumParameters)\(procedure.hasRest ? " or more":"") parameters. I found \(parameters.count).")
         }
         
-        var parameterMap: Dictionary<String,Bottom> = Dictionary(minimumCapacity: parameters.count)
-        for (index, parameter) in parameters.enumerated() {
-            parameterMap[procedure.parameters[index]] = try parameter.evaluate(context: context)
+        var parameterMap: Dictionary<String,Bottom> = Dictionary(minimumCapacity: procedure.parameters.count)
+        
+        if procedure.hasRest {
+            var parameterNames = procedure.parameters
+            guard let restName = parameterNames.popLast() else {
+                throw ExecutionHandoff.error(.parameter, "Parameter count mismatch with Rest parameter")
+            }
+            
+            for (index, parameterName) in parameterNames.enumerated() {
+                parameterMap[parameterName] = try parameters[index].evaluate(context: context)
+            }
+            parameterMap[restName] = try .list(parameters[parameterNames.count..<parameters.count].map({
+                try $0.evaluate(context: context)
+            }))
+        } else {
+            for (index, parameter) in parameters.enumerated() {
+                parameterMap[procedure.parameters[index]] = try parameter.evaluate(context: context)
+            }
         }
         
         return (procedure, parameterMap)

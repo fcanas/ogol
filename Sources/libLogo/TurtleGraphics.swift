@@ -87,6 +87,8 @@ public class Turtle: Module {
         }
         
         fileprivate enum Partial: String, RawRepresentable, CaseIterable, GenericProcedure {
+            
+            var hasRest: Bool { false }
 
             var description: String { self.rawValue }
             

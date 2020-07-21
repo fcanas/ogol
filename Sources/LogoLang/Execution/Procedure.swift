@@ -11,6 +11,7 @@ public protocol GenericProcedure: CustomStringConvertible {
     var name: String { get }
     var parameters: [String] { get }
     var procedures: [String : Procedure] { get }
+    var hasRest: Bool { get }
     func execute(context: ExecutionContext, reuseScope: Bool) throws
 }
 
@@ -32,6 +33,14 @@ public enum Procedure: GenericProcedure {
     public var name: String { self._procedure.name }
     public var parameters: [String] { self._procedure.parameters }
     public var procedures: [String : Procedure] { self._procedure.procedures }
+    public var hasRest: Bool { self._procedure.hasRest }
+    
+    public func invocationValidWith(parameterCount: Int) -> Bool {
+        if !hasRest {
+            return parameterCount == parameters.count
+        }
+        return parameterCount >= (parameters.count - 1)
+    }
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         try _procedure.execute(context: context, reuseScope: reuseScope)
@@ -69,7 +78,7 @@ extension Procedure: Codable {
         case let .native(native):
             try container.encode(native, forKey: .native)
         case let .extern(extern):
-            let standIn = StandinProcedure(name: extern.name, parameters: extern.parameters, procedures: [:])
+            let standIn = StandinProcedure(name: extern.name, parameters: extern.parameters, procedures: [:], hasRest: extern.hasRest)
             try container.encode(standIn, forKey: .extern)
         }
     }
@@ -82,6 +91,8 @@ public struct StandinProcedure: GenericProcedure, Codable {
     public var parameters: [String]
     
     public var procedures: [String : Procedure]
+    
+    public var hasRest: Bool
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         throw ExecutionHandoff.error(ExecutionHandoff.Runtime.missingSymbol, "An external procedure \(name) is missing")
@@ -101,12 +112,19 @@ public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable
     public var procedures: [String : Procedure]
     /// Ordered, named parameters for the procedure.
     public var parameters: [String]
+    /// If true, this procedire can be invoked with an arbitrary number of parameters ` >= parameters.count`.
+    /// If the number of parameters at invocation exceeds the number of declared parameters, the final
+    /// parameter will be a list with the remaining values.
+    ///
+    /// Setting `hasRest` to `true` wihout zero values in `parameters` may lead to unexpected behavior.
+    public var hasRest: Bool
 
-    init(name: String, commands: [ExecutionNode], procedures: [String: Procedure], parameters: [Value]) {
+    init(name: String, commands: [ExecutionNode], procedures: [String: Procedure], parameters: [Value], hasRest: Bool = false) {
         self.name = name
         self.commands = commands
         self.procedures = procedures
         self.parameters = parameters.map({ guard case let .deref(s) = $0 else {fatalError()}; return s })
+        self.hasRest = hasRest
     }
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
@@ -145,6 +163,7 @@ public class ExternalProcedure: GenericProcedure {
     public var name: String
     public var parameters: [String]
     public var procedures: [String : Procedure]
+    public var hasRest: Bool
     
     public var description: String {
         return "Native Procedure \(parameters)"
@@ -152,11 +171,12 @@ public class ExternalProcedure: GenericProcedure {
 
     let action: ([Bottom], ExecutionContext) throws -> Bottom?
     
-    public init(name: String, parameters: [String], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
+    public init(name: String, parameters: [String], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?, hasRest: Bool = false) {
         self.name = name
         self.parameters = parameters
         self.action = action
         self.procedures = [:]
+        self.hasRest = hasRest
     }
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {

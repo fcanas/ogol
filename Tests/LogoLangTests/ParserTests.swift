@@ -347,3 +347,110 @@ class ExpressionParserTests: XCTestCase {
 
 }
 
+class ProcedureDeclarationTests: XCTestCase {
+    func testBasicDefinition() {
+        let parser = LogoParser()
+        guard case let .success(p, _, _) = parser.program(substring: """
+            to doodle
+            end
+            """
+        ) else {
+            XCTFail("Failed to parse basic procedure declaration")
+            return
+        }
+        XCTAssertEqual(p.procedures.count, 1)
+        XCTAssertNotNil(p.procedures["doodle"])
+    }
+    
+    func testSingleParameter() {
+        let parser = LogoParser()
+        guard case let .success(p, _, _) = parser.program(substring: """
+            to doodle :foo
+            end
+            """
+        ) else {
+            XCTFail("Failed to parse basic procedure declaration with single parameter")
+            return
+        }
+        XCTAssertEqual(p.procedures.count, 1)
+        let doodle = p.procedures["doodle"]!
+        XCTAssertNotNil(doodle)
+        
+        XCTAssertEqual(doodle.parameters, ["foo"])
+    }
+    
+    func testMultipleParameters() {
+        let parser = LogoParser()
+        guard case let .success(p, _, _) = parser.program(substring: """
+            to doodle :foo, :bar, :baz, :alice, :bob, :carol, :ted
+            end
+            """
+        ) else {
+            XCTFail("Failed to parse basic procedure declaration with multiple parameters")
+            return
+        }
+        XCTAssertEqual(p.procedures.count, 1)
+        let doodle = p.procedures["doodle"]!
+        XCTAssertNotNil(doodle)
+        
+        XCTAssertEqual(doodle.parameters, ["foo", "bar", "baz", "alice", "bob", "carol", "ted"])
+    }
+    
+    func testTrailingRestParameter() {
+        let parser = LogoParser()
+        guard case let .success(p, _, _) = parser.program(substring: """
+            to doodle :foo, :bar, [:baz]
+            end
+            """
+        ) else {
+            XCTFail("Failed to parse basic procedure declaration")
+            return
+        }
+        XCTAssertEqual(p.procedures.count, 1)
+        let doodle = p.procedures["doodle"]!
+        XCTAssertNotNil(doodle)
+        
+        XCTAssertEqual(doodle.parameters, ["foo", "bar", "baz"])
+    }
+    
+    func testRestParameter() {
+        let parser = LogoParser()
+        guard case let .success(p, _, _) = parser.program(substring: """
+            to doodle [:doo]
+            end
+            """
+        ) else {
+            XCTFail("Failed to parse basic procedure declaration")
+            return
+        }
+        XCTAssertEqual(p.procedures.count, 1)
+        let doodle = p.procedures["doodle"]!
+        XCTAssertNotNil(doodle)
+        
+        XCTAssertEqual(doodle.parameters, ["doo"])
+    }
+    
+    func testRestParameterMustBeLast() {
+        let parser = LogoParser()
+        guard case .success(_, _, _) = parser.program(substring: """
+            to doodle :foo, [:doo], :wah
+            end
+            """
+        ) else {
+            return
+        }
+        XCTFail("Failed to parse basic procedure declaration")
+    }
+    
+    func testSingleRestParameter() {
+        let parser = LogoParser()
+        guard case .success(_, _, _) = parser.program(substring: """
+            to doodle :[foo], [:doo]
+            end
+            """
+        ) else {
+            return
+        }
+        XCTFail("Failed to parse basic procedure declaration")
+    }
+}

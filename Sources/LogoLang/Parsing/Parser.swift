@@ -115,7 +115,7 @@ public class LogoParser {
                 if let procedure = procedures[procedureName] {
                     let invocationCount = invocation.parameters.count
                     let declarationCount = procedure.parameters.count
-                    if invocationCount != declarationCount {
+                    if !procedure.invocationValidWith(parameterCount: invocationCount) {
                         errors[range] = .anticipatedRuntime("Procedure '\(procedureName)' invoked with \(invocationCount) parameters but declared with \(declarationCount) parameters")
                     }
                 } else {
@@ -163,6 +163,8 @@ public class LogoParser {
         registerToken(range: runningSubstring.startIndex..<lexedName.1.startIndex, token: SyntaxType(category: .procedureDefinition))
         runningSubstring = eatNewlines(lexedName.1)
 
+        // Required inputs
+        
         let parameterTokenizer = { (value: Value) -> Value in
             switch value {
             case .deref(_):
@@ -185,6 +187,26 @@ public class LogoParser {
                 runningSubstring = nextParam.1
             }
         }
+        
+        // Rest Input
+        
+        var hasRest = false
+        let restTokenizer: Parser<Substring, Value>
+        if parameters.count > 0 {
+            restTokenizer = ("," *> Lex.Token._space *> "[" *> parameterTokenizer <* "]")
+        } else {
+            restTokenizer = ("[" *> parameterTokenizer <* "]")
+        }
+        if let param = restTokenizer.run(runningSubstring) {
+            registerToken(range: runningSubstring.startIndex..<param.1.startIndex, token: SyntaxType(category: .parameterDeclaration))
+            parameters.append(param.0)
+            runningSubstring = param.1
+            hasRest = true
+        }
+        
+        // ^ End Procedure Definition Header.
+        // -
+        // v Begin Procedure Body
 
         runningSubstring = eatNewlines(runningSubstring)
 
@@ -207,7 +229,7 @@ public class LogoParser {
         }
         registerToken(range: runningSubstring.startIndex..<lexedEnd.1.startIndex, token: SyntaxType(category: .keyword))
 
-        return (.native(NativeProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters)), eatNewlines(lexedEnd.1))
+        return (.native(NativeProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters, hasRest: hasRest)), eatNewlines(lexedEnd.1))
     }
 
     internal func controlFlow(substring: Substring) -> (ExecutionNode, Substring)? {
@@ -302,6 +324,7 @@ public class LogoParser {
                 while let parsedValue = value(substring: runningSubstring) {
                     expressions.append(parsedValue.0)
                     runningSubstring = parsedValue.1
+                    runningSubstring = eatWhitespace(runningSubstring)
                 }
 
                 let invocation = ProcedureInvocation(name: name, parameters: expressions)

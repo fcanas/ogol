@@ -110,21 +110,25 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
             return .string(s)
         }
         
-        guard case let .double(lhsv) = try self.lhs.evaluate(context: context) else {
-            throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
+        let lhsv = try self.lhs.evaluate(context: context)
+        
+        switch lhsv {
+        case let .double(lhsv):
+            return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
+                guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
+                    throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
+                }
+                switch rhs.operation {
+                case .multiply:
+                    return result * rhsv
+                case .divide:
+                    return result / rhsv
+                }
+            })
+        default:
+            return lhsv
         }
         
-        return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
-            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
-                throw ExecutionHandoff.error(.typeError, "Multiplying expressions should be between two numbers")
-            }
-            switch rhs.operation {
-            case .multiply:
-                return result * rhsv
-            case .divide:
-                return result / rhsv
-            }
-        })
     }
 }
 
@@ -169,22 +173,24 @@ public struct Expression: Equatable, Codable {
             return .string(s)
         }
         
-        guard case let .double(lhsv) = try self.lhs.evaluate(context: context) else {
-            throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
+        let lhsv = try self.lhs.evaluate(context: context)
+        
+        switch lhsv {
+        case let .double(lhsv):
+            return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
+                guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
+                    throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
+                }
+                switch rhs.operation {
+                case .add:
+                    return result + rhsv
+                case .subtract:
+                    return result - rhsv
+                }
+            })
+        default:
+            return lhsv
         }
-        
-        return try .double(rhs.reduce(lhsv) { (result, rhs) -> Double in
-            guard case let .double(rhsv) = try rhs.rhs.evaluate(context: context) else {
-                throw ExecutionHandoff.error(.typeError, "Only numbers can be added and subtracted")
-            }
-            switch rhs.operation {
-            case .add:
-                return result + rhsv
-            case .subtract:
-                return result - rhsv
-            }
-        })
-        
     }
 }
 

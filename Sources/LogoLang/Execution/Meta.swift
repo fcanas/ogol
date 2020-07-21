@@ -17,7 +17,7 @@ import Foundation
 /// 3. I'm still not in the habit of writing Logo features in a self-hosted fashion.
 ///
 public struct Meta: Module {
-    public static var procedures: [String : Procedure] = [
+    public static let procedures: [String : Procedure] = [
         "eval":.extern(eval),
         // "list":.extern(list) // soon
     ]
