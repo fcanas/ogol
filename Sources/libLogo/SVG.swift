@@ -84,7 +84,7 @@ public class SVGEncoder {
     
     public func encode(program: Program) throws -> String {
         let context: ExecutionContext = ExecutionContext()
-        context.load(Turtle.self)
+        context.load(Turtle())
 
         try program.execute(context: context, reuseScope: false)
 

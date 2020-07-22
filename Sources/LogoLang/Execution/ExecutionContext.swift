@@ -35,7 +35,7 @@ public class ExecutionContext {
         }
     }
 
-    public func load(_ module: Module.Type) {
+    public func load(_ module: Module) {
         if let p = parent {
             p.load(module)
             return

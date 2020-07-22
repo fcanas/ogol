@@ -6,11 +6,11 @@
 //
 
 public protocol Module {
-    static var procedures: [String : Procedure] { get }
-    static func initialize(context: ExecutionContext)
+    var procedures: [String : Procedure] { get }
+    func initialize(context: ExecutionContext)
 }
 
 extension Module {
-    public static func initialize(context: ExecutionContext) {}
+    public func initialize(context: ExecutionContext) {}
 }
 

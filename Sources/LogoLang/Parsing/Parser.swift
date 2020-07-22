@@ -37,7 +37,7 @@ public class LogoParser {
 
     public init() {}
     
-    public var modules: [Module.Type] = []
+    public var modules: [Module] = []
     public var additionalProcedures: [String:Procedure] = [:]
 
     public func program(substring: Substring) -> ParseResult {
@@ -93,7 +93,7 @@ public class LogoParser {
 
     // MARK: - Verify
 
-    func verifyProcedureCalls(for program: Program, modules: [Module.Type], procedures: [String:Procedure] = [:]) {
+    func verifyProcedureCalls(for program: Program, modules: [Module], procedures: [String:Procedure] = [:]) {
         
         var procedures: [String:Procedure] = procedures.merging(program.procedures, uniquingKeysWith: { (a, b) in return a }) 
         

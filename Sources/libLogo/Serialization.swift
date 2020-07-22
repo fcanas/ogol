@@ -11,7 +11,9 @@ import LogoLang
 
 public class Serialization: Module {
     
-    public static var procedures: [String : Procedure] = ["proc":.extern(Serialization.proc)]
+    public init() {}
+    
+    public var procedures: [String : Procedure] = ["proc":.extern(Serialization.proc)]
     
     static var proc: ExternalProcedure = {
        

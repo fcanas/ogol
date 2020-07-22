@@ -9,10 +9,12 @@ import Foundation
 import LogoLang
 
 public struct LogoMath: Module {
+    
+    public init() {}
 
-    private enum SingleParameter: Module {
+    private struct SingleParameter: Module {
 
-        private static let nativeFunctions: [String:(Double)->Double] = [
+        private let nativeFunctions: [String:(Double)->Double] = [
             "cos" : Darwin.cos,
             "sin" : Darwin.sin,
             "tan" : Darwin.tan,
@@ -40,9 +42,9 @@ public struct LogoMath: Module {
             "sqrt" : Darwin.sqrt,
         ]
 
-        public static let procedures: [String : Procedure] = {
+        public var procedures: [String : Procedure] {
             var out: [String:Procedure] = [:]
-            nativeFunctions.forEach { (key: String, function: @escaping (Double) -> Double) in
+            self.nativeFunctions.forEach { (key: String, function: @escaping (Double) -> Double) in
                 out[key] = Procedure.extern(ExternalProcedure(name: key, parameters: ["LogoMathParam"]) { (params, context) throws -> Bottom? in
                     guard case let .double(param) = params.first else {
                         throw ExecutionHandoff.error(.parameter, "\(key) needs a numeric parameter")
@@ -51,11 +53,12 @@ public struct LogoMath: Module {
                 })
             }
             return out
-        }()
+        }
     }
 
-    private enum Random: Module {
-        public static let procedures: [String : Procedure] = {
+    private struct Random: Module {
+        
+        public let procedures: [String : Procedure] = {
             return ["random":.extern(ExternalProcedure(name: "random", parameters: ["top"], action: { (params, _) -> Bottom? in
                 guard case let .double(param) = params.first else {
                     throw ExecutionHandoff.error(.parameter, "random needs a numeric parameter")
@@ -65,8 +68,8 @@ public struct LogoMath: Module {
         }()
     }
 
-    public static let procedures: [String : Procedure] = {
-        return SingleParameter.procedures.merging(Random.procedures, uniquingKeysWith: { (a,b) in a })
+    public let procedures: [String : Procedure] = {
+        return SingleParameter().procedures.merging(Random().procedures, uniquingKeysWith: { (a,b) in a })
     }()
 
 }

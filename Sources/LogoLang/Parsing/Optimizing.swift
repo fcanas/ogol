@@ -7,8 +7,11 @@
 
 import Foundation
 
-public enum Optimizer: Module {
-    public static var procedures: [String : Procedure] = ["optimize":.extern(Optimizer.optimize)]
+public struct Optimizer: Module {
+    
+    public init() { }
+    
+    public var procedures: [String : Procedure] = ["optimize":.extern(Optimizer.optimize)]
     
     static var optimize: ExternalProcedure = ExternalProcedure(name: "optimize", parameters: ["procedure"]) { (params, context) -> Bottom? in
         guard case let .string(name) = params.first else {

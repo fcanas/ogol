@@ -36,7 +36,7 @@ public class Turtle: Module {
     internal static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
     internal static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
     
-    public static var procedures: [String : Procedure] = {
+    public var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
         Command.Partial.allCases.forEach { (partial) in
             out[partial.rawValue] = .extern(partial)
