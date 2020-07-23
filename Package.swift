@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -21,7 +21,7 @@ let package = Package(
         .testTarget(
             name: "LogoLangTests",
             dependencies: ["LogoLang", "libLogo"]),
-        .target(name: "libLogo", dependencies: ["LogoLang"]),
+        .target(name: "libLogo", dependencies: ["LogoLang"], resources: [.copy("CoreLib.logo")]),
         .target(name: "logo", dependencies: ["LogoLang", "libLogo"]),
         .target(name: "clogo", dependencies: ["LogoLang"])
     ]

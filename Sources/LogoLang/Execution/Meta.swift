@@ -1,7 +1,4 @@
 //
-//  Meta.swift
-//  LogoLang
-//
 //  Created by Fabian Canas on 7/20/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
@@ -21,21 +18,39 @@ public struct Meta: Module {
     public init() { }
     
     public let procedures: [String : Procedure] = [
-        "eval":.extern(Meta.eval),
+        "run":.extern(Meta.run),
         // "list":.extern(list) // soon
     ]
     
-    private static var eval: ExternalProcedure = {
-        ExternalProcedure(name: "eval", parameters: ["form"]) { (params, context) throws -> Bottom? in
-            guard case var .list(list) = params.first else {
-                throw ExecutionHandoff.error(.parameter, "eval expects a list as a parameter")
+    private static var run: ExternalProcedure = {
+        ExternalProcedure(name: "run", parameters: ["instructionList"]) { (params, context) throws -> Bottom? in
+            
+            
+            let procName: String
+            var list: [Bottom]
+            
+            guard let parameter = params.first else {
+                throw ExecutionHandoff.error(.parameter, "run expects a parameter")
             }
-            guard list.count >= 1 else {
-                throw ExecutionHandoff.error(.parameter, "a list passed as a parameter to eval needs at least one String element")
+            
+            switch parameter {
+            case var .list(l):
+                guard l.count >= 1 else {
+                    throw ExecutionHandoff.error(.parameter, "a list passed as a parameter run needs at least one String element")
+                }
+                guard case let .string(p) = l.removeFirst() else {
+                    throw ExecutionHandoff.error(.parameter, "The first element of a parameter list run should be the name of a procedure")
+                }
+                list = l
+                procName = p
+            case .double(_):
+                throw ExecutionHandoff.error(.parameter, "run expects a list or string as a parameter")
+            case let .string(p):
+                procName = p
+                list = []
             }
-            guard case let .string(procName) = list.removeFirst() else {
-                throw ExecutionHandoff.error(.parameter, "The first element of a parameter list to eval should be the name of a procedure")
-            }
+            
+            
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))
             
