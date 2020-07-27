@@ -78,7 +78,7 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("Failed to parse fd")
             return
         }
-        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
+        let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs:nil)
         guard case let .invocation(inv) = i else {
             XCTFail("Should parse a stop")
             return
@@ -93,7 +93,7 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("Failed to parse fd")
             return
         }
-        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
+        let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs: nil)
 
         guard case let .invocation(inv) = i else {
             XCTFail("Should parse an invocation")
@@ -110,7 +110,7 @@ class SimpleCommandParserTests: XCTestCase {
     		XCTFail("Failed to parse invocation")
     		return
     	}
-        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
+        let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs:nil)
 
         guard case let .invocation(inv) = i else {
             XCTFail("Should parse an invocation")
@@ -127,7 +127,7 @@ class SimpleCommandParserTests: XCTestCase {
     		XCTFail("Failed to parse invocation")
     		return
     	}
-        let exp = Expression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5)))))
+        let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs:nil)
 
         guard case let .invocation(inv) = i else {
             XCTFail("Should parse an invocation")
@@ -287,8 +287,8 @@ class ExpressionParserTests: XCTestCase {
             XCTFail("Failed to parse LHS of Multiplying Expression")
             return
         }
-        XCTAssertEqual(Expression(lhs: nestBasic(sign: .positive, value: 12.345)), e)
-        XCTAssertEqual(s, " p", "An expression with no RHS shoud not eat remaining whitespace or tokens")
+        XCTAssertEqual(Expression(lhs: ArithmeticExpression(lhs: nestBasic(sign: .positive, value: 12.345)), rhs:nil), e)
+        XCTAssertEqual(s, " p", "An arithmeticExpression with no RHS shoud not eat remaining whitespace or tokens")
     }
 
     func testBasicAddition() {
@@ -299,7 +299,7 @@ class ExpressionParserTests: XCTestCase {
         }
         let lhs = nestBasic(sign: .positive, value: -12)
         let rhs = nestBasic(sign: .positive, value: 2)
-        XCTAssertEqual(Expression(lhs: lhs, rhs: Expression.Rhs(operation: .add, rhs: rhs)), e)
+        XCTAssertEqual(Expression(lhs:ArithmeticExpression(lhs: lhs, rhs: ArithmeticExpression.Rhs(operation: .add, rhs: rhs)), rhs:nil), e)
         XCTAssertEqual(s, " o")
     }
 
@@ -311,7 +311,7 @@ class ExpressionParserTests: XCTestCase {
         }
         let lhs = nestBasic(sign: .positive, value: -12)
         let rhs = nestBasic(sign: .positive, value: 42)
-        XCTAssertEqual(Expression(lhs: lhs, rhs: Expression.Rhs(operation: .subtract, rhs: rhs)), e)
+        XCTAssertEqual(Expression(lhs:ArithmeticExpression(lhs: lhs, rhs: ArithmeticExpression.Rhs(operation: .subtract, rhs: rhs)), rhs:nil), e)
         XCTAssertEqual(s, " x")
     }
 
@@ -336,13 +336,13 @@ class ExpressionParserTests: XCTestCase {
         ]
         let m2 = MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(-9))), rhs: mRhs2)
 
-        let rhs: [Expression.Rhs] = [
-            Expression.Rhs(operation: .add, rhs: m1),
-            Expression.Rhs(operation: .subtract, rhs: m2),
-            Expression.Rhs(operation: .add, rhs: MultiplyingExpression(lhs: SignExpression.positive(.deref("y"))))
+        let rhs: [ArithmeticExpression.Rhs] = [
+            ArithmeticExpression.Rhs(operation: .add, rhs: m1),
+            ArithmeticExpression.Rhs(operation: .subtract, rhs: m2),
+            ArithmeticExpression.Rhs(operation: .add, rhs: MultiplyingExpression(lhs: SignExpression.positive(.deref("y"))))
         ]
 
-        XCTAssertEqual(Expression(lhs: lhs, rhs: rhs), e)
+        XCTAssertEqual(Expression(lhs:ArithmeticExpression(lhs: lhs, rhs: rhs), rhs:nil), e)
         XCTAssertEqual(s, "  z a p", "Chaining expressions should not eat whitespace")
     }
 

@@ -128,55 +128,23 @@ public struct Repeat: Codable {
 public struct Conditional: Codable {
 
     public var description: String {
-        return "\(lhs) \(comparisonOp) \(rhs) [ \(block) ]"
+        return "\(condition) [ \(block) ]"
     }
 
-    enum Comparison: String, CustomStringConvertible, Codable {
-        var description: String {
-            switch self {
-            case .lt:
-                return "<"
-            case .gt:
-                return ">"
-            case .eq:
-                return "="
-            }
-        }
-        case lt
-        case gt
-        case eq
-    }
+    var condition: Expression
+    var block: CommandList
 
-    let comparisonOp: Comparison
-    var lhs: Expression
-    var rhs: Expression
-    let block: CommandList
-
-    init(lhs: Expression, comparison: Comparison, rhs: Expression, block: CommandList) {
-        self.lhs = lhs
-        self.comparisonOp = comparison
-        self.rhs = rhs
+    init(condition: Expression, block: CommandList) {
+        self.condition = condition
         self.block = block
     }
 
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        guard case let .double(lhsv) = try lhs.evaluate(context: context),
-            case let .double(rhsv) = try rhs.evaluate(context: context) else {
-                throw ExecutionHandoff.error(.typeError, "Conditional statements can only compare numbers")
+        guard case let .boolean(conditionValue) = try condition.evaluate(context: context) else {
+                throw ExecutionHandoff.error(.typeError, "Conditional require a logical condition")
         }
-        switch self.comparisonOp {
-        case .lt:
-            if lhsv < rhsv {
-                try block.execute(context: context, reuseScope: reuseScope)
-            }
-        case .gt:
-            if lhsv > rhsv {
-                try block.execute(context: context, reuseScope: reuseScope)
-            }
-        case .eq:
-            if lhsv == rhsv {
-                try block.execute(context: context, reuseScope: reuseScope)
-            }
+        if conditionValue {
+            try block.execute(context: context, reuseScope: reuseScope)
         }
     }
 

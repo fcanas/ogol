@@ -1,5 +1,5 @@
 //
-//  Expression.swift
+//  ArithmeticExpression.swift
 //  LogoLang
 //
 //  Created by Fabián Cañas on 3/1/20.
@@ -76,7 +76,6 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
     }
     
-    
     init(lhs: SignExpression, rhs: MultiplyingExpression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
@@ -132,24 +131,23 @@ struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
     }
 }
 
-public struct Expression: Equatable, Codable {
+public struct ArithmeticExpression: Equatable, Codable {
     
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
     }
     
-    internal init(lhs: MultiplyingExpression, rhs: Expression.Rhs) {
+    internal init(lhs: MultiplyingExpression, rhs: ArithmeticExpression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
     }
     
-    internal init(lhs: MultiplyingExpression, rhs: [Expression.Rhs] = []) {
+    internal init(lhs: MultiplyingExpression, rhs: [ArithmeticExpression.Rhs] = []) {
         self.lhs = lhs
         self.rhs = rhs
     }
     
     struct Rhs: Equatable, CustomStringConvertible, Codable {
-        
         var description: String {
             return operation.rawValue + " " + rhs.description
         }
@@ -194,7 +192,156 @@ public struct Expression: Equatable, Codable {
     }
 }
 
+public struct Expression: Equatable, Codable {
+    
+    var lhs: ArithmeticExpression
+    var rhs: Rhs?
+    
+    struct Rhs: Equatable, Codable {
+        var description: String {
+            return operation.rawValue + " " + rhs.description
+        }
+        var operation: Operation
+        var rhs: ArithmeticExpression
+    }
+    
+    enum Operation: String, CustomStringConvertible, Codable {
+        var description: String {
+            switch self {
+            case .lt:
+                return "<"
+            case .gt:
+                return ">"
+            case .eq:
+                return "="
+            }
+        }
+        case lt
+        case gt
+        case eq
+    }
+    
+    public var description: String {
+        return "\(lhs)" + (rhs?.description ?? "")
+    }
+    
+    public func evaluate(context: ExecutionContext) throws -> Bottom {
+        
+        let lhsv = try self.lhs.evaluate(context: context)
+        
+        guard let rhs = rhs else {
+            return lhsv
+        }
+        
+        let rhsv = try rhs.rhs.evaluate(context: context)
+        
+        switch (lhsv, rhsv) {
+        case let (.double(lhsv), .double(rhsv)):
+            switch rhs.operation {
+            case .eq:
+                return .boolean(lhsv == rhsv)
+            case .lt:
+                return .boolean(lhsv < rhsv)
+            case .gt:
+                return .boolean(lhsv > rhsv)
+            }
+        case (.list(_), .list(_)):
+            throw ExecutionHandoff.error(.typeError, "lists are unsupported")
+        default:
+            // TODO: Does this belong here or elsewhere?
+            //    guard op == .eq else {
+            //        throw ExecutionHandoff.error(.typeError, "= comparison only possible with boolean types. Left hand side not boolean")
+            //    }
+            //    guard case let .boolean(rhsbv) = try self.rhs.evaluate(context: context) else {
+            //        throw ExecutionHandoff.error(.typeError, "= comparison only possible with boolean types. Right hand side not boolean")
+            //    }
+            //    return .boolean(lhsbv == rhsbv)
+            throw ExecutionHandoff.error(.typeError, "Comparisons are for numbers and booleans.")
+        }
+    }
+    
+}
+
+// TODO: Does this language need logical expressions?
+/*
+public struct LogicalExpression: Equatable, Codable {
+    
+    var lhs: BooleanValue
+    var rhs: [Rhs]
+    
+    public var description: String {
+        return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
+    }
+    
+    enum BooleanValue: Codable, Equatable {
+        
+        case expression(ComparisonExpression)
+        case bottom(Bottom)
+        indirect case logical(LogicalExpression)
+        
+        enum Key: CodingKey {
+            case expression
+            case bottom
+            case logical
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: Key.self)
+            if let expression = try container.decodeIfPresent(ComparisonExpression.self, forKey: .expression) {
+                self = .expression(expression)
+                return
+            }
+            if let bottom = try container.decodeIfPresent(Bottom.self, forKey: .bottom){
+                self = .bottom(bottom)
+                return
+            }
+            if let logical = try container.decodeIfPresent(LogicalExpression.self, forKey: .logical) {
+                self = .logical(logical)
+                return
+            }
+            throw LogoCodingError.logicalExpression
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: Key.self)
+            switch self {
+            case let .bottom(b):
+                try container.encode(b, forKey: .bottom)
+            case let .expression(e):
+                try container.encode(e, forKey: .expression)
+            case let .logical(l):
+                try container.encode(l, forKey: .expression)
+            }
+        }
+    }
+    
+    struct Rhs: Equatable, CustomStringConvertible, Codable {
+        
+        var description: String {
+            return operation.rawValue + " " + rhs.description
+        }
+        
+        var operation: LogicalOperation
+        var rhs: LogicalExpression
+    }
+    
+    enum LogicalOperation: String, Codable {
+        case and
+        case or
+    }
+    
+    public func evaluate(context: ExecutionContext) throws -> Bottom {
+        return .boolean(true)
+    }
+}
+ */
+
 public enum Value: Equatable {
+    
+    indirect case expression(Expression)
+    case deref(String)
+    case bottom(Bottom)
+    case procedure(ProcedureInvocation)
     
     public var description: String {
         switch self {
@@ -231,11 +378,6 @@ public enum Value: Equatable {
         }
         return e
     }
-    
-    indirect case expression(Expression)
-    case deref(String)
-    case bottom(Bottom)
-    case procedure(ProcedureInvocation)
 }
 
 extension Value: Codable {

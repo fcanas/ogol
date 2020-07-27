@@ -255,32 +255,22 @@ public class LogoParser {
             case .ife:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
-                guard let lhs = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression before comparison")
+                
+                // fcanas: here
+                guard let condition = expression(substring: runningSubstring) else {
+                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression after if")
                     hasFatalError = true
                     return nil
                 }
-                runningSubstring = eatWhitespace(lhs.1)
-                guard let comparison = ComparisonOperator.parser.run(runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected <, >, or =")
-                    hasFatalError = true
-                    return nil
-                }
-                registerToken(range: runningSubstring.startIndex..<comparison.1.startIndex, token: comparison.0)
-                runningSubstring = eatWhitespace(comparison.1)
-                guard let rhs = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression after '\(comparison.0.rawValue)'")
-                    hasFatalError = true
-                    return nil
-                }
-                runningSubstring = eatWhitespace(rhs.1)
+                
+                runningSubstring = eatWhitespace(condition.1)
                 guard let block = block(substring: runningSubstring) else {
                     errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected a block of code after if statement")
                     hasFatalError = true
                     return nil
                 }
                 runningSubstring = eatWhitespace(block.1)
-                return (.conditional(Conditional(lhs: lhs.0, comparison: comparison.0.additionOperator, rhs: rhs.0, block: block.0)), runningSubstring)
+                return (.conditional(Conditional(condition:condition.0, block: block.0)), runningSubstring)
             case let .procedureInvocation(name):
                 var runningSubstring = eatWhitespace(command.1)
 
@@ -371,11 +361,41 @@ public class LogoParser {
     }
     
     // MARK: - Expressions
-
+    
     /// expression
-    /// : multiplyingExpression (('+' | '-') multiplyingExpression)*
+    /// : arithmeticExpression (('<'|'>'|'=') arithmeticExpression)
     /// ;
     internal func expression(substring: Substring) -> (Expression, Substring)? {
+        
+        var runningSubstring = eatWhitespace(substring)
+        
+        guard let lhs = arithmeticExpression(substring: runningSubstring) else {
+            //errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression before comparison")
+            //hasFatalError = true
+            return nil
+        }
+        runningSubstring = eatWhitespace(lhs.1)
+        guard let comparison = ComparisonOperator.parser.run(runningSubstring) else {
+            //errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected <, >, or =")
+            //hasFatalError = true
+            return (Expression(lhs: lhs.0, rhs: nil), lhs.1)
+        }
+        registerToken(range: runningSubstring.startIndex..<comparison.1.startIndex, token: comparison.0)
+        runningSubstring = eatWhitespace(comparison.1)
+        guard let rhs = arithmeticExpression(substring: runningSubstring) else {
+            errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression after '\(comparison.0.rawValue)'")
+            hasFatalError = true
+            return nil
+        }
+        
+        return (Expression(lhs: lhs.0, rhs: Expression.Rhs(operation: comparison.0.comparisonOperator, rhs: rhs.0)), rhs.1)
+        
+    }
+    
+    /// arithmeticExpression
+    /// : multiplyingExpression (('+' | '-') multiplyingExpression)*
+    /// ;
+    internal func arithmeticExpression(substring: Substring) -> (ArithmeticExpression, Substring)? {
         var runningSubstring = substring
         
         guard let (lhsToken, candidateSubstring) = multiplyingExpression(substring: substring) else {
@@ -383,7 +403,7 @@ public class LogoParser {
         }
         runningSubstring = eatWhitespace(candidateSubstring)
 
-        var rhss: [Expression.Rhs] = []
+        var rhss: [ArithmeticExpression.Rhs] = []
 
         while let (op, opss) = AdditionOperator.parser.run(runningSubstring)  {
             // save + - operation
@@ -397,7 +417,7 @@ public class LogoParser {
                 return nil
             }
             runningSubstring = mEss
-            rhss.append(Expression.Rhs(operation: op.additionOperator, rhs: mE))
+            rhss.append(ArithmeticExpression.Rhs(operation: op.additionOperator, rhs: mE))
         }
 
         if rhss.count == 0 {
@@ -405,7 +425,7 @@ public class LogoParser {
             runningSubstring = candidateSubstring
         }
 
-        return (Expression(lhs: lhsToken, rhs: rhss), runningSubstring)
+        return (ArithmeticExpression(lhs: lhsToken, rhs: rhss), runningSubstring)
     }
 
     /// multiplyingExpression

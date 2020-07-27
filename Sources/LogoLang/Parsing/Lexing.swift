@@ -99,7 +99,7 @@ enum AdditionOperator: Character, CaseIterable, Op {
     case add = "+"
     case subtract = "-"
 
-    var additionOperator: Expression.ExpressionOperation {
+    var additionOperator: ArithmeticExpression.ExpressionOperation {
         get {
             switch self {
             case .add:
@@ -133,7 +133,7 @@ enum ComparisonOperator: Character, CaseIterable, Op {
     case gt = ">"
     case eq = "="
 
-    var additionOperator: Conditional.Comparison {
+    var comparisonOperator: Expression.Operation {
         get {
             switch self {
             case .lt:

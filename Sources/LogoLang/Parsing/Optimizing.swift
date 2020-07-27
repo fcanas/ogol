@@ -121,11 +121,11 @@ extension MultiplyingExpression: ExpressionReducable {
     }
 }
 
-extension Expression: ExpressionReducable {
+extension ArithmeticExpression: ExpressionReducable {
     
     mutating func reduce() {
         var reduced: Double = 0
-        var unreduced: [Expression.Rhs] = []
+        var unreduced: [ArithmeticExpression.Rhs] = []
         rhs = rhs.map({ r in
             var rr = r
             rr.rhs.reduce()
@@ -162,7 +162,7 @@ extension Expression: ExpressionReducable {
         {
             reduced += double
         } else {
-            unreduced.append(Expression.Rhs(operation: .add, rhs: lhs))
+            unreduced.append(ArithmeticExpression.Rhs(operation: .add, rhs: lhs))
         }
         
         if unreduced.count <= rhs.count {
@@ -177,6 +177,27 @@ extension Expression: ExpressionReducable {
             return lhs.simplified()
         }
         return nil
+    }
+}
+
+extension Expression {
+    mutating func reduce() {
+        lhs.reduce()
+        rhs?.reduce()
+    }
+    
+    mutating func simplified() -> Value? {
+        reduce()
+        if nil == rhs {
+            return lhs.simplified()
+        }
+        return nil
+    }
+}
+
+extension Expression.Rhs {
+    mutating func reduce() {
+        rhs.reduce()
     }
 }
 
@@ -203,8 +224,9 @@ extension Value: ExpressionReducable {
 
 extension Conditional {
     mutating func reduce() {
-        lhs.reduce()
-        rhs.reduce()
+        // Todo: optimize logical expressions
+        // self.condition.reduce()
+        self.block.reduce()
     }
 }
 

@@ -62,6 +62,7 @@ public enum LogoCodingError: Error {
     case value
     case procedure
     case ExecutionNode
+    case logicalExpression
 }
 
 extension Bottom: Codable {
