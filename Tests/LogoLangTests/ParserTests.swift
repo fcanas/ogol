@@ -53,6 +53,7 @@ class SimpleCommandParserTests: XCTestCase {
     
     func testStop() {
         let parser = LogoParser()
+        parser.modules = [Meta()]
         let programString: Substring = Substring("stop")
         guard let (c, s) = parser.command(substring: programString) else {
             XCTFail("Failed to parse stop")
@@ -62,7 +63,7 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("No token for stop")
             return
         }
-        guard case .stop(_) = c else {
+        guard case .invocation(_) = c else {
             XCTFail("Should parse a stop")
             return
         }

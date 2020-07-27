@@ -98,7 +98,7 @@ public class ExecutionContext {
     public var variables: NestedKeyValueStore<Bottom>
     public var moduleStores: NestedKeyValueStore<ModuleStore>
     private var depth: UInt
-    private weak var parent: ExecutionContext?
+    internal weak var parent: ExecutionContext?
 
     public func allVariables() -> [String:Bottom] {
         return variables.flattened()

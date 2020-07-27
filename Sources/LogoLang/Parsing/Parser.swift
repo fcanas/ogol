@@ -237,33 +237,6 @@ public class LogoParser {
             let commandTokenRange = substring.startIndex..<command.1.startIndex
 
             switch command.0 {
-            case .stop:
-                registerToken(range: commandTokenRange, token: command.0)
-                return (.stop(Stop()), command.1)
-            case .make:
-                registerToken(range: commandTokenRange, token: command.0)
-                var runningSubstring = eatWhitespace(command.1)
-                guard let literal = Lex.stringLiteral.run(runningSubstring) else {
-                    errors[substring.startIndex..<command.1.startIndex] = .basic("Expected string literal as a name afer 'make'")
-                    hasFatalError = true
-                    return nil
-                }
-
-                registerToken(range: runningSubstring.startIndex..<literal.1.startIndex, token: SyntaxType(category: .stringLiteral))
-                runningSubstring = eatWhitespace(literal.1)
-
-                if let value = value(substring: runningSubstring) {
-                    return (.make(Make(value: value.0, symbol: literal.0)), value.1)
-                }
-                // deref
-                if let parsedDeref =  Lex.Token.deref.run(runningSubstring) {
-                    let range = runningSubstring.startIndex..<parsedDeref.1.startIndex
-                    registerToken(range: range, token: parsedDeref.0)
-                    return (.make(Make(value: parsedDeref.0, symbol: literal.0)), parsedDeref.1)
-                }
-                errors[command.1.startIndex..<literal.1.startIndex] = .basic("Expected value to assign to '\(literal.0)'")
-                hasFatalError = true
-                return nil
             case .repeat_:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -308,10 +281,6 @@ public class LogoParser {
                 }
                 runningSubstring = eatWhitespace(block.1)
                 return (.conditional(Conditional(lhs: lhs.0, comparison: comparison.0.additionOperator, rhs: rhs.0, block: block.0)), runningSubstring)
-            case .output:
-                if let value = value(substring: eatWhitespace(command.1)) {
-                    return (.output(Output(value: value.0)), value.1)
-                }
             case let .procedureInvocation(name):
                 var runningSubstring = eatWhitespace(command.1)
 
@@ -337,7 +306,7 @@ public class LogoParser {
 
     /// Keywords and reserved functions that are not considered .user Procedure Invocations
     /// These will basically be control flow
-    private static let nameBlackList = Set(["end", "repeat", "make", "ife", "stop", "output"] )
+    private static let nameBlackList = Set(["end", "repeat", "ife"] )
 
     internal func command(substring: Substring) -> (ExecutionNode, Substring)? {
         let chompedString = eatWhitespace(substring)
@@ -347,13 +316,13 @@ public class LogoParser {
         return nil
     }
 
-    private func block(substring: Substring) -> (Block, Substring)? {
+    private func block(substring: Substring) -> (CommandList, Substring)? {
         var runningSubstring = substring
-        guard let blockStart = Lex.blockStart.run(runningSubstring) else {
+        guard let listStart = Lex.listStart.run(runningSubstring) else {
             return nil
         }
-        registerToken(range: runningSubstring.startIndex..<blockStart.1.startIndex, token: SyntaxType(category: .plain))
-        runningSubstring = eatNewlines(blockStart.1)
+        registerToken(range: runningSubstring.startIndex..<listStart.1.startIndex, token: SyntaxType(category: .plain))
+        runningSubstring = eatNewlines(listStart.1)
 
         var commands: [ExecutionNode] = []
         var procedures: [String: Procedure] = [:]
@@ -367,13 +336,13 @@ public class LogoParser {
             runningSubstring = eatNewlines(nextLine.1)
         }
 
-        guard let blockEnd = Lex.blockEnd.run(runningSubstring) else {
+        guard let listEnd = Lex.listEnd.run(runningSubstring) else {
             return nil
         }
-        registerToken(range: runningSubstring.startIndex..<blockEnd.1.startIndex, token: SyntaxType(category: .plain))
-        runningSubstring = eatWhitespace(blockEnd.1)
+        registerToken(range: runningSubstring.startIndex..<listEnd.1.startIndex, token: SyntaxType(category: .plain))
+        runningSubstring = eatWhitespace(listEnd.1)
 
-        return (Block(commands: commands, procedures: procedures), runningSubstring)
+        return (CommandList(commands: commands, procedures: procedures), runningSubstring)
     }
 
     // MARK: - Values

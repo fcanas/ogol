@@ -14,13 +14,23 @@ class CompleteProgramTests: XCTestCase {
     func testTreeDrawing() {
         let source = """
                       to tree :size
-                          if :size < 5 [fd :size bk :size stop]
+                          if :size < 5 [
+                            fd :size
+                            bk :size
+                            stop
+                          ]
                           fd :size/3
-                          lt 30 tree :size*2/3 rt 30
+                          lt 30
+                          tree :size*2/3
+                          rt 30
                           fd :size/6
-                          rt 25 tree :size/2 lt 25
+                          rt 25
+                          tree :size/2
+                          lt 25
                           fd :size/3
-                          rt 25 tree :size/2 lt 25
+                          rt 25
+                          tree :size/2
+                          lt 25
                           fd :size/6
                           bk :size
                       end
@@ -28,15 +38,18 @@ class CompleteProgramTests: XCTestCase {
                       optimize "tree
                       tree 720
                       """
+        let parser = LogoParser()
+        parser.modules = [Turtle(), Optimizer(), Meta()]
         
-        guard case let .success(program, _, _) = LogoParser().program(substring: Substring(source)) else {
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
             XCTFail("Failed to parse performance program")
             return
         }
         
         let context: ExecutionContext = ExecutionContext()
-        context.load(Optimizer.self)
-        context.load(Turtle.self)
+        context.load(Optimizer())
+        context.load(Turtle())
+        context.load(Meta())
         self.measure {
             try! program.execute(context: context, reuseScope: false)
         }
@@ -53,16 +66,23 @@ class CompleteProgramTests: XCTestCase {
                         optimize "keepbusy
                         keepbusy
                         """
-        guard case let .success(program, _, _) = LogoParser().program(substring: Substring(source)) else {
+        let parser = LogoParser()
+        parser.modules = [Turtle(), Optimizer()]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
             XCTFail("Failed to parse performance program")
             return
         }
         
         self.measure {
             let context: ExecutionContext = ExecutionContext()
-            context.load(Optimizer.self)
-            context.load(Turtle.self)
-            try! program.execute(context: context, reuseScope: false)
+            context.load(Optimizer())
+            context.load(Turtle())
+            context.load(Meta())
+            do {
+            try program.execute(context: context, reuseScope: false)
+            } catch let e {
+                print(e)
+            }
         }
     }
     
@@ -76,8 +96,9 @@ class CompleteProgramTests: XCTestCase {
                       end
                       swirl 400
                       """
-        
-        guard case let .success(program, _, _) = LogoParser().program(substring: Substring(source)) else {
+        let parser = LogoParser()
+        parser.modules = [Turtle(), Optimizer(), Meta()]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
             XCTFail("Failed to parse performance program")
             return
         }
@@ -85,7 +106,8 @@ class CompleteProgramTests: XCTestCase {
         // execute
         self.measure {
             let context: ExecutionContext = ExecutionContext()
-            context.load(Turtle.self)
+            context.load(Turtle())
+            context.load(Meta())
             try! program.execute(context: context, reuseScope: false)
         }
     }
@@ -123,6 +145,7 @@ class CompleteProgramTests: XCTestCase {
                         writeA
                         """
         let parser = LogoParser()
+        parser.modules = [Turtle(), Meta()]
         let parseResult = parser.program(substring: Substring(program))
         
         switch parseResult {
@@ -172,25 +195,45 @@ class CompleteProgramTests: XCTestCase {
                     make "arcAngle 360 / :cDivs
 
                     to printL
-                        rt 180 fd :diam lt 90 fd :diam * 0.60 lt 90 ; L
+                        rt 180
+                        fd :diam
+                        lt 90
+                        fd :diam * 0.60
+                        lt 90
                     end
                     to printO
                         rt :arcAngle / 2
-                        repeat :cDivs [ fd :cStep rt :arcAngle ]
-                         lt :arcAngle / 2
+                        repeat :cDivs [
+                            fd :cStep
+                            rt :arcAngle
+                        ]
+                        lt :arcAngle / 2
                         rt 90
                     end
                     to printG
                         rt :arcAngle / 2
-                        repeat :halfCircle [ fd :cStep rt :arcAngle ]
+                        repeat :halfCircle [
+                            fd :cStep
+                            rt :arcAngle
+                        ]
                         lt :arcAngle / 2
                         pu
-                        rt 90 fd :radius lt 90 pd
-                        fd :radius rt 90 fd :radius rt 180
+                        rt 90
+                        fd :radius
+                        lt 90
+                        pd
+                        fd :radius
+                        rt 90
+                        fd :radius
+                        rt 180
                     end
                     to next :charSpace
                         pu
-                        rt 90 fd :charSpace lt 90 lt 90 pd
+                        rt 90
+                        fd :charSpace
+                        lt 90
+                        lt 90
+                        pd
                     end
 
                     make "nRadius -:radius
@@ -214,6 +257,7 @@ class CompleteProgramTests: XCTestCase {
                     fd :radius
                     """
         let parser = LogoParser()
+        parser.modules = [Turtle(), Meta()]
         let parseResult = parser.program(substring: Substring(program))
         
         switch parseResult {
@@ -236,7 +280,8 @@ class CompleteProgramTests: XCTestCase {
             // TODO: Procedure content
             
             let context: ExecutionContext = ExecutionContext()
-            context.load(Turtle.self)
+            context.load(Turtle())
+            context.load(Meta())
             
             try! program.execute(context: context, reuseScope: false)
 
@@ -273,6 +318,7 @@ class CompleteProgramTests: XCTestCase {
                         ht
                         """
         let parser = LogoParser()
+        parser.modules = [Turtle(), Meta()]
         let parseResult = parser.program(substring: Substring(program))
         
         switch parseResult {
@@ -295,7 +341,8 @@ class CompleteProgramTests: XCTestCase {
             // TODO: Procedure content
             
             let context: ExecutionContext = ExecutionContext()
-            context.load(Turtle.self)
+            context.load(Turtle())
+            context.load(Meta())
 
             try! program.execute(context: context, reuseScope: false)
 

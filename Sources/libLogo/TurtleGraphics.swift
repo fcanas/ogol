@@ -55,10 +55,10 @@ public class Turtle: Module {
         return multilines
     }
     
-    public static func initialize(context: ExecutionContext) {
+    public func initialize(context: ExecutionContext) {
         let turtleStore = ExecutionContext.ModuleStore()
-        context.moduleStores[ModuleStoreKey] = turtleStore
-        turtleStore[turtleKey] = Turtle()
+        context.moduleStores[Turtle.ModuleStoreKey] = turtleStore
+        turtleStore[Turtle.turtleKey] = Turtle()
     }
     
     public static func multilines(for context:ExecutionContext) -> [MultiLine] {

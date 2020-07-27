@@ -22,8 +22,8 @@ struct Lex {
     static let name: Parser<Substring, String> = Lex.Token.string
     static let end: Parser<Substring, String> = "end"
 
-    static let blockStart: Parser<Substring, String> = "["
-    static let blockEnd: Parser<Substring, String> = "]"
+    static let listStart: Parser<Substring, String> = "["
+    static let listEnd: Parser<Substring, String> = "]"
 
     static let comment: Parser<Substring, String> = Lex.Token.comment
 
@@ -32,7 +32,7 @@ struct Lex {
         enum ControlFlow: SyntaxColorable {
             func syntaxCategory() -> SyntaxCategory? {
                 switch self {
-                case .repeat_, .make, .ife, .stop, .output:
+                case .repeat_, .ife:
                     return .keyword
                 case .procedureInvocation(_):
                     return .procedureInvocation
@@ -40,23 +40,17 @@ struct Lex {
             }
 
             case repeat_
-            case make
             case procedureInvocation(String)
             case ife
-            case stop
-            case output
             // TODO: case fore
             // TODO: case label
         }
 
-        static let controlFlow = ((repeat_ <|> make <|> ife) <* Lex.Token._space) <|> stop <|> output <|> procedureInvocation
+        static let controlFlow = ((repeat_ <|> ife) <* Lex.Token._space) <|> procedureInvocation
 
         static let repeat_: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.repeat_ } <^> "repeat"
-        static let make: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.make } <^> "make"
         static let ife: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.ife } <^> "if"
-        static let stop: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.stop } <^> "stop"
-        static let output: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.output } <^> "output"
-
+        
         static let procedureInvocation = { Lex.Commands.ControlFlow.procedureInvocation($0) } <^> Lex.name
     }
 

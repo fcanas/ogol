@@ -14,15 +14,9 @@ public enum ExecutionNode: CustomStringConvertible {
     
     public func execute(context: ExecutionContext, reuseScope: Bool) throws {
         switch self {
-        case let .block(block):
+        case let .list(block):
             try block.execute(context: context, reuseScope: reuseScope)
-        case let .stop(stop):
-            try stop.execute(context: context, reuseScope: reuseScope)
         case let .rep(exec):
-            try exec.execute(context: context, reuseScope: reuseScope)
-        case let .make(exec):
-            try exec.execute(context: context, reuseScope: reuseScope)
-        case let .output(exec):
             try exec.execute(context: context, reuseScope: reuseScope)
         case let .conditional(exec):
             try exec.execute(context: context, reuseScope: reuseScope)
@@ -33,11 +27,8 @@ public enum ExecutionNode: CustomStringConvertible {
         }
     }
     
-    case block(Block)
-    case stop(Stop)
+    case list(CommandList)
     case rep(Repeat)
-    case make(Make)
-    case output(Output)
     case conditional(Conditional)
     case foreach(For)
     case invocation(ProcedureInvocation)
@@ -48,20 +39,11 @@ extension ExecutionNode: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
         
-        if let block = try container.decodeIfPresent(Block.self, forKey: .block) {
-            self = .block(block)
-            return
-        } else if let stop = try container.decodeIfPresent(Stop.self, forKey: .stop) {
-            self = .stop(stop)
+        if let list = try container.decodeIfPresent(CommandList.self, forKey: .list) {
+            self = .list(list)
             return
         } else if let rep = try container.decodeIfPresent(Repeat.self, forKey: .rep) {
             self = .rep(rep)
-            return
-        } else if let make = try container.decodeIfPresent(Make.self, forKey: .make) {
-            self = .make(make)
-            return
-        } else if let output = try container.decodeIfPresent(Output.self, forKey: .output) {
-            self = .output(output)
             return
         } else if let conditional = try container.decodeIfPresent(Conditional.self, forKey: .conditional) {
             self = .conditional(conditional)
@@ -79,31 +61,22 @@ extension ExecutionNode: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
-        case let .block(block):
-            try container.encode(block, forKey: .block)
-        case let .stop(stop):
-            try container.encode(stop, forKey: .stop)
         case let .rep(rep):
             try container.encode(rep, forKey: .rep)
-        case let .make(make):
-            try container.encode(make, forKey: .make)
-        case let .output(output):
-            try container.encode(output, forKey: .output)
         case let .conditional(conditional):
             try container.encode(conditional, forKey: .conditional)
         case let .foreach(foreach):
             try container.encode(foreach, forKey: .foreach)
         case let .invocation(invocation):
             try container.encode(invocation, forKey: .invocation)
+        case let .list(list):
+            try container.encode(list, forKey: .list)
         }
     }
     
     enum Key: CodingKey {
-        case block
-        case stop
+        case list
         case rep
-        case make
-        case output
         case conditional
         case foreach
         case invocation
@@ -111,7 +84,7 @@ extension ExecutionNode: Codable {
     
 }
 
-public struct Block: Codable {
+public struct CommandList: Codable {
     public var description: String { get { "[]-> " + commands.description } }
 
     var commands: [ExecutionNode]
@@ -123,16 +96,6 @@ public struct Block: Codable {
         for command in commands {
             try command.execute(context: context, reuseScope: false) // todo, last command in block?
         }
-    }
-}
-
-public struct Stop: Codable {
-    public var description: String {
-        return "stop"
-    }
-
-    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        throw ExecutionHandoff.stop
     }
 }
 
@@ -152,38 +115,14 @@ public struct Repeat: Codable {
         }
     }
 
-    init(count: SignExpression, block: Block) {
+    init(count: SignExpression, block: CommandList) {
         self.count = count
         self.block = block
     }
 
     var count: SignExpression
-    var block: Block
+    var block: CommandList
 
-}
-
-public struct Make: Codable {
-
-    public var description: String {
-        return "make \"\(symbol) \(value)"
-    }
-
-    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        context.variables[symbol] = try value.evaluate(context: context)
-    }
-
-    var value: Value
-    var symbol: String
-}
-
-public struct Output: Codable {
-    public var description: String {
-        return "output \(value)"
-    }
-    public func execute(context: ExecutionContext, reuseScope: Bool) throws {
-        throw ExecutionHandoff.output(try value.evaluate(context: context))
-    }
-    var value: Value
 }
 
 public struct Conditional: Codable {
@@ -211,9 +150,9 @@ public struct Conditional: Codable {
     let comparisonOp: Comparison
     var lhs: Expression
     var rhs: Expression
-    let block: Block
+    let block: CommandList
 
-    init(lhs: Expression, comparison: Comparison, rhs: Expression, block: Block) {
+    init(lhs: Expression, comparison: Comparison, rhs: Expression, block: CommandList) {
         self.lhs = lhs
         self.comparisonOp = comparison
         self.rhs = rhs
@@ -255,9 +194,9 @@ public struct For: Codable {
         // inherit reuse scope
     }
 
-    init(block: Block) {
+    init(block: CommandList) {
         self.block = block
     }
 
-    let block: Block
+    let block: CommandList
 }

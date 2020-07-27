@@ -199,18 +199,6 @@ extension Value: ExpressionReducable {
     }
 }
 
-extension Make {
-    mutating func reduce() {
-        value.reduce()
-    }
-}
-
-extension Output {
-    mutating func reduce() {
-        value.reduce()
-    }
-}
-
 extension Conditional {
     mutating func reduce() {
         lhs.reduce()
@@ -228,7 +216,7 @@ extension ProcedureInvocation {
     }
 }
 
-extension Block {
+extension CommandList {
     mutating func reduce() {
         commands = commands.map(reduceNodeExpressions)
     }
@@ -242,9 +230,6 @@ extension Repeat {
 
 func reduceNodeExpressions(_ node: ExecutionNode) -> ExecutionNode {
     switch node {
-    case var .block(block):
-        block.reduce()
-        return .block(block)
     case var .conditional(cond):
         cond.reduce()
         return .conditional(cond)
@@ -253,17 +238,11 @@ func reduceNodeExpressions(_ node: ExecutionNode) -> ExecutionNode {
     case var .invocation(inv):
         inv.reduce()
         return .invocation(inv)
-    case var .make(make):
-        make.reduce()
-        return .make(make)
-    case var .output(out):
-        out.reduce()
-        return .output(out)
     case var .rep(rep):
         rep.reduce()
         return .rep(rep)
-    case .stop(_):
-        break
+    case .list(_):
+        return node
     }
     return node
 }

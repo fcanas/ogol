@@ -19,8 +19,28 @@ public struct Meta: Module {
     
     public let procedures: [String : Procedure] = [
         "run":.extern(Meta.run),
+        "stop":.extern(Meta.stop),
+        "make":.extern(Meta.make),
+        "output":.extern(Meta.output),
         // "list":.extern(list) // soon
     ]
+    
+    private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
+        throw ExecutionHandoff.stop
+    }
+    
+    private static var make: ExternalProcedure = ExternalProcedure(name: "make", parameters: ["symbol", "value"]) { (params, context) -> Bottom? in
+        guard case let .string(symbol) = params[0] else {
+            throw ExecutionHandoff.error(.parameter, "make requires its first parameter to be a string")
+        }
+        (context.parent ?? context).variables[symbol] = params[1]
+        return nil
+    }
+    
+    private static var output: ExternalProcedure = ExternalProcedure(name: "output", parameters: ["value"]) { (params, context) -> Bottom? in
+        throw ExecutionHandoff.output(params[0])
+    }
+    
     
     private static var run: ExternalProcedure = {
         ExternalProcedure(name: "run", parameters: ["instructionList"]) { (params, context) throws -> Bottom? in
@@ -49,8 +69,6 @@ public struct Meta: Module {
                 procName = p
                 list = []
             }
-            
-            
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))
             
