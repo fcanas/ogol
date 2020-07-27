@@ -64,6 +64,8 @@ extension Bottom {
             return self
         case let .list(l):
             return .list(l.map({$0.negated()}))
+        case let .boolean(b):
+            return .boolean(!b)
         }
     }
 }

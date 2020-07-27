@@ -45,6 +45,8 @@ extension Value: SyntaxColorable {
             case .list(_):
                 // Lists should probably be transparent to let contained values be shown?
                 return nil
+            case .boolean(_):
+                return .keyword
             }
         case .deref(_):
             return .variable

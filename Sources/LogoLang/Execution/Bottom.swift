@@ -17,18 +17,27 @@ public enum Bottom: Equatable {
             return l == r
         case let (.list(l), .list(r)):
             return l == r
+        case let (.boolean(l), .boolean(r)):
+            return l == r
         case (.string(_), .double(_)),
              (.double(_), .string(_)),
              (.list(_), .double(_)),
+             (.boolean(_), .double(_)),
+             (.boolean(_), .string(_)),
+             (.boolean(_), .list(_)),
+             (.double(_), .boolean(_)),
+             (.string(_), .boolean(_)),
+             (.list(_), .boolean(_)),
              (.list(_), .string(_)),
-             (.string(_), .list(_)),
-             (.double(_), .list(_)):
+             (.double(_), .list(_)),
+             (.string(_), .list(_)):
             return false
         }
     }
 
     case double(Double)
     case string(String)
+    case boolean(Bool)
     indirect case list([Bottom])
 }
 
@@ -41,6 +50,8 @@ extension Bottom: CustomStringConvertible {
             return s
         case let .list(l):
             return "[" + l.map{ $0.description }.joined(separator: ", ") + "]"
+        case let .boolean(b):
+            return b ? "true" : "false"
         }
     }
 }
@@ -59,6 +70,7 @@ extension Bottom: Codable {
         case double
         case string
         case list
+        case bool
     }
     
     public init(from decoder: Decoder) throws {
@@ -72,6 +84,9 @@ extension Bottom: Codable {
         } else if let rawValue = try container.decodeIfPresent(Array<Bottom>.self, forKey: .string) {
             self = .list(rawValue)
             return 
+        } else if let rawValue = try container.decodeIfPresent(Bool.self, forKey: .bool) {
+            self = .boolean(rawValue)
+            return
         }
         throw LogoCodingError.bottom
     }
@@ -85,6 +100,8 @@ extension Bottom: Codable {
             try container.encode(stringValue, forKey: .string)
         case let .list(listValue):
             try container.encode(listValue, forKey: .list)
+        case let .boolean(boolValue):
+            try container.encode(boolValue, forKey: .bool)
         }
     }
     

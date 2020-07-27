@@ -63,8 +63,8 @@ public struct Meta: Module {
                 }
                 list = l
                 procName = p
-            case .double(_):
-                throw ExecutionHandoff.error(.parameter, "run expects a list or string as a parameter")
+            case .double(_), .boolean(_):
+                throw ExecutionHandoff.output(parameter)
             case let .string(p):
                 procName = p
                 list = []
