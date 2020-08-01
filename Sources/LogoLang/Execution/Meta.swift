@@ -22,7 +22,6 @@ public struct Meta: Module {
         "stop":.extern(Meta.stop),
         "make":.extern(Meta.make),
         "output":.extern(Meta.output),
-        // "list":.extern(list) // soon
     ]
     
     private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in

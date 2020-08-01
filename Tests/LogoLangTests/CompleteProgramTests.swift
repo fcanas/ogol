@@ -353,4 +353,50 @@ class CompleteProgramTests: XCTestCase {
         
     }
     
+    func testLogicalExpressions() {
+        let source = """
+                     make "conditionT1 14 < 15
+                     make "conditionF1 8 > 12
+                     make "twelve 12
+                     make "otherTwelve 11 + 1
+                     make "conditionT2 :twelve = :otherTwelve
+                     if :conditionT1 [
+                         make "cP1 "pass
+                     ]
+                     make "cF1 "pass
+                     if :conditionF1 [
+                         make "cF1 "fail
+                     ]
+                     if :conditionT2 [
+                         make "cP2 "pass
+                     ]
+                     """
+        let parser = LogoParser()
+        parser.modules = [Turtle(), Optimizer(), Meta()]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
+            XCTFail("Failed to parse logical test program")
+            return
+        }
+        
+        // execute
+        
+        let context: ExecutionContext = ExecutionContext()
+        context.load(Turtle())
+        context.load(Meta())
+        context.variables["cP1"] = .string("")
+        context.variables["cP2"] = .string("")
+        context.variables["cF1"] = .string("")
+        try! program.execute(context: context, reuseScope: false)
+        
+        guard case let .string(cP1) = context.variables["cP1"],
+              case let .string(cP2) = context.variables["cP2"],
+              case let .string(cF1) = context.variables["cF1"] else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(cP1, "pass")
+        XCTAssertEqual(cP2, "pass")
+        XCTAssertEqual(cF1, "pass")
+    }
+    
 }
