@@ -67,6 +67,9 @@ public struct Meta: Module {
             case let .string(p):
                 procName = p
                 list = []
+            case let .command(command):
+                // TODO: Not sure what this should do?
+                throw ExecutionHandoff.error(.typeError, "Not sure what this should do.")
             }
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))

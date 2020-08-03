@@ -66,6 +66,9 @@ extension Bottom {
             return .list(l.map({$0.negated()}))
         case let .boolean(b):
             return .boolean(!b)
+        case .command(_):
+            // no-op, right now?
+            return self
         }
     }
 }

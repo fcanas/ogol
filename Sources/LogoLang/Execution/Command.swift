@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ExecutionNode: CustomStringConvertible {
+public enum ExecutionNode: CustomStringConvertible, Equatable {
     
     public var description: String { "{{ Execution Node }}" }
     
@@ -84,7 +84,7 @@ extension ExecutionNode: Codable {
     
 }
 
-public struct CommandList: Codable {
+public struct CommandList: Codable, Equatable {
     public var description: String { get { "[]-> " + commands.description } }
 
     var commands: [ExecutionNode]
@@ -99,7 +99,7 @@ public struct CommandList: Codable {
     }
 }
 
-public struct Repeat: Codable {
+public struct Repeat: Codable, Equatable {
     public var description: String {
         return "repeat " + count.description + " " + block.description
     }
@@ -125,7 +125,7 @@ public struct Repeat: Codable {
 
 }
 
-public struct Conditional: Codable {
+public struct Conditional: Codable, Equatable {
 
     public var description: String {
         return "\(condition) [ \(block) ]"
@@ -150,7 +150,7 @@ public struct Conditional: Codable {
 
 }
 
-public struct For: Codable {
+public struct For: Codable, Equatable {
 
     public var description: String {
         return "for"

@@ -47,6 +47,8 @@ extension Value: SyntaxColorable {
                 return nil
             case .boolean(_):
                 return .keyword
+            case .command(_):
+                return nil
             }
         case .deref(_):
             return .variable
