@@ -2,6 +2,10 @@
 
 ## 2020-07-27
 
+How to get lists of instructions? Are they `Value`s or `Bottom`s? `Value` didn't work well. So I'm trying to make an `ExecutableNode` exist in `Bottom` as a command. Then I can use a `List`.
+
+## 2020-07-27
+
 From late may to early June, I took on some interesting refactoring efforts that modularized a lot of the language. 
 
 First, turtle graphics left the language and made was converted into a module. This reduced the special cases in lexing and parsing. It didn't drastically simplify parsing on its own, but it definitely reduced the amount of parsing code. Now, the turtle graphics module is more bound to the runtime than the language. It needs to set up structures to track a turtle in an execution context. Then the procedures that manipulate the turtle and the canvas act on those structures.
