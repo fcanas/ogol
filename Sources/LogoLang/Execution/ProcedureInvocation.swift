@@ -90,3 +90,14 @@ extension ProcedureInvocation: SyntaxColorable {
 extension ProcedureInvocation: Codable {
     
 }
+
+extension ExecutionNode {
+    public func evaluate(context: ExecutionContext) throws -> Bottom {
+        do {
+            try execute(context: context, reuseScope: false)
+        } catch let ExecutionHandoff.output(bottom) {
+            return bottom
+        }
+        throw ExecutionHandoff.error(.noOutput, "No value returned from \(self).")
+    }
+}

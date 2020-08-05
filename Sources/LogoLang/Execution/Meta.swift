@@ -60,6 +60,7 @@ public struct Meta: Module {
                 
                 if let executionList = l.asInstructionList() {
                     try executionList.forEach { try $0.execute(context: context, reuseScope: false) }
+                    return nil
                 }
                 
                 guard case let .string(p) = l.removeFirst() else {
@@ -73,8 +74,7 @@ public struct Meta: Module {
                 procName = p
                 list = []
             case let .command(command):
-                // TODO: Not sure what this should do?
-                throw ExecutionHandoff.error(.typeError, "Not sure what this should do.")
+                try command.execute(context: context, reuseScope: true)
             }
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))

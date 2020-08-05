@@ -32,23 +32,20 @@ struct Lex {
         enum ControlFlow: SyntaxColorable {
             func syntaxCategory() -> SyntaxCategory? {
                 switch self {
-                case .repeat_, .ife:
+                case .ife:
                     return .keyword
                 case .procedureInvocation(_):
                     return .procedureInvocation
                 }
             }
-
-            case repeat_
             case procedureInvocation(String)
             case ife
             // TODO: case fore
             // TODO: case label
         }
 
-        static let controlFlow = ((repeat_ <|> ife) <* Lex.Token._space) <|> procedureInvocation
+        static let controlFlow = (ife <* Lex.Token._space) <|> procedureInvocation
 
-        static let repeat_: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.repeat_ } <^> "repeat"
         static let ife: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.ife } <^> "if"
         
         static let procedureInvocation = { Lex.Commands.ControlFlow.procedureInvocation($0) } <^> Lex.name

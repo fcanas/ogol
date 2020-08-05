@@ -282,6 +282,7 @@ class CompleteProgramTests: XCTestCase {
             let context: ExecutionContext = ExecutionContext()
             context.load(Turtle())
             context.load(Meta())
+            context.load(CoreLib!)
             
             try! program.execute(context: context, reuseScope: false)
 
@@ -343,6 +344,7 @@ class CompleteProgramTests: XCTestCase {
             let context: ExecutionContext = ExecutionContext()
             context.load(Turtle())
             context.load(Meta())
+            context.load(CoreLib!)
 
             try! program.execute(context: context, reuseScope: false)
 
