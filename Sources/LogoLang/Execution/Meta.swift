@@ -75,6 +75,7 @@ public struct Meta: Module {
                 list = []
             case let .command(command):
                 try command.execute(context: context, reuseScope: true)
+                return nil
             }
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))
