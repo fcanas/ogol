@@ -237,21 +237,6 @@ public class LogoParser {
             let commandTokenRange = substring.startIndex..<command.1.startIndex
 
             switch command.0 {
-            case .repeat_:
-                registerToken(range: commandTokenRange, token: command.0)
-                var runningSubstring = eatWhitespace(command.1)
-                guard let repitions = signExpression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected a value for 'repeat'")
-                    hasFatalError = true
-                    return nil
-                }
-                runningSubstring = eatWhitespace(repitions.1)
-                guard let block = block(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected a code block to repeat")
-                    hasFatalError = true
-                    return nil
-                }
-                return (.rep(Repeat(count: repitions.0, block: block.0)), block.1)
             case .ife:
                 registerToken(range: commandTokenRange, token: command.0)
                 var runningSubstring = eatWhitespace(command.1)
@@ -296,7 +281,7 @@ public class LogoParser {
 
     /// Keywords and reserved functions that are not considered .user Procedure Invocations
     /// These will basically be control flow
-    private static let nameBlackList = Set(["end", "repeat", "ife"] )
+    private static let nameBlackList = Set(["end", "ife"] )
 
     internal func command(substring: Substring) -> (ExecutionNode, Substring)? {
         let chompedString = eatWhitespace(substring)
@@ -334,6 +319,40 @@ public class LogoParser {
 
         return (CommandList(commands: commands, procedures: procedures), runningSubstring)
     }
+    
+    private func instructionList(substring: Substring) -> (Value, Substring)? {
+        var runningSubstring = substring
+        guard let listStart = Lex.listStart.run(runningSubstring) else {
+            return nil
+        }
+        registerToken(range: runningSubstring.startIndex..<listStart.1.startIndex, token: SyntaxType(category: .plain))
+        runningSubstring = eatNewlines(listStart.1)
+
+        var commands: [ExecutionNode] = []
+        var procedures: [String: Procedure] = [:]
+        while let nextLine = line(substring: runningSubstring) {
+            switch nextLine.0 {
+            case let .left(proc):
+                procedures[proc.name] = proc
+            case let .right(com):
+                commands.append(com)
+            }
+            runningSubstring = eatNewlines(nextLine.1)
+        }
+
+        guard let listEnd = Lex.listEnd.run(runningSubstring) else {
+            return nil
+        }
+        registerToken(range: runningSubstring.startIndex..<listEnd.1.startIndex, token: SyntaxType(category: .plain))
+        runningSubstring = eatWhitespace(listEnd.1)
+
+        let commandListValue = commands.map { (executionNode) -> Bottom in
+            return .command(executionNode)
+        }
+        
+        return (.bottom(.list(commandListValue)), runningSubstring)
+    }
+    
 
     // MARK: - Values
     
@@ -346,10 +365,12 @@ public class LogoParser {
         }
         // procedure invocations _may_ return values
         // TODO: static analysis to determine if procedures may return?
+        // Probably not strictly possible if lists are executable
         if let (command, remainder) = controlFlow(substring: substring), case let .invocation(inv) = command {
             return (Value.procedure(inv), remainder)
         }
-        return nil
+        
+        return instructionList(substring: substring)
     }
     
     internal func stringLiteral(substring: Substring) -> (String, Substring)? {

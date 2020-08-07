@@ -66,6 +66,9 @@ extension Bottom {
             return .list(l.map({$0.negated()}))
         case let .boolean(b):
             return .boolean(!b)
+        case .command(_):
+            // no-op, right now?
+            return self
         }
     }
 }
@@ -246,27 +249,16 @@ extension CommandList {
     }
 }
 
-extension Repeat {
-    mutating func reduce() {
-        block.reduce()
-    }
-}
-
 func reduceNodeExpressions(_ node: ExecutionNode) -> ExecutionNode {
     switch node {
     case var .conditional(cond):
         cond.reduce()
         return .conditional(cond)
-    case .foreach(_):
-        break
     case var .invocation(inv):
         inv.reduce()
         return .invocation(inv)
-    case var .rep(rep):
-        rep.reduce()
-        return .rep(rep)
     case .list(_):
-        return node
+        break
     }
     return node
 }

@@ -19,6 +19,8 @@ public enum Bottom: Equatable {
             return l == r
         case let (.boolean(l), .boolean(r)):
             return l == r
+        case let (.command(l), .command(r)):
+            return l == r
         case (.string(_), .double(_)),
              (.double(_), .string(_)),
              (.list(_), .double(_)),
@@ -30,7 +32,15 @@ public enum Bottom: Equatable {
              (.list(_), .boolean(_)),
              (.list(_), .string(_)),
              (.double(_), .list(_)),
-             (.string(_), .list(_)):
+             (.string(_), .list(_)),
+             (.command(_), .string(_)),
+             (.command(_), .boolean(_)),
+             (.command(_), .list(_)),
+             (.boolean(_), .command(_)),
+             (.list(_), .command(_)),
+             (.string(_), .command(_)),
+             (.double(_), .command(_)),
+             (.command(_), .double(_)):
             return false
         }
     }
@@ -38,6 +48,7 @@ public enum Bottom: Equatable {
     case double(Double)
     case string(String)
     case boolean(Bool)
+    indirect case command(ExecutionNode)
     indirect case list([Bottom])
 }
 
@@ -52,6 +63,8 @@ extension Bottom: CustomStringConvertible {
             return "[" + l.map{ $0.description }.joined(separator: ", ") + "]"
         case let .boolean(b):
             return b ? "true" : "false"
+        case let .command(c):
+            return c.description
         }
     }
 }
@@ -72,6 +85,7 @@ extension Bottom: Codable {
         case string
         case list
         case bool
+        case command
     }
     
     public init(from decoder: Decoder) throws {
@@ -88,6 +102,9 @@ extension Bottom: Codable {
         } else if let rawValue = try container.decodeIfPresent(Bool.self, forKey: .bool) {
             self = .boolean(rawValue)
             return
+        } else if let rawValue = try container.decodeIfPresent(ExecutionNode.self, forKey: .command) {
+            self = .command(rawValue)
+            return
         }
         throw LogoCodingError.bottom
     }
@@ -103,6 +120,8 @@ extension Bottom: Codable {
             try container.encode(listValue, forKey: .list)
         case let .boolean(boolValue):
             try container.encode(boolValue, forKey: .bool)
+        case let .command(commandValue):
+            try container.encode(commandValue, forKey: .command)
         }
     }
     

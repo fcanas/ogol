@@ -15,7 +15,27 @@ public protocol GenericProcedure: CustomStringConvertible {
     func execute(context: ExecutionContext, reuseScope: Bool) throws
 }
 
-public enum Procedure: GenericProcedure {
+extension GenericProcedure {
+    static func approxEqual(_ lhs: GenericProcedure, _ rhs: GenericProcedure) -> Bool {
+        return lhs.name == rhs.name &&
+            lhs.parameters == rhs.parameters &&
+            lhs.hasRest == rhs.hasRest
+    }
+}
+
+public enum Procedure: GenericProcedure, Equatable {
+    
+    public static func == (lhs: Procedure, rhs: Procedure) -> Bool {
+        switch (lhs, rhs) {
+        case let (.extern(l), .extern(r)):
+            return approxEqual(l, r)
+        case let (.native(l), .native(r)):
+            return l == r
+        case (_, _):
+            return false
+        }
+    }
+    
     
     public var description: String {
         return _procedure.description
@@ -102,10 +122,17 @@ public struct StandinProcedure: GenericProcedure, Codable {
         "tbd:extern: \(name) :\(parameters.joined(separator: ", :"))"
     }
     
-    
 }
 
-public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable {
+public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable, Equatable {
+    
+    public static func == (lhs: NativeProcedure, rhs: NativeProcedure) -> Bool {
+        return lhs.name == rhs.name &&
+            lhs.commands == rhs.commands &&
+            lhs.procedures == rhs.procedures &&
+            lhs.parameters == rhs.parameters &&
+            lhs.hasRest == rhs.hasRest
+    }
 
     public var name: String
     public var commands: [ExecutionNode]
@@ -158,7 +185,14 @@ public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable
     }
 }
 
-public class ExternalProcedure: GenericProcedure {
+public class ExternalProcedure: GenericProcedure, Equatable {
+    
+    public static func == (lhs: ExternalProcedure, rhs: ExternalProcedure) -> Bool {
+        return lhs.name == rhs.name &&
+            lhs.parameters == rhs.parameters &&
+            lhs.procedures == rhs.procedures &&
+            lhs.hasRest == rhs.hasRest
+    }
 
     public var name: String
     public var parameters: [String]

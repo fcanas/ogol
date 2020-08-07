@@ -17,3 +17,10 @@ end
 to div :lhs, :rhs
    output :lhs / :rhs
 end
+
+to repeat :count, :instructionList
+   if :count = 0 [ stop ]
+   run :instructionList
+   make "count :count - 1
+   repeat :count :instructionList
+end

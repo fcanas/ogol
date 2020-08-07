@@ -22,7 +22,6 @@ public struct Meta: Module {
         "stop":.extern(Meta.stop),
         "make":.extern(Meta.make),
         "output":.extern(Meta.output),
-        // "list":.extern(list) // soon
     ]
     
     private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
@@ -58,6 +57,12 @@ public struct Meta: Module {
                 guard l.count >= 1 else {
                     throw ExecutionHandoff.error(.parameter, "a list passed as a parameter run needs at least one String element")
                 }
+                
+                if let executionList = l.asInstructionList() {
+                    try executionList.forEach { try $0.execute(context: context, reuseScope: false) }
+                    return nil
+                }
+                
                 guard case let .string(p) = l.removeFirst() else {
                     throw ExecutionHandoff.error(.parameter, "The first element of a parameter list run should be the name of a procedure")
                 }
@@ -68,6 +73,8 @@ public struct Meta: Module {
             case let .string(p):
                 procName = p
                 list = []
+            case let .command(command):
+                try command.execute(context: context, reuseScope: true)
             }
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))
@@ -80,4 +87,23 @@ public struct Meta: Module {
         }
     }()
     
+}
+
+fileprivate struct Conversion: Error {}
+
+extension Array where Element == Bottom {
+    func asInstructionList() -> [ExecutionNode]? {
+        do {
+            return try map { (bottom) throws -> ExecutionNode in
+                switch bottom {
+                case let .command(c):
+                    return c
+                default:
+                    throw Conversion()
+                }
+            }
+        } catch {
+            return nil
+        }
+    }
 }
