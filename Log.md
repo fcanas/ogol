@@ -1,6 +1,25 @@
 #  Logo Language
 
-## 2020-07-27
+
+
+## 2020-08-15
+
+Just to wrap up the thoughts around executable lists described in [2020-07-27(b)](#2020-07-27(b)): Adding a `command(ExecutionNode)` case to `Bottom`  has worked well. An internal mechanism to convert lists of bottoms to lists of `ExecutionNode`s when that's expected means that `run` can take a list as a parameter, convert to execution nodes, then run through them all. I was really delighted to find that I could then not only remove `repeat` from the language, but implement it _in Logo_!
+
+```
+to repeat :count, :instructionList
+   if :count = 0 [ stop ]
+   run :instructionList
+   make "count :count - 1
+   repeat :count :instructionList
+end
+```
+
+I had usually thought of tail recursion as a mechanism that gets "optimized" to a loop. It's amusing to think of a loop being lazily implemented as tail recursion instead. The approach is amusing for now. And it's fun to see simple low-level pieces of the language be used in force-amplifying ways. 
+
+I wonder whether Logo will target environment other than my own execution engine. And whether that execution engine will always remain a Swift executable. The target environment will start having an impact on the choices like these. I feel like this runtime is still sufficiently flexible that it's more important to keep working towards a comfortable environment to work in. Bad string support and ambiguous grammar is more of a hinderance right now. So I've been thinking of making a new language.
+
+## 2020-07-27(b)
 
 How to get lists of instructions? Are they `Value`s or `Bottom`s? `Value` didn't work well. So I'm trying to make an `ExecutableNode` exist in `Bottom` as a command. Then I can use a `List`.
 
