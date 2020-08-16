@@ -3,11 +3,19 @@
 //  LogoLang
 //
 //  Created by Fabian Canas on 6/6/20.
+//  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
+public enum Bottom {
 
-public enum Bottom: Equatable {
+    case double(Double)
+    case string(String)
+    case boolean(Bool)
+    indirect case command(ExecutionNode)
+    indirect case list([Bottom])
+}
+
+extension Bottom: Equatable {
 
     public static func == (lhs: Bottom, rhs: Bottom) -> Bool {
         switch (lhs, rhs) {
@@ -44,12 +52,6 @@ public enum Bottom: Equatable {
             return false
         }
     }
-
-    case double(Double)
-    case string(String)
-    case boolean(Bool)
-    indirect case command(ExecutionNode)
-    indirect case list([Bottom])
 }
 
 extension Bottom: CustomStringConvertible {

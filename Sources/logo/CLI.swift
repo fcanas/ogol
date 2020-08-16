@@ -6,22 +6,24 @@
 //
 
 import Foundation
+import Execution
 import LogoLang
 
 struct CLI: Module {
-    static var procedures: [String : Procedure] {
+    
+    var procedures: [String : Procedure] {
         return [
             "print" : .extern(_print),
             "po" : .extern(po)
         ]
     }
 
-    private static let _print = ExternalProcedure(name: "print", parameters: ["in"]) { (params, _) in
+    private let _print = ExternalProcedure(name: "print", parameters: ["in"]) { (params, _) in
         print(params.first!.description)
         return nil
     }
 
-    private static let po = ExternalProcedure(name: "po", parameters: ["param"]) { (params, context) in
+    private let po = ExternalProcedure(name: "po", parameters: ["param"]) { (params, context) in
         if params.first == .string("names") {
             print(context.allVariables())
         } else if params.first == .string("procedures") {

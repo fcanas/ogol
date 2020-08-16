@@ -7,6 +7,7 @@
 
 @testable import LogoLang
 import libLogo
+import Execution
 import XCTest
 
 class CompleteProgramTests: XCTestCase {

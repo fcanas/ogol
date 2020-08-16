@@ -6,8 +6,6 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
-
 public enum ExecutionHandoff: Error {
     case stop
     case error(Runtime, String) // TODO: node that can be tied back to source?
@@ -32,7 +30,7 @@ public struct Program: Codable {
 
     public var procedures: [String : Procedure]
 
-    init(executionNodes: [ExecutionNode], procedures:[Procedure]) {
+    public init(executionNodes: [ExecutionNode], procedures:[Procedure]) {
         var p: [String : Procedure] = [:]
         procedures.forEach { (procedure) in
             p[procedure.name] = procedure

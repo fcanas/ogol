@@ -7,6 +7,7 @@
 
 import Foundation
 import LogoLang
+import Execution
 
 public struct LogoMath: Module {
     

@@ -3,9 +3,8 @@
 //  LogoLang
 //
 //  Created by Fabian Canas on 6/6/20.
+//  Copyright © 2020 Fabian Canas. All rights reserved.
 //
-
-import Foundation
 
 public protocol GenericProcedure: CustomStringConvertible {
     var name: String { get }
@@ -146,7 +145,7 @@ public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable
     /// Setting `hasRest` to `true` wihout zero values in `parameters` may lead to unexpected behavior.
     public var hasRest: Bool
 
-    init(name: String, commands: [ExecutionNode], procedures: [String: Procedure], parameters: [Value], hasRest: Bool = false) {
+    public init(name: String, commands: [ExecutionNode], procedures: [String: Procedure], parameters: [Value], hasRest: Bool = false) {
         self.name = name
         self.commands = commands
         self.procedures = procedures

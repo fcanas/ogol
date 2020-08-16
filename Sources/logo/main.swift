@@ -1,3 +1,4 @@
+import Execution
 import Foundation
 import LogoLang
 import libLogo
@@ -10,13 +11,13 @@ extension Substring.Index {
     }
 }
 var context: ExecutionContext = ExecutionContext(procedures: procs)
-context.load(Turtle.self)
+context.load(Turtle())
 
-context.load(CLI.self)
-context.load(LogoMath.self)
-context.load(Turtle.self)
-context.load(Serialization.self)
-context.load(Optimizer.self)
+context.load(CLI())
+context.load(LogoMath())
+context.load(Turtle())
+context.load(Serialization())
+context.load(Optimizer())
 
 let prompt = "> "
 let parser = LogoParser()
@@ -34,7 +35,7 @@ while let input = readLine() {
             try program.commands.forEach { (c) in
                 try c.execute(context: context, reuseScope: false)
             }
-        } catch let LogoLang.ExecutionHandoff.error(runtimeError, message) {
+        } catch let Execution.ExecutionHandoff.error(runtimeError, message) {
             switch runtimeError {
             case .typeError:
                 print("Type Error", terminator: "")
@@ -52,7 +53,7 @@ while let input = readLine() {
                 print("Module error", terminator: "")
             }
             print(" - " + message)
-        } catch let LogoLang.ExecutionHandoff.output(v) {
+        } catch let Execution.ExecutionHandoff.output(v) {
             print(v)
         } catch let runtimeError {
             print(runtimeError)

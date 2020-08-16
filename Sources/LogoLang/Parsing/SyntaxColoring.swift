@@ -6,7 +6,7 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
+import Execution
 
 public enum SyntaxCategory {
     case plain
@@ -57,6 +57,12 @@ extension Value: SyntaxColorable {
         case .procedure(_):
             fatalError("This shouldn't be here")
         }
+    }
+}
+
+extension ProcedureInvocation: SyntaxColorable {
+    public func syntaxCategory() -> SyntaxCategory? {
+        return .procedureInvocation
     }
 }
 

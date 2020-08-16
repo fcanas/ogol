@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import Execution
 @testable import LogoLang
 
 class SimpleCommandParserTests: XCTestCase {

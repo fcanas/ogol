@@ -3,8 +3,6 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
-
 /// The `Meta` module is a place for defining language features that don't require parser
 /// modification or support from core exectuion types.
 ///

@@ -3,9 +3,10 @@
 //  LogoLang
 //
 //  Created by Fabian Canas on 7/21/20.
+//  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
+import Execution
 
 public struct NativeModule: Module {
     
@@ -18,7 +19,7 @@ public struct NativeModule: Module {
             return nil
         }
         self.inputString = string
-        self.syntaxMap = syntaxMap
+         self.syntaxMap = syntaxMap
         self.procedures = program.procedures
     }
     

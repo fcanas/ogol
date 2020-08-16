@@ -15,14 +15,15 @@ let package = Package(
         .package(url: "https://github.com/fcanas/FFCParserCombinator.git", .branch("substring")),
     ],
     targets: [
+        .target(name: "Execution"),
         .target(
             name: "LogoLang",
-            dependencies: ["FFCParserCombinator"]),
+            dependencies: ["FFCParserCombinator", "Execution"]),
         .testTarget(
             name: "LogoLangTests",
-            dependencies: ["LogoLang", "libLogo"]),
+            dependencies: ["LogoLang", "libLogo", "Execution"]),
         .target(name: "libLogo", dependencies: ["LogoLang"], resources: [.copy("CoreLib.logo")]),
-        .target(name: "logo", dependencies: ["LogoLang", "libLogo"]),
+        .target(name: "logo", dependencies: ["LogoLang", "libLogo", "Execution"]),
         .target(name: "clogo", dependencies: ["LogoLang"])
     ]
 )

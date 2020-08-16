@@ -6,9 +6,7 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
-
-enum SignExpression: Equatable {
+public enum SignExpression: Equatable {
     
     case positive(Value)
     case negative(Value)
@@ -47,7 +45,7 @@ extension SignExpression: Codable {
         case negative
     }
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: Key.self)
         if let value = try container.decodeIfPresent(Value.self, forKey: .positive) {
             self = .positive(value)
@@ -59,7 +57,7 @@ extension SignExpression: Codable {
         throw LogoCodingError.signExpression
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Key.self)
         switch self {
         case let .positive(value):
@@ -70,31 +68,36 @@ extension SignExpression: Codable {
     }
 }
 
-struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
+public struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
     
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
     }
     
-    init(lhs: SignExpression, rhs: MultiplyingExpression.Rhs) {
+    public init(lhs: SignExpression, rhs: MultiplyingExpression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
     }
     
-    init(lhs: SignExpression, rhs: [MultiplyingExpression.Rhs] = []) {
+    public init(lhs: SignExpression, rhs: [MultiplyingExpression.Rhs] = []) {
         self.lhs = lhs
         self.rhs = rhs
     }
     
-    struct Rhs: Equatable, CustomStringConvertible, Codable {
-        var description: String {
+    public struct Rhs: Equatable, CustomStringConvertible, Codable {
+        public init(operation: MultiplyingExpression.MultiplyingOperation, rhs: SignExpression) {
+            self.operation = operation
+            self.rhs = rhs
+        }
+        
+        public var description: String {
             return operation.rawValue + " " + rhs.description
         }
         var operation: MultiplyingOperation
         var rhs: SignExpression
     }
     
-    enum MultiplyingOperation: String, Codable {
+    public enum MultiplyingOperation: String, Codable {
         case multiply
         case divide
     }
@@ -137,18 +140,23 @@ public struct ArithmeticExpression: Equatable, Codable {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
     }
     
-    internal init(lhs: MultiplyingExpression, rhs: ArithmeticExpression.Rhs) {
+    public init(lhs: MultiplyingExpression, rhs: ArithmeticExpression.Rhs) {
         self.lhs = lhs
         self.rhs = [rhs]
     }
     
-    internal init(lhs: MultiplyingExpression, rhs: [ArithmeticExpression.Rhs] = []) {
+    public init(lhs: MultiplyingExpression, rhs: [ArithmeticExpression.Rhs] = []) {
         self.lhs = lhs
         self.rhs = rhs
     }
     
-    struct Rhs: Equatable, CustomStringConvertible, Codable {
-        var description: String {
+    public struct Rhs: Equatable, CustomStringConvertible, Codable {
+        public init(operation: ArithmeticExpression.ExpressionOperation, rhs: MultiplyingExpression) {
+            self.operation = operation
+            self.rhs = rhs
+        }
+        
+        public var description: String {
             return operation.rawValue + " " + rhs.description
         }
         
@@ -156,7 +164,7 @@ public struct ArithmeticExpression: Equatable, Codable {
         var rhs: MultiplyingExpression
     }
     
-    enum ExpressionOperation: String, Codable {
+    public enum ExpressionOperation: String, Codable {
         case add
         case subtract
     }
@@ -194,10 +202,21 @@ public struct ArithmeticExpression: Equatable, Codable {
 
 public struct Expression: Equatable, Codable {
     
+    public init(lhs: ArithmeticExpression, rhs: Expression.Rhs? = nil) {
+        self.lhs = lhs
+        self.rhs = rhs
+    }
+    
     var lhs: ArithmeticExpression
     var rhs: Rhs?
     
-    struct Rhs: Equatable, Codable {
+    public struct Rhs: Equatable, Codable {
+        
+        public init(operation: Expression.Operation, rhs: ArithmeticExpression) {
+            self.operation = operation
+            self.rhs = rhs
+        }
+        
         var description: String {
             return operation.rawValue + " " + rhs.description
         }
@@ -205,8 +224,8 @@ public struct Expression: Equatable, Codable {
         var rhs: ArithmeticExpression
     }
     
-    enum Operation: String, CustomStringConvertible, Codable {
-        var description: String {
+    public enum Operation: String, CustomStringConvertible, Codable {
+        public var description: String {
             switch self {
             case .lt:
                 return "<"

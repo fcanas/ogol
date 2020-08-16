@@ -6,8 +6,6 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
-
 public enum ExecutionNode: CustomStringConvertible, Equatable {
     
     public var description: String { "{{ Execution Node }}" }
@@ -68,6 +66,7 @@ extension ExecutionNode: Codable {
 }
 
 public struct CommandList: Codable, Equatable {
+    
     public var description: String { get { "[]-> " + commands.description } }
 
     var commands: [ExecutionNode]
@@ -80,6 +79,12 @@ public struct CommandList: Codable, Equatable {
             try command.execute(context: context, reuseScope: false) // todo, last command in block?
         }
     }
+    
+    public init(commands: [ExecutionNode], procedures: [String : Procedure]) {
+        self.commands = commands
+        self.procedures = procedures
+    }
+
 }
 
 public struct Conditional: Codable, Equatable {
@@ -91,7 +96,7 @@ public struct Conditional: Codable, Equatable {
     var condition: Expression
     var block: CommandList
 
-    init(condition: Expression, block: CommandList) {
+    public init(condition: Expression, block: CommandList) {
         self.condition = condition
         self.block = block
     }

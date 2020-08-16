@@ -3,14 +3,13 @@
 //  LogoLang
 //
 //  Created by Fabian Canas on 6/6/20.
+//  Copyright © 2020 Fabian Canas. All rights reserved.
 //
-
-import Foundation
 
 public struct ProcedureInvocation: Equatable {
 
-    let name: String
-    var parameters: [Value]
+    public let name: String
+    public var parameters: [Value]
     
     public func evaluateParameters(in context: ExecutionContext) throws -> (Procedure, Dictionary<String,Bottom>) {
         guard let procedure = context.procedures[name] else {
@@ -64,6 +63,11 @@ public struct ProcedureInvocation: Equatable {
         try procedure.execute(context: newScope, reuseScope: reuseScope)
         
     }
+    
+    public init(name: String, parameters: [Value]) {
+        self.name = name
+        self.parameters = parameters
+    }
 }
 
 extension ProcedureInvocation { // Value
@@ -78,12 +82,6 @@ extension ProcedureInvocation { // Value
             return bottom
         }
         throw ExecutionHandoff.error(.noOutput, "No value returned from \(self).")
-    }
-}
-
-extension ProcedureInvocation: SyntaxColorable {
-    public func syntaxCategory() -> SyntaxCategory? {
-        return .procedureInvocation
     }
 }
 
