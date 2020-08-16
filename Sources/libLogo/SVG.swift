@@ -1,8 +1,9 @@
 //
 //  SVGOutput.swift
-//  FFCParserCombinator
+//  LogoLang.libLogo
 //
 //  Created by Fabian Canas on 5/3/20.
+//  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
 import Execution

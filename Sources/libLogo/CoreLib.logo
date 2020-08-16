@@ -1,3 +1,11 @@
+;
+;  CoreLib.logo
+;  LogoLang.libLogo
+;
+;  Created by Fabian Canas on 7/22/20.
+;  Copyright © 2020 Fabian Canas. All rights reserved.
+;
+
 to list [:elements]
    output :elements
 end

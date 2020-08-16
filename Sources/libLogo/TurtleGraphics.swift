@@ -1,6 +1,6 @@
 //
 //  TurtleGraphics.swift
-//  Logo
+//  LogoLang.libLogo
 //
 //  Created by Fabian Canas on 10/27/18.
 //  Copyright © 2018 Fabian Canas. All rights reserved.

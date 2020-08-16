@@ -1,8 +1,9 @@
 //
 //  Serialization.swift
-//  exLogo
+//  LogoLang.libLogo
 //
 //  Created by Fabian Canas on 6/8/20.
+//  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
 import Foundation
