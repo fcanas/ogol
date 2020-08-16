@@ -88,14 +88,14 @@ class CompleteProgramTests: XCTestCase {
     
     func testTailRecursion() {
         let source = """
-                      to swirl :far
-                          if :far < 0.01 [ stop ]
-                          fd :far
-                          rt 0.01
-                          swirl :far * 0.99987
-                      end
-                      swirl 400
-                      """
+                     to swirl :far
+                       if :far < 0.01 [ stop ]
+                       fd :far
+                       rt 0.01
+                       swirl :far * 0.99987
+                     end
+                     swirl 400
+                     """
         let parser = LogoParser()
         parser.modules = [Turtle(), Optimizer(), Meta()]
         guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
