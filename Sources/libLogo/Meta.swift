@@ -3,6 +3,8 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
+import Execution
+
 /// The `Meta` module is a place for defining language features that don't require parser
 /// modification or support from core exectuion types.
 ///
@@ -37,7 +39,6 @@ public struct Meta: Module {
     private static var output: ExternalProcedure = ExternalProcedure(name: "output", parameters: ["value"]) { (params, context) -> Bottom? in
         throw ExecutionHandoff.output(params[0])
     }
-    
     
     private static var run: ExternalProcedure = {
         ExternalProcedure(name: "run", parameters: ["instructionList"]) { (params, context) throws -> Bottom? in
@@ -86,23 +87,4 @@ public struct Meta: Module {
         }
     }()
     
-}
-
-fileprivate struct Conversion: Error {}
-
-extension Array where Element == Bottom {
-    func asInstructionList() -> [ExecutionNode]? {
-        do {
-            return try map { (bottom) throws -> ExecutionNode in
-                switch bottom {
-                case let .command(c):
-                    return c
-                default:
-                    throw Conversion()
-                }
-            }
-        } catch {
-            return nil
-        }
-    }
 }

@@ -9,7 +9,6 @@ let package = Package(
         .library( name: "LogoLang", targets: ["LogoLang"]),
         .library( name: "libLogo", targets: ["libLogo"]),
         .executable(name: "logo", targets: ["logo"]),
-        .executable(name: "clogo", targets: ["clogo"])
     ],
     dependencies: [
         .package(url: "https://github.com/fcanas/FFCParserCombinator.git", .branch("substring")),
@@ -24,6 +23,5 @@ let package = Package(
             dependencies: ["LogoLang", "libLogo", "Execution"]),
         .target(name: "libLogo", dependencies: ["LogoLang"], resources: [.copy("CoreLib.logo")]),
         .target(name: "logo", dependencies: ["LogoLang", "libLogo", "Execution"]),
-        .target(name: "clogo", dependencies: ["LogoLang"])
     ]
 )

@@ -19,7 +19,7 @@ public struct NativeModule: Module {
             return nil
         }
         self.inputString = string
-         self.syntaxMap = syntaxMap
+        self.syntaxMap = syntaxMap
         self.procedures = program.procedures
     }
     

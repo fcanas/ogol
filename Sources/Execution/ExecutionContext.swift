@@ -1,6 +1,6 @@
 //
 //  ExecutionContext.swift
-//  FFCParserCombinator
+//  LogoLang
 //
 //  Created by Fabián Cañas on 4/24/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.
@@ -97,7 +97,7 @@ public class ExecutionContext {
     public var variables: NestedKeyValueStore<Bottom>
     public var moduleStores: NestedKeyValueStore<ModuleStore>
     private var depth: UInt
-    internal weak var parent: ExecutionContext?
+    public weak var parent: ExecutionContext?
 
     public func allVariables() -> [String:Bottom] {
         return variables.flattened()

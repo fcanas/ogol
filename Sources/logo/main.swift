@@ -18,6 +18,8 @@ context.load(LogoMath())
 context.load(Turtle())
 context.load(Serialization())
 context.load(Optimizer())
+context.load(Meta())
+context.load(CoreLib!)
 
 let prompt = "> "
 let parser = LogoParser()
