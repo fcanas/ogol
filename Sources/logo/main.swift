@@ -8,8 +8,8 @@
 
 import Execution
 import Foundation
-import LogoLang
 import libLogo
+import LogoLang
 
 var procs: [String:Procedure] = [:]
 

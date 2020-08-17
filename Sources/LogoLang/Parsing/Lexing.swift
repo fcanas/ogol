@@ -6,9 +6,9 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
-import FFCParserCombinator
 import Execution
+import FFCParserCombinator
+import Foundation
 import ToolingSupport
 
 extension CharacterSet {

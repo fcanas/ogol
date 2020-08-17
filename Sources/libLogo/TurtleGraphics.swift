@@ -6,9 +6,9 @@
 //  Copyright © 2018 Fabian Canas. All rights reserved.
 //
 
+import Execution
 import Foundation
 import LogoLang
-import Execution
 
 public struct Point {
     
