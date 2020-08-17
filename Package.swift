@@ -14,10 +14,11 @@ let package = Package(
         .package(url: "https://github.com/fcanas/FFCParserCombinator.git", .branch("substring")),
     ],
     targets: [
+        .target(name: "ToolingSupport"),
         .target(name: "Execution"),
         .target(
             name: "LogoLang",
-            dependencies: ["FFCParserCombinator", "Execution"]),
+            dependencies: ["FFCParserCombinator", "Execution", "ToolingSupport"]),
         .testTarget(
             name: "LogoLangTests",
             dependencies: ["LogoLang", "libLogo", "Execution"]),

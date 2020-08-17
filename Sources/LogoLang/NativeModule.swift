@@ -7,6 +7,7 @@
 //
 
 import Execution
+import ToolingSupport
 
 public struct NativeModule: Module {
     

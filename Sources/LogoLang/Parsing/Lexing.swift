@@ -9,6 +9,7 @@
 import Foundation
 import FFCParserCombinator
 import Execution
+import ToolingSupport
 
 extension CharacterSet {
     static let logoAlphabetical = CharacterSet.letters
@@ -76,6 +77,12 @@ struct Lex {
 /// Default implementations give the `Operator` types appropriate syntax coloring/categorization behavior,
 /// and a reasonable generated parser for `Operator` types that are `RawRepresentable` by  a `Character`.
 protocol Op: SyntaxColorable {}
+
+extension Op {
+    func syntaxCategory() -> SyntaxCategory? {
+        return .operation
+    }
+}
 
 extension Op where Self: RawRepresentable, Self.RawValue == Character, Self: CaseIterable {
 

@@ -26,9 +26,13 @@ public protocol SyntaxColorable {
     func syntaxCategory() -> SyntaxCategory?
 }
 
-struct SyntaxType: SyntaxColorable {
+public struct SyntaxType: SyntaxColorable {
+    public init(category: SyntaxCategory) {
+        self.category = category
+    }
+    
     let category: SyntaxCategory
-    func syntaxCategory() -> SyntaxCategory? {
+    public func syntaxCategory() -> SyntaxCategory? {
         return category
     }
 }
@@ -63,14 +67,6 @@ extension Value: SyntaxColorable {
 extension ProcedureInvocation: SyntaxColorable {
     public func syntaxCategory() -> SyntaxCategory? {
         return .procedureInvocation
-    }
-}
-
-// MARK: Operators
-
-extension Op {
-    func syntaxCategory() -> SyntaxCategory? {
-        return .operation
     }
 }
 
