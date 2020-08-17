@@ -7,7 +7,6 @@
 //
 
 public enum Bottom {
-
     case double(Double)
     case string(String)
     case boolean(Bool)

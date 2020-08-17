@@ -6,9 +6,9 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-import Foundation
-import FFCParserCombinator
 import Execution
+import FFCParserCombinator
+import Foundation
 import ToolingSupport
 
 enum Either<A, B>{
@@ -16,26 +16,9 @@ enum Either<A, B>{
     case right(B)
 }
 
-extension CharacterSet {
-    func containsUnicodeScalars(of character: Character) -> Bool {
-        return character.unicodeScalars.allSatisfy(contains(_:))
-    }
-}
-
-public class LogoParser {
+public class LogoParser: LanguageParser {
 
     // MARK: - Types
-
-    public enum ParseError {
-        case basic(String)
-        case anticipatedRuntime(String)
-        case severeInternal(String)
-    }
-
-    public enum ParseResult {
-        case success(Program, [Range<Substring.Index>:SyntaxColorable], [Range<Substring.Index>:ParseError])
-        case error([Range<Substring.Index>:ParseError])
-    }
 
     public init() {}
     
