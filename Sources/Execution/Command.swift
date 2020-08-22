@@ -31,7 +31,7 @@ public struct CommandList: Codable, Equatable {
 public struct Conditional: Codable, Equatable {
 
     public var description: String {
-        return "\(condition) [ \(block) ]"
+        return "if \(condition) [ \(block) ]"
     }
 
     var condition: Expression
