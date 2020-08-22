@@ -8,23 +8,36 @@
 
 public class ExecutionContext {
     
+    
+    /// The maximum stack depth of `ExecutionContext`s allowed.
+    /// Exceeding `MaxDepth` throws an error, which may be preferable to crashing.
+    public static var MaxDepth: UInt = 500
+    
+    /// A static block called with the current stack depth whenever a new stack frame (`ExecutionContext`) is 
     public static var StackDepthProbe: ((UInt) -> Void)?
+    private var depth: UInt
     
+    public var procedures: NestedKeyValueStore<Procedure>
+    public var variables: NestedKeyValueStore<Bottom>
+    public var moduleStores: NestedKeyValueStore<ModuleStore>
+    
+    public weak var parent: ExecutionContext?
     private weak var _root: ExecutionContext!
-    
-    public struct ModuleKey<T> {
-        public init(key: String) {
-            self.key = key
-        }
-        let key: String
-    }
 
     public class ModuleStore {
+        
+        public struct Key<T> {
+            public init(key: String) {
+                self.key = key
+            }
+            let key: String
+        }
+        
         public init() {
             store = [:]
         }
         private var store: [String:Any] = [:]
-        public subscript<T>(key: ModuleKey<T>) -> T? {
+        public subscript<T>(key: Key<T>) -> T? {
             get {
                 return store[key.key] as? T
             }
@@ -33,7 +46,15 @@ public class ExecutionContext {
             }
         }
     }
-
+    
+    /// Loads the provided `Module` into the runtime's root `ExecutionContext`.
+    ///
+    /// The `Module`'s procedures will be `inject`ed such that they are available
+    /// to all `ExectuionContext` with the same root ancestor. The `Module`
+    /// will also have `initialize(context:)` called with the root `ExecutionContext`
+    /// as the parameter.
+    ///
+    /// - Parameter module: The `Module` to load.
     public func load(_ module: Module) {
         if let p = parent {
             p.load(module)
@@ -42,79 +63,41 @@ public class ExecutionContext {
         inject(procedures: module.procedures)
         module.initialize(context: self)
     }
-
+    
+    /// Injects the passed `Procedures` into the `ExecutionContext`, making them
+    /// available for invocation in this `ExecutionContext` and in child contexts. The
+    /// procedures are not available in parent `ExectionContext`s. When this
+    /// `ExecutionContext` is destroyed, the runtime may no longer have a reference
+    /// to the procedures.
+    /// - Parameter procedures: A map of `[ProcedureName:Procedure]` to
+    /// make available in this `ExecutionContext` and its children.
     public func inject(procedures: [String:Procedure]) {
         procedures.forEach { (key: String, value: Procedure) in
             self.procedures.items[key] = value
         }
     }
     
-    public static var MaxDepth: UInt = 500
-
-    public class NestedKeyValueStore<T> {
-        var parent: NestedKeyValueStore<T>?
-        var items: [String : T]
-        public subscript(key: String)-> T? {
-            get {
-                return items[key] ?? parent?[key]
-            }
-            set(item) {
-                // This means there's no shadowing.
-                // If a symbol has a value in an enclosing scope,
-                // it will be set in the outer scope
-                (listContaining(key: key) ?? self).items[key] = item
-            }
-        }
-        func listContaining(key: String) -> NestedKeyValueStore? {
-            if items[key] != nil {
-                return self
-            }
-            return parent?.listContaining(key: key)
-        }
-        init(parent: NestedKeyValueStore<T>?, items: [String: T] = [:]) {
-            self.parent = parent
-            self.items = items
-        }
-
-        // MARK: Inspection
-
-        func allKeys() -> [String] {
-            return (parent.map { store -> [String] in
-                store.allKeys()
-            } ?? []) + Array(items.keys)
-        }
-
-        func flattened() -> [String:T] {
-            allKeys().reduce(Dictionary<String, T>()) { (r, key) -> Dictionary<String, T> in
-                var mr = r
-                mr[key] = self[key]
-                return mr
-            }
-        }
-    }
-
-    public var procedures: NestedKeyValueStore<Procedure>
-    public var variables: NestedKeyValueStore<Bottom>
-    public var moduleStores: NestedKeyValueStore<ModuleStore>
-    private var depth: UInt
-    public weak var parent: ExecutionContext?
-
+    /// All variables as viewed from the receiving `ExecutionContext`
+    /// - Returns: A map of all the variables visible from the receiving `ExecutionContext`'s scope.
     public func allVariables() -> [String:Bottom] {
         return variables.flattened()
     }
 
+    /// All `Procedure`s as viewed from the receiving `ExecutionContext`
+    /// - Returns: A map of all the `Procedure`s visible from the receiving `ExecutionContext`'s scope.
     public func allProcedures() -> [String:Procedure] {
         return procedures.flattened()
     }
 
-    /// Initialized a root execution context.
+    /// Initializes a root execution context.
     ///
     /// The resulting context will have no parent.
     ///
     /// - Parameters:
     ///   - procedures: Procedures that are newly available at this scope.
     ///   - variables: Variables that are newly available at this scope.
-    public init(procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:]) {
+    ///   - modules: Modules for this context to load, making those modules available at this and all child scopes.
+    public init(procedures: [String:Procedure] = [:], variables: [String:Bottom] = [:], modules: [Module] = []) {
         self.depth = 0
         
         self.procedures = NestedKeyValueStore(parent: nil, items: procedures)
@@ -122,6 +105,7 @@ public class ExecutionContext {
         
         self.moduleStores = NestedKeyValueStore(parent: nil, items: [:])
         _root = self
+        modules.forEach { self.load($0) }
     }
 
     /// Initializes a new `ExecutionContext`, which serves as a scope.

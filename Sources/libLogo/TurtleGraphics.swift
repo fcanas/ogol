@@ -34,8 +34,8 @@ public struct Point {
 public class Turtle: Module {
     
     internal static let ModuleStoreKey: String = "turtle"
-    internal static let turtleKey = ExecutionContext.ModuleKey<Turtle>(key: "turtle")
-    internal static let multilineKey = ExecutionContext.ModuleKey<[MultiLine]>(key: "multiline")
+    internal static let turtleKey = ExecutionContext.ModuleStore.Key<Turtle>(key: "turtle")
+    internal static let multilineKey = ExecutionContext.ModuleStore.Key<[MultiLine]>(key: "multiline")
     
     public var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
