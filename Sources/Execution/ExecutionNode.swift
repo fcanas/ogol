@@ -6,7 +6,7 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-public enum ExecutionNode: CustomStringConvertible, Equatable {
+public enum ExecutionNode: CustomStringConvertible {
     
     public var description: String { "{{ Execution Node }}" }
     
@@ -25,6 +25,8 @@ public enum ExecutionNode: CustomStringConvertible, Equatable {
     case conditional(Conditional)
     case invocation(ProcedureInvocation)
 }
+
+extension ExecutionNode: Equatable { }
 
 extension ExecutionNode: Codable {
     

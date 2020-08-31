@@ -8,7 +8,6 @@
 
 public class ExecutionContext {
     
-    
     /// The maximum stack depth of `ExecutionContext`s allowed.
     /// Exceeding `MaxDepth` throws an error, which may be preferable to crashing.
     public static var MaxDepth: UInt = 500
