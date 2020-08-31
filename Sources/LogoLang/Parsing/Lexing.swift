@@ -104,7 +104,7 @@ enum AdditionOperator: Character, CaseIterable, Op {
     case add = "+"
     case subtract = "-"
 
-    var additionOperator: ArithmeticExpression.ExpressionOperation {
+    var additionOperator: ArithmeticExpression.Operation {
         get {
             switch self {
             case .add:
@@ -121,7 +121,7 @@ enum MultiplicationOperator: Character, CaseIterable, Op {
     case multiply = "*"
     case divide = "/"
 
-    var multiplyingOperator: MultiplyingExpression.MultiplyingOperation {
+    var multiplyingOperator: MultiplyingExpression.Operation {
         get {
             switch self {
             case .multiply:

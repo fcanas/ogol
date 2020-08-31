@@ -6,7 +6,7 @@
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
-public enum SignExpression: Equatable {
+public enum SignExpression {
     
     case positive(Value)
     case negative(Value)
@@ -38,7 +38,7 @@ public enum SignExpression: Equatable {
     }
 }
 
-extension SignExpression: Codable {
+extension SignExpression: Codable, Equatable {
     
     enum Key: CodingKey {
         case positive
@@ -68,7 +68,7 @@ extension SignExpression: Codable {
     }
 }
 
-public struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable {
+public struct MultiplyingExpression: Equatable, CustomStringConvertible {
     
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
@@ -84,8 +84,8 @@ public struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable
         self.rhs = rhs
     }
     
-    public struct Rhs: Equatable, CustomStringConvertible, Codable {
-        public init(operation: MultiplyingExpression.MultiplyingOperation, rhs: SignExpression) {
+    public struct Rhs: Equatable, CustomStringConvertible {
+        public init(operation: MultiplyingExpression.Operation, rhs: SignExpression) {
             self.operation = operation
             self.rhs = rhs
         }
@@ -93,11 +93,11 @@ public struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable
         public var description: String {
             return operation.rawValue + " " + rhs.description
         }
-        var operation: MultiplyingOperation
+        var operation: Operation
         var rhs: SignExpression
     }
     
-    public enum MultiplyingOperation: String, Codable {
+    public enum Operation: String {
         case multiply
         case divide
     }
@@ -134,7 +134,7 @@ public struct MultiplyingExpression: Equatable, CustomStringConvertible, Codable
     }
 }
 
-public struct ArithmeticExpression: Equatable, Codable {
+public struct ArithmeticExpression: Equatable {
     
     public var description: String {
         return "\(lhs)" + rhs.reduce("", { (sum, item) in return sum + item.description })
@@ -150,8 +150,8 @@ public struct ArithmeticExpression: Equatable, Codable {
         self.rhs = rhs
     }
     
-    public struct Rhs: Equatable, CustomStringConvertible, Codable {
-        public init(operation: ArithmeticExpression.ExpressionOperation, rhs: MultiplyingExpression) {
+    public struct Rhs: Equatable, CustomStringConvertible {
+        public init(operation: ArithmeticExpression.Operation, rhs: MultiplyingExpression) {
             self.operation = operation
             self.rhs = rhs
         }
@@ -160,11 +160,11 @@ public struct ArithmeticExpression: Equatable, Codable {
             return operation.rawValue + " " + rhs.description
         }
         
-        var operation: ExpressionOperation
+        var operation: Operation
         var rhs: MultiplyingExpression
     }
     
-    public enum ExpressionOperation: String, Codable {
+    public enum Operation: String {
         case add
         case subtract
     }
@@ -200,7 +200,7 @@ public struct ArithmeticExpression: Equatable, Codable {
     }
 }
 
-public struct Expression: Equatable, Codable {
+public struct Expression: Equatable {
     
     public init(lhs: ArithmeticExpression, rhs: Expression.Rhs? = nil) {
         self.lhs = lhs
@@ -210,7 +210,7 @@ public struct Expression: Equatable, Codable {
     var lhs: ArithmeticExpression
     var rhs: Rhs?
     
-    public struct Rhs: Equatable, Codable {
+    public struct Rhs: Equatable {
         
         public init(operation: Expression.Operation, rhs: ArithmeticExpression) {
             self.operation = operation
@@ -224,7 +224,7 @@ public struct Expression: Equatable, Codable {
         var rhs: ArithmeticExpression
     }
     
-    public enum Operation: String, CustomStringConvertible, Codable {
+    public enum Operation: String, CustomStringConvertible {
         public var description: String {
             switch self {
             case .lt:
@@ -398,6 +398,18 @@ public enum Value: Equatable {
         return e
     }
 }
+
+// MARK: - Codable
+
+extension MultiplyingExpression: Codable { }
+extension MultiplyingExpression.Rhs: Codable { }
+extension MultiplyingExpression.Operation: Codable { }
+extension ArithmeticExpression: Codable { }
+extension ArithmeticExpression.Rhs: Codable { }
+extension ArithmeticExpression.Operation: Codable { }
+extension Expression: Codable { }
+extension Expression.Rhs: Codable { }
+extension Expression.Operation: Codable { }
 
 extension Value: Codable {
     enum Key: CodingKey {

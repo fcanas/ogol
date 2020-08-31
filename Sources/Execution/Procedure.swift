@@ -22,19 +22,7 @@ extension GenericProcedure {
     }
 }
 
-public enum Procedure: GenericProcedure, Equatable {
-    
-    public static func == (lhs: Procedure, rhs: Procedure) -> Bool {
-        switch (lhs, rhs) {
-        case let (.extern(l), .extern(r)):
-            return approxEqual(l, r)
-        case let (.native(l), .native(r)):
-            return l == r
-        case (_, _):
-            return false
-        }
-    }
-    
+public enum Procedure: GenericProcedure {
     
     public var description: String {
         return _procedure.description
@@ -68,6 +56,19 @@ public enum Procedure: GenericProcedure, Equatable {
     case native(NativeProcedure)
     case extern(GenericProcedure)
     
+}
+
+extension Procedure: Equatable {
+    public static func == (lhs: Procedure, rhs: Procedure) -> Bool {
+        switch (lhs, rhs) {
+        case let (.extern(l), .extern(r)):
+            return approxEqual(l, r)
+        case let (.native(l), .native(r)):
+            return l == r
+        case (_, _):
+            return false
+        }
+    }
 }
 
 extension Procedure: Codable {
@@ -123,15 +124,7 @@ public struct StandinProcedure: GenericProcedure, Codable {
     
 }
 
-public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable, Equatable {
-    
-    public static func == (lhs: NativeProcedure, rhs: NativeProcedure) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.commands == rhs.commands &&
-            lhs.procedures == rhs.procedures &&
-            lhs.parameters == rhs.parameters &&
-            lhs.hasRest == rhs.hasRest
-    }
+public final class NativeProcedure: GenericProcedure {
 
     public var name: String
     public var commands: [ExecutionNode]
@@ -176,6 +169,22 @@ public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable
         }
     }
 
+    
+}
+
+extension NativeProcedure: Equatable {
+    public static func == (lhs: NativeProcedure, rhs: NativeProcedure) -> Bool {
+        return lhs.name == rhs.name &&
+            lhs.commands == rhs.commands &&
+            lhs.procedures == rhs.procedures &&
+            lhs.parameters == rhs.parameters &&
+            lhs.hasRest == rhs.hasRest
+    }
+}
+
+extension NativeProcedure: Codable {}
+
+extension NativeProcedure: CustomStringConvertible {
     public var description: String {
         return "to \(name) " + parameters.map( { ":\($0) "
         } ).joined(separator: " ") + commands.reduce("") { (result, command) -> String in
@@ -184,14 +193,8 @@ public class NativeProcedure: GenericProcedure, CustomStringConvertible, Codable
     }
 }
 
-public class ExternalProcedure: GenericProcedure, Equatable {
-    
-    public static func == (lhs: ExternalProcedure, rhs: ExternalProcedure) -> Bool {
-        return lhs.name == rhs.name &&
-            lhs.parameters == rhs.parameters &&
-            lhs.procedures == rhs.procedures &&
-            lhs.hasRest == rhs.hasRest
-    }
+
+public class ExternalProcedure: GenericProcedure {
 
     public var name: String
     public var parameters: [String]
@@ -222,5 +225,14 @@ public class ExternalProcedure: GenericProcedure, Equatable {
         if let output = try action(p, context) {
             throw ExecutionHandoff.output(output)
         }
+    }
+}
+
+extension ExternalProcedure: Equatable {
+    public static func == (lhs: ExternalProcedure, rhs: ExternalProcedure) -> Bool {
+        return lhs.name == rhs.name &&
+            lhs.parameters == rhs.parameters &&
+            lhs.procedures == rhs.procedures &&
+            lhs.hasRest == rhs.hasRest
     }
 }
