@@ -53,8 +53,6 @@ while let input = readLine() {
                 print("Missing Symbol", terminator: "")
             case .maxDepth:
                 print("Stack depth exceeded", terminator: "")
-            case .corruptAST:
-                print("Corrupt AST", terminator: "")
             case .parameter:
                 print("Parameter Error", terminator: "")
             case .noOutput:
