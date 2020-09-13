@@ -16,7 +16,7 @@ enum Either<A, B>{
     case right(B)
 }
 
-public class LogoParser: LanguageParser {
+public class OgolParser: LanguageParser {
 
     // MARK: - Types
 
@@ -245,7 +245,7 @@ public class LogoParser: LanguageParser {
                 var runningSubstring = eatWhitespace(command.1)
 
                 // black list
-                if LogoParser.nameBlackList.contains(name) {
+                if OgolParser.nameBlackList.contains(name) {
                     return nil
                 }
 

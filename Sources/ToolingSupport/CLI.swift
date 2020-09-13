@@ -7,16 +7,17 @@
 //
 
 import Execution
-import LogoLang
 
-struct CLI: Module {
+public struct CLI: Module {
     
-    var procedures: [String : Procedure] {
+    public var procedures: [String : Procedure] {
         return [
             "print" : .extern(_print),
             "po" : .extern(po)
         ]
     }
+    
+    public init() {}
 
     private let _print = ExternalProcedure(name: "print", parameters: ["in"]) { (params, _) in
         print(params.first!.description)

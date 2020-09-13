@@ -1,6 +1,6 @@
 //
 //  TurtleGraphics.swift
-//  LogoLang.libLogo
+//  OgoLang.libOgol
 //
 //  Created by Fabian Canas on 10/27/18.
 //  Copyright © 2018 Fabian Canas. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Execution
 import Foundation
-import LogoLang
+import OgoLang
 
 public struct Point {
     

@@ -1,13 +1,12 @@
 //
 //  Highlighting.swift
-//  LogoLang.Parsing
+//  OgoLang.Parsing
 //
 //  Created by Fabian Canas on 8/17/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
 import Execution
-import ToolingSupport
 
 extension Value: SyntaxColorable {
     public func syntaxCategory() -> SyntaxCategory? {

@@ -1,6 +1,6 @@
 //
 //  Module.swift
-//  LogoLang
+//  OgoLang
 //
 //  Created by Fabian Canas on 6/2/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.

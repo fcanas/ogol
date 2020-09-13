@@ -4,10 +4,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "LogoLang",
+    name: "ogol",
     products: [
-        .library( name: "LogoLang", targets: ["LogoLang"]),
-        .library( name: "libLogo", targets: ["libLogo"]),
+        .library( name: "OgoLang", targets: ["OgoLang"]),
+        .library( name: "libOgol", targets: ["libOgol"]),
+        .executable(name: "ogol", targets: ["ogol"]),
         .executable(name: "logo", targets: ["logo"]),
     ],
     dependencies: [
@@ -15,10 +16,12 @@ let package = Package(
     ],
     targets: [
         .target(name: "Execution"),
-        .target(name: "libLogo", dependencies: ["LogoLang"], resources: [.copy("CoreLib.logo")]),
-        .target(name: "logo", dependencies: ["LogoLang", "libLogo", "Execution"]),
+        .target(name: "libOgol", dependencies: ["OgoLang"], resources: [.copy("CoreLib.logo")]),
+        .target(name: "ogol", dependencies: ["OgoLang", "libOgol", "ToolingSupport"]),
+        .target(name: "logo", dependencies: ["LogoLang", "libOgol", "Execution", "ToolingSupport"]),
+        .target(name: "OgoLang", dependencies: ["FFCParserCombinator", "Execution", "ToolingSupport"]),
         .target(name: "LogoLang", dependencies: ["FFCParserCombinator", "Execution", "ToolingSupport"]),
         .target(name: "ToolingSupport", dependencies: ["Execution"]),
-        .testTarget(name: "LogoLangTests", dependencies: ["LogoLang", "libLogo", "Execution"]),
+        .testTarget(name: "LogoLangTests", dependencies: ["LogoLang", "libOgol", "Execution"]),
     ]
 )

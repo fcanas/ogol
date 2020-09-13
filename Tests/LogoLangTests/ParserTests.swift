@@ -8,7 +8,7 @@
 
 import XCTest
 import Execution
-import libLogo
+import libOgol
 @testable import LogoLang
 
 class SimpleCommandParserTests: XCTestCase {

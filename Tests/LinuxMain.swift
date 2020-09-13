@@ -3,5 +3,5 @@ import XCTest
 import LogoLangTests
 
 var tests = [XCTestCaseEntry]()
-tests += LogoLangTests.allTests()
+tests += OgoLangTests.allTests()
 XCTMain(tests)

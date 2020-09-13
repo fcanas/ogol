@@ -1,6 +1,6 @@
 //
 //  SyntaxColoring.swift
-//  LogoLang
+//  OgoLang
 //
 //  Created by Fabián Cañas on 4/11/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.

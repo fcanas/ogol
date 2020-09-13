@@ -1,6 +1,6 @@
 //
 //  Parsing.swift
-//  LogoLang.ToolingSupport
+//  OgoLang.ToolingSupport
 //
 //  Created by Fabian Canas on 8/17/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.

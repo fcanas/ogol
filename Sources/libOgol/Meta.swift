@@ -1,5 +1,5 @@
 //
-//  LogoLang.libLogo
+//  OgoLang.libOgol
 //
 //  Created by Fabian Canas on 7/20/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.

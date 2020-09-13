@@ -262,7 +262,7 @@ func reduceNodeExpressions(_ node: ExecutionNode) -> ExecutionNode {
     return node
 }
 
-extension NativeProcedure {
+public extension NativeProcedure {
     func reduceExpressions() {
         commands = commands.map(reduceNodeExpressions)
     }

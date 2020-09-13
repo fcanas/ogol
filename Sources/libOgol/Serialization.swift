@@ -1,6 +1,6 @@
 //
 //  Serialization.swift
-//  LogoLang.libLogo
+//  OgoLang.libOgol
 //
 //  Created by Fabian Canas on 6/8/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Execution
 import Foundation
-import LogoLang
+import OgoLang
 
 public class Serialization: Module {
     

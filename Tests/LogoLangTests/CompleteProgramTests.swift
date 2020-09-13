@@ -6,7 +6,7 @@
 //
 
 @testable import LogoLang
-import libLogo
+import libOgol
 import Execution
 import XCTest
 

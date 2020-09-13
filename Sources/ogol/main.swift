@@ -1,13 +1,13 @@
 //
 //  CLI.swift
-//  logo
+//  ogol
 //
 //  Created by Fabián Cañas on 5/17/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.
 //
 
 import libOgol
-import LogoLang
+import OgoLang
 import ToolingSupport
 import Execution
 
@@ -19,4 +19,4 @@ let modules: [Module] = [CLI(),
                          Meta(),
                          CoreLib!]
 
-startRepl(parser: LogoParser(), modules: modules)
+startRepl(parser: OgolParser(), modules: modules)

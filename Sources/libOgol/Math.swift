@@ -1,6 +1,6 @@
 //
 //  Math.swift
-//  LogoLang.libLogo
+//  OgoLang.libOgol
 //
 //  Created by Fabián Cañas on 5/17/20.
 //  Copyright © 2020 Fabian Canas. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Execution
 import Foundation
-import LogoLang
+import OgoLang
 
 public struct LogoMath: Module {
     
