@@ -1,6 +1,10 @@
-#  Logo Language
+#  Ogol Language
 
+## 2020-09-19
 
+Logo is a lot like Lisp without the parenthesis. And that leads to some ambiguity in the language. `foo bar "baz` could be inerpreted as `(foo (bar "baz))` or `(foo bar "baz)`. The correct parsing requires knowldge of `bar`'s expected parameters at parse time. In Logo, that is done at run time. A good way to implement Logo is to implement a Lisp, then convert Logo input to Lisp. But that’s not what I wanted to build.
+
+I'm interested in exploring a different syntax for a new language. The current Logo implementation is far from a complete, if incompatible, Logo. I'd like to keep it around, possibly pushing it closer to completion at some point. So I internally forked the project. The top level is now Ogol. The execution and tooling is substantially the same. libLogo is now libOgol, and is continues to be common to both languages. I will keep LogoLang, and I may continue improving it to improve compatibility with other Logos somewhat. And OgoLang is the new Ogol language package. It's currently an copy of Logo with some renaming. Parts of LogoLang and the executable CLI `logo` have moved to ToolingSupport, currently leaving just lexing and parsing to the "Lang" packages.
 
 ## 2020-08-15
 
