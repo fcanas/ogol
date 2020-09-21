@@ -21,7 +21,7 @@ extension CharacterSet {
 struct Lex {
     static let stringLiteral: Parser<Substring, String> = Lex.Token.stringLiteral
     static let to: Parser<Substring, String> = "to"
-    static let name: Parser<Substring, String> = Lex.Token.string
+    static let name: Parser<Substring, String> = Lex.Token.name
     static let end: Parser<Substring, String> = "end"
 
     static let listStart: Parser<Substring, String> = "["
@@ -55,9 +55,13 @@ struct Lex {
 
     struct Token {
 
-        static let stringLiteral = "\"" *> string
-        static let deref = { Value.deref($0) } <^> ":" *> string
-        static let string = { (c, ca) -> String in
+        static let stringLiteral = "«" *> string <* "»"
+        static let deref = { Value.deref($0) } <^> ":" *> name
+        static let string = { (c) -> String in
+            return String(c)
+        } <^> CharacterSet(charactersIn: "»").inverted.parser().many
+        
+        static let name = { (c, ca) -> String in
             return String(c) + String(ca)
             } <^> CharacterSet.logoAlphabetical.parser() <&> CharacterSet.logoAlphaNumeric.parser().many
         static let number = { Value.bottom(.double(($0))) } <^> Double.parser
