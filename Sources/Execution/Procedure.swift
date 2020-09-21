@@ -127,7 +127,7 @@ public struct StandinProcedure: GenericProcedure, Codable {
 public final class NativeProcedure: GenericProcedure {
 
     public var name: String
-    public var commands: [ExecutionNode]
+    public var commands: [ProcedureInvocation]
     public var procedures: [String : Procedure]
     /// Ordered, named parameters for the procedure.
     public var parameters: [String]
@@ -138,7 +138,7 @@ public final class NativeProcedure: GenericProcedure {
     /// Setting `hasRest` to `true` wihout zero values in `parameters` may lead to unexpected behavior.
     public var hasRest: Bool
 
-    public init(name: String, commands: [ExecutionNode], procedures: [String: Procedure], parameters: [Value], hasRest: Bool = false) {
+    public init(name: String, commands: [ProcedureInvocation], procedures: [String: Procedure], parameters: [Value], hasRest: Bool = false) {
         self.name = name
         self.commands = commands
         self.procedures = procedures
@@ -153,8 +153,8 @@ public final class NativeProcedure: GenericProcedure {
         while idx < commands.count {
             let command = commands[idx]
             do {
-                if idx == commands.count - 1, case let .invocation(invocation) = command, invocation.name == self.name {
-                    let (_, parameterMap) = try invocation.evaluateParameters(in: ctx)
+                if idx == commands.count - 1, command.name == self.name {
+                    let (_, parameterMap) = try command.evaluateParameters(in: ctx)
                     parameterMap.forEach { (key: String, value: Bottom) in
                         ctx.variables[key] = value
                     }

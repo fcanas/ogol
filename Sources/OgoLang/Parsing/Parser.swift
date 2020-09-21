@@ -32,7 +32,7 @@ public class OgolParser: LanguageParser {
         allTokens = [:]
 
         var runningSubstring = eatNewlines(substring)
-        var executionNodes: [ExecutionNode] = []
+        var executionNodes: [ProcedureInvocation] = []
         var procedures: [Procedure] = []
         while let parsedLine = line(substring: runningSubstring) {
             switch parsedLine.0 {
@@ -114,7 +114,7 @@ public class OgolParser: LanguageParser {
 
     // MARK: - Parse
 
-    private func line(substring: Substring) -> (Either<Procedure, ExecutionNode>, Substring)? {
+    private func line(substring: Substring) -> (Either<Procedure, ProcedureInvocation>, Substring)? {
         var previous: Substring
         var skipCommentLine = substring
         repeat {
@@ -195,7 +195,7 @@ public class OgolParser: LanguageParser {
 
         runningSubstring = eatNewlines(runningSubstring)
 
-        var commands: [ExecutionNode] = []
+        var commands: [ProcedureInvocation] = []
         var subProcedures: [String : Procedure] = [:]
         while let nextLine = line(substring: runningSubstring) {
             switch nextLine.0 {
@@ -217,49 +217,28 @@ public class OgolParser: LanguageParser {
         return (.native(NativeProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters, hasRest: hasRest)), eatNewlines(lexedEnd.1))
     }
 
-    internal func controlFlow(substring: Substring) -> (ExecutionNode, Substring)? {
-        if let command = Lex.Commands.controlFlow.run(substring) {
+    internal func controlFlow(substring: Substring) -> (ProcedureInvocation, Substring)? {
+        if let command = Lex.name.run(substring) {
             let commandTokenRange = substring.startIndex..<command.1.startIndex
 
-            switch command.0 {
-            case .ife:
-                registerToken(range: commandTokenRange, token: command.0)
-                var runningSubstring = eatWhitespace(command.1)
-                
-                // fcanas: here
-                guard let condition = expression(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected expression after if")
-                    hasFatalError = true
-                    return nil
-                }
-                
-                runningSubstring = eatWhitespace(condition.1)
-                guard let block = block(substring: runningSubstring) else {
-                    errors[substring.startIndex..<runningSubstring.startIndex] = ParseError.basic("Expected a block of code after if statement")
-                    hasFatalError = true
-                    return nil
-                }
-                runningSubstring = eatWhitespace(block.1)
-                return (.conditional(Conditional(condition:condition.0, block: block.0)), runningSubstring)
-            case let .procedureInvocation(name):
-                var runningSubstring = eatWhitespace(command.1)
-
-                // black list
-                if OgolParser.nameBlackList.contains(name) {
-                    return nil
-                }
-
-                var expressions: [Value] = []
-                while let parsedValue = value(substring: runningSubstring) {
-                    expressions.append(parsedValue.0)
-                    runningSubstring = parsedValue.1
-                    runningSubstring = eatWhitespace(runningSubstring)
-                }
-
-                let invocation = ProcedureInvocation(name: name, parameters: expressions)
-                registerToken(range: commandTokenRange, token: invocation)
-                return (.invocation(invocation), runningSubstring)
+            let name = command.0
+            var runningSubstring = eatWhitespace(command.1)
+            
+            // black list
+            if OgolParser.nameBlackList.contains(name) {
+                return nil
             }
+            
+            var expressions: [Value] = []
+            while let parsedValue = value(substring: runningSubstring) {
+                expressions.append(parsedValue.0)
+                runningSubstring = parsedValue.1
+                runningSubstring = eatWhitespace(runningSubstring)
+            }
+            
+            let invocation = ProcedureInvocation(name: name, parameters: expressions)
+            registerToken(range: commandTokenRange, token: invocation)
+            return (invocation, runningSubstring)
         }
         return nil
     }
@@ -268,41 +247,12 @@ public class OgolParser: LanguageParser {
     /// These will basically be control flow
     private static let nameBlackList = Set(["end", "ife"] )
 
-    internal func command(substring: Substring) -> (ExecutionNode, Substring)? {
+    internal func command(substring: Substring) -> (ProcedureInvocation, Substring)? {
         let chompedString = eatWhitespace(substring)
         if let controlFlowCommand = controlFlow(substring: chompedString) {
             return controlFlowCommand
         }
         return nil
-    }
-
-    private func block(substring: Substring) -> (CommandList, Substring)? {
-        var runningSubstring = substring
-        guard let listStart = Lex.listStart.run(runningSubstring) else {
-            return nil
-        }
-        registerToken(range: runningSubstring.startIndex..<listStart.1.startIndex, token: SyntaxType(category: .plain))
-        runningSubstring = eatNewlines(listStart.1)
-
-        var commands: [ExecutionNode] = []
-        var procedures: [String: Procedure] = [:]
-        while let nextLine = line(substring: runningSubstring) {
-            switch nextLine.0 {
-            case let .left(proc):
-                procedures[proc.name] = proc
-            case let .right(com):
-                commands.append(com)
-            }
-            runningSubstring = eatNewlines(nextLine.1)
-        }
-
-        guard let listEnd = Lex.listEnd.run(runningSubstring) else {
-            return nil
-        }
-        registerToken(range: runningSubstring.startIndex..<listEnd.1.startIndex, token: SyntaxType(category: .plain))
-        runningSubstring = eatWhitespace(listEnd.1)
-
-        return (CommandList(commands: commands, procedures: procedures), runningSubstring)
     }
     
     private func instructionList(substring: Substring) -> (Value, Substring)? {
@@ -313,7 +263,7 @@ public class OgolParser: LanguageParser {
         registerToken(range: runningSubstring.startIndex..<listStart.1.startIndex, token: SyntaxType(category: .plain))
         runningSubstring = eatNewlines(listStart.1)
 
-        var commands: [ExecutionNode] = []
+        var commands: [ProcedureInvocation] = []
         var procedures: [String: Procedure] = [:]
         while let nextLine = line(substring: runningSubstring) {
             switch nextLine.0 {
@@ -351,8 +301,8 @@ public class OgolParser: LanguageParser {
         // procedure invocations _may_ return values
         // TODO: static analysis to determine if procedures may return?
         // Probably not strictly possible if lists are executable
-        if let (command, remainder) = controlFlow(substring: substring), case let .invocation(inv) = command {
-            return (Value.procedure(inv), remainder)
+        if let (command, remainder) = controlFlow(substring: substring) {
+            return (Value.bottom(.command(command)), remainder)
         }
         
         return instructionList(substring: substring)

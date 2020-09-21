@@ -29,30 +29,6 @@ struct Lex {
 
     static let comment: Parser<Substring, String> = Lex.Token.comment
 
-    struct Commands {
-
-        enum ControlFlow: SyntaxColorable {
-            func syntaxCategory() -> SyntaxCategory? {
-                switch self {
-                case .ife:
-                    return .keyword
-                case .procedureInvocation(_):
-                    return .procedureInvocation
-                }
-            }
-            case procedureInvocation(String)
-            case ife
-            // TODO: case fore
-            // TODO: case label
-        }
-
-        static let controlFlow = (ife <* Lex.Token._space) <|> procedureInvocation
-
-        static let ife: Parser<Substring, Lex.Commands.ControlFlow> = { _ in Lex.Commands.ControlFlow.ife } <^> "if"
-        
-        static let procedureInvocation = { Lex.Commands.ControlFlow.procedureInvocation($0) } <^> Lex.name
-    }
-
     struct Token {
 
         static let stringLiteral = "\"" *> string

@@ -7,7 +7,9 @@ let package = Package(
     name: "ogol",
     products: [
         .library( name: "OgoLang", targets: ["OgoLang"]),
+        .library( name: "LogoLang", targets: ["LogoLang"]),
         .library( name: "libOgol", targets: ["libOgol"]),
+        .library(name: "ToolingSupport", targets: ["ToolingSupport"]),
         .executable(name: "ogol", targets: ["ogol"]),
         .executable(name: "logo", targets: ["logo"]),
     ],
@@ -16,7 +18,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "Execution"),
-        .target(name: "libOgol", dependencies: ["OgoLang"], resources: [.copy("CoreLib.logo")]),
+        .target(name: "libOgol", dependencies: ["OgoLang", "ToolingSupport"], resources: [.copy("CoreLib.ogol")]),
         .target(name: "ogol", dependencies: ["OgoLang", "libOgol", "ToolingSupport"]),
         .target(name: "logo", dependencies: ["LogoLang", "libOgol", "Execution", "ToolingSupport"]),
         .target(name: "OgoLang", dependencies: ["FFCParserCombinator", "Execution", "ToolingSupport"]),

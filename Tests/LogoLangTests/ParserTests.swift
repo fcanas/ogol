@@ -65,10 +65,7 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("No token for stop")
             return
         }
-        guard case .invocation(_) = c else {
-            XCTFail("Should parse a stop")
-            return
-        }
+        XCTAssertEqual(c.name, "stop")
         XCTAssertEqual(programString[tokenKey], programString)
         XCTAssertEqual(s, "")
     }
@@ -76,48 +73,33 @@ class SimpleCommandParserTests: XCTestCase {
     func testBasicCommand() {
         let parser = LogoParser()
         let programString: Substring = "fd 5\n"
-        guard let (i, _) = parser.command(substring: programString) else {
+        guard let (inv, _) = parser.command(substring: programString) else {
             XCTFail("Failed to parse fd")
             return
         }
         let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs:nil)
-        guard case let .invocation(inv) = i else {
-            XCTFail("Should parse a stop")
-            return
-        }
         XCTAssertEqual(inv, ProcedureInvocation(name: "fd", parameters:[.expression(exp)]))
     }
     
     func testBasicCommandAlternateName() {
         let parser = LogoParser()
         let programString: Substring = "forward 5\n"
-        guard let (i, _) = parser.command(substring: programString) else {
+        guard let (inv, _) = parser.command(substring: programString) else {
             XCTFail("Failed to parse fd")
             return
         }
         let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs: nil)
-
-        guard case let .invocation(inv) = i else {
-            XCTFail("Should parse an invocation")
-            return
-        }
-        
         XCTAssertEqual(inv, ProcedureInvocation(name: "forward", parameters:[.expression(exp)]))
     }
     
     func testBasicInvocation() {
     	let parser = LogoParser()
     	let programString: Substring = "par 5\n"
-    	guard let (i, _) = parser.command(substring: programString) else {
+    	guard let (inv, _) = parser.command(substring: programString) else {
     		XCTFail("Failed to parse invocation")
     		return
     	}
         let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs:nil)
-
-        guard case let .invocation(inv) = i else {
-            XCTFail("Should parse an invocation")
-            return
-        }
         
         XCTAssertEqual(inv, ProcedureInvocation(name: "par", parameters:[.expression(exp)]))
     }
@@ -125,16 +107,11 @@ class SimpleCommandParserTests: XCTestCase {
     func testInvocationPrefixedWithBuiltin() {
     	let parser = LogoParser()
     	let programString: Substring = "star 5\n"
-    	guard let (i, _) = parser.command(substring: programString) else {
+    	guard let (inv, _) = parser.command(substring: programString) else {
     		XCTFail("Failed to parse invocation")
     		return
     	}
         let exp = Expression(lhs:ArithmeticExpression(lhs: MultiplyingExpression(lhs: SignExpression.positive(.bottom(.double(5))))), rhs:nil)
-
-        guard case let .invocation(inv) = i else {
-            XCTFail("Should parse an invocation")
-            return
-        }
         
         XCTAssertEqual(inv, ProcedureInvocation(name:"star", parameters:[.expression(exp)]))
     }

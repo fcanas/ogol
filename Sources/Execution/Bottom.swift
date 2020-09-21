@@ -10,7 +10,7 @@ public enum Bottom {
     case double(Double)
     case string(String)
     case boolean(Bool)
-    indirect case command(ExecutionNode)
+    case command(ProcedureInvocation)
     indirect case list([Bottom])
 }
 
@@ -103,7 +103,7 @@ extension Bottom: Codable {
         } else if let rawValue = try container.decodeIfPresent(Bool.self, forKey: .bool) {
             self = .boolean(rawValue)
             return
-        } else if let rawValue = try container.decodeIfPresent(ExecutionNode.self, forKey: .command) {
+        } else if let rawValue = try container.decodeIfPresent(ProcedureInvocation.self, forKey: .command) {
             self = .command(rawValue)
             return
         }
@@ -125,5 +125,23 @@ extension Bottom: Codable {
             try container.encode(commandValue, forKey: .command)
         }
     }
-    
+}
+
+fileprivate struct Conversion: Error {}
+
+extension Array where Element == Bottom {
+    public func asInstructionList() -> [ProcedureInvocation]? {
+        do {
+            return try map { (bottom) throws -> ProcedureInvocation in
+                switch bottom {
+                case let .command(c):
+                    return c
+                default:
+                    throw Conversion()
+                }
+            }
+        } catch {
+            return nil
+        }
+    }
 }

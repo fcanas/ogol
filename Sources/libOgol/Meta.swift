@@ -20,10 +20,11 @@ public struct Meta: Module {
     public init() { }
     
     public let procedures: [String : Procedure] = [
-        "run":.extern(Meta.run),
         "stop":.extern(Meta.stop),
         "make":.extern(Meta.make),
         "output":.extern(Meta.output),
+        "if":.extern(Meta.if),
+        "run":.extern(Meta.run),
     ]
     
     private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
@@ -42,9 +43,18 @@ public struct Meta: Module {
         throw ExecutionHandoff.output(params[0])
     }
     
+    private static var `if`: ExternalProcedure = ExternalProcedure(name: "if", parameters: ["condition", "instructionList"]) { (params, context) -> Bottom? in
+        guard case let .boolean(condition) = params.first else {
+            throw ExecutionHandoff.error(.parameter, "if expects a boolean parameter")
+        }
+        if condition {
+            try run.execute(context: context, reuseScope: true)
+        }
+        return nil
+    }
+    
     private static var run: ExternalProcedure = {
         ExternalProcedure(name: "run", parameters: ["instructionList"]) { (params, context) throws -> Bottom? in
-            
             
             let procName: String
             var list: [Bottom]

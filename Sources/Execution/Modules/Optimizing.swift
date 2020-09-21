@@ -224,14 +224,6 @@ extension Value: ExpressionReducable {
     }
 }
 
-extension Conditional {
-    mutating func reduce() {
-        // Todo: optimize logical expressions
-        // self.condition.reduce()
-        self.block.reduce()
-    }
-}
-
 extension ProcedureInvocation {
     mutating func reduce() {
         parameters = parameters.map { (value) -> Value in
@@ -242,24 +234,10 @@ extension ProcedureInvocation {
     }
 }
 
-extension CommandList {
-    mutating func reduce() {
-        commands = commands.map(reduceNodeExpressions)
-    }
-}
-
-func reduceNodeExpressions(_ node: ExecutionNode) -> ExecutionNode {
-    switch node {
-    case var .conditional(cond):
-        cond.reduce()
-        return .conditional(cond)
-    case var .invocation(inv):
-        inv.reduce()
-        return .invocation(inv)
-    case .list(_):
-        break
-    }
-    return node
+func reduceNodeExpressions(_ node: ProcedureInvocation) -> ProcedureInvocation {
+    var n = node
+    n.reduce()
+    return n
 }
 
 public extension NativeProcedure {

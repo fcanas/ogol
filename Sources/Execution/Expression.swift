@@ -360,7 +360,6 @@ public enum Value: Equatable {
     indirect case expression(Expression)
     case deref(String)
     case bottom(Bottom)
-    case procedure(ProcedureInvocation)
     
     public var description: String {
         switch self {
@@ -370,8 +369,6 @@ public enum Value: Equatable {
             return e.description
         case let .bottom(b):
             return b.description
-        case let .procedure(p):
-            return "{\(p)}"
         }
     }
     
@@ -385,9 +382,12 @@ public enum Value: Equatable {
             }
             return value
         case let .bottom(bottom):
-            return bottom
-        case let .procedure(p):
-            return try p.evaluate(context: context)
+            switch bottom {
+            case let .command(invocation):
+                return try invocation.evaluate(context: context)
+            default:
+                return bottom
+            }
         }
     }
     
@@ -416,7 +416,6 @@ extension Value: Codable {
         case expression
         case deref
         case bottom
-        case procedure
     }
     
     public init(from decoder: Decoder) throws {
@@ -429,9 +428,6 @@ extension Value: Codable {
             return
         } else if let bottom = try container.decodeIfPresent(Bottom.self, forKey: .bottom) {
             self = .bottom(bottom)
-            return
-        } else if let procedure = try container.decodeIfPresent(ProcedureInvocation.self, forKey: .procedure) {
-            self = .procedure(procedure)
             return
         }
         throw LogoCodingError.signExpression
@@ -447,8 +443,6 @@ extension Value: Codable {
             try container.encode(expression, forKey: .expression)
         case let .bottom(bottom):
             try container.encode(bottom, forKey: .bottom)
-        case let .procedure(proc):
-            try container.encode(proc, forKey: .procedure)
         }
     }
 }

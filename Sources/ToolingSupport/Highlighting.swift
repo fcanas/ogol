@@ -29,8 +29,6 @@ extension Value: SyntaxColorable {
             return .variable
         case .expression(_):
             return nil
-        case .procedure(_):
-            fatalError("This shouldn't be here")
         }
     }
 }

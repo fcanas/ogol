@@ -12,8 +12,7 @@
 /// of control to containing scope, as well as runtime errors.
 public enum ExecutionHandoff: Error {
 
-    /// Leaves the current scope. Since there are no loops, it's
-    /// mostly just leaving the current procedure or conditional.
+    /// Leaves the current scope.
     case stop
     
     /// Leaves the current scope, and transforms the calling
@@ -46,11 +45,11 @@ public struct Program: Codable {
     
     public var description: String = "Program" // TODO
 
-    public var commands: [ExecutionNode]
+    public var commands: [ProcedureInvocation]
 
     public var procedures: [String : Procedure]
 
-    public init(executionNodes: [ExecutionNode], procedures:[Procedure]) {
+    public init(executionNodes: [ProcedureInvocation], procedures:[Procedure]) {
         var p: [String : Procedure] = [:]
         procedures.forEach { (procedure) in
             p[procedure.name] = procedure
