@@ -31,11 +31,11 @@ struct Lex {
 
     struct Token {
 
-        static let stringLiteral = "«" *> string <* "»"
+        static let stringLiteral = "\"" *> string <* "\""
         static let deref = { Value.deref($0) } <^> ":" *> name
         static let string = { (c) -> String in
             return String(c)
-        } <^> CharacterSet(charactersIn: "»").inverted.parser().many
+        } <^> CharacterSet(charactersIn: "\"").inverted.parser().many
         
         static let name = { (c, ca) -> String in
             return String(c) + String(ca)
