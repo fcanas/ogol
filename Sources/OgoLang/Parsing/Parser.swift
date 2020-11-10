@@ -151,7 +151,7 @@ public class OgolParser: LanguageParser {
             return nil
         }
         registerToken(range: runningSubstring.startIndex..<lexedName.1.startIndex, token: SyntaxType(category: .procedureDefinition))
-        runningSubstring = eatNewlines(lexedName.1)
+        runningSubstring = lexedName.1
 
         // Required inputs
         
@@ -160,11 +160,18 @@ public class OgolParser: LanguageParser {
             case .deref(_):
                 break
             default:
-                self.errors[substring.startIndex..<runningSubstring.startIndex] = .severeInternal("Parameter names must be declared as a deref value")
+                self.errors[substring.startIndex..<runningSubstring.startIndex] = .severeInternal("Parameter names must be declared as a declaration value")
                 self.hasFatalError = true
             }
             return value
-            } <^> Lex.Token.deref
+        } <^> Lex.Token.decl
+        
+        guard let (_, paramStartRemainder) = Lex.listStart.run(runningSubstring) else {
+            self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `[` for procedure declaration")
+            self.hasFatalError = true
+            return nil
+        }
+        runningSubstring = paramStartRemainder
 
         var parameters: [Value] = []
         if let param = parameterTokenizer.run(runningSubstring) {
@@ -183,9 +190,9 @@ public class OgolParser: LanguageParser {
         var hasRest = false
         let restTokenizer: Parser<Substring, Value>
         if parameters.count > 0 {
-            restTokenizer = ("," *> Lex.Token._space *> "[" *> parameterTokenizer <* "]")
+            restTokenizer = ("," *> Lex.Token._space *> Lex.listStart *> parameterTokenizer <* Lex.listEnd)
         } else {
-            restTokenizer = ("[" *> parameterTokenizer <* "]")
+            restTokenizer = (Lex.listStart *> parameterTokenizer <* Lex.listEnd)
         }
         if let param = restTokenizer.run(runningSubstring) {
             registerToken(range: runningSubstring.startIndex..<param.1.startIndex, token: SyntaxType(category: .parameterDeclaration))
@@ -193,6 +200,13 @@ public class OgolParser: LanguageParser {
             runningSubstring = param.1
             hasRest = true
         }
+        
+        guard let (_, paramEndRemainder) = Lex.listEnd.run(runningSubstring) else {
+            self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `]` for procedure declaration")
+            self.hasFatalError = true
+            return nil
+        }
+        runningSubstring = paramEndRemainder
         
         // ^ End Procedure Definition Header.
         // -
@@ -451,7 +465,7 @@ public class OgolParser: LanguageParser {
         runningSubstring = eatWhitespace(runningSubstring)
 
         // deref
-        if let parsedDeref =  Lex.Token.deref.run(runningSubstring) {
+        if let parsedDeref =  Lex.Token.decl.run(runningSubstring) {
             let range = runningSubstring.startIndex..<parsedDeref.1.startIndex
             registerToken(range: range, token: parsedDeref.0)
             

@@ -115,30 +115,30 @@ public class Turtle: Module {
                     try Turtle.Command.home.execute(context: context)
                 case .fd:
                     guard case let .double(v) = context.variables["amount"] else {
-                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number.")
                     }
                     try Turtle.Command.fd(v).execute(context: context)
                 case .bk:
                     guard case let .double(v) = context.variables["amount"] else {
-                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number.")
                     }
                     try Turtle.Command.bk(v).execute(context: context)
                 case .lt:
                     guard case let .double(v) = context.variables["amount"] else {
-                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number.")
                     }
                     try Turtle.Command.lt(v).execute(context: context)
                 case .rt:
                     guard case let .double(v) = context.variables["amount"] else {
-                        throw ExecutionHandoff.error(.typeError, "Expected a number.")
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number.")
                     }
                     try Turtle.Command.rt(v).execute(context: context)
                 case .setxy:
                     guard case let .double(x) = context.variables["x"] else {
-                        throw ExecutionHandoff.error(.typeError, "Expected a number for X.")
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for X.")
                     }
                     guard case let .double(y) = context.variables["y"] else {
-                        throw ExecutionHandoff.error(.typeError, "Expected a number for Y.")
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for Y.")
                     }
                     try Turtle.Command.setXY(Point(x: x, y: y)).execute(context: context)
                 }
