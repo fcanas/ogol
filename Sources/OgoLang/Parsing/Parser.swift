@@ -113,6 +113,10 @@ public class OgolParser: LanguageParser {
     }
 
     // MARK: - Parse
+    
+    /// Keywords and reserved functions that are not considered .user Procedure Invocations
+    /// These will basically be control flow
+    private static let nameBlackList = Set(["end", "to"] )
 
     private func line(substring: Substring) -> (Either<Procedure, ProcedureInvocation>, Substring)? {
         var previous: Substring
@@ -121,11 +125,12 @@ public class OgolParser: LanguageParser {
             previous = skipCommentLine
             skipCommentLine = eatComment(skipCommentLine)
         } while (previous != skipCommentLine)
+        skipCommentLine = eatWhitespace(skipCommentLine)
 
         if let procedure = procedureDeclaration(substring: skipCommentLine) {
             return (Either.left(procedure.0), procedure.1)
         }
-        if let command = command(substring: skipCommentLine) {
+        if let command = procedureInvocation(substring: skipCommentLine) {
             let runningSubstring = eatNewlines(eatComment(command.1))
             return (Either.right(command.0), runningSubstring)
         }
@@ -217,7 +222,7 @@ public class OgolParser: LanguageParser {
         return (.native(NativeProcedure(name: lexedName.0, commands: commands, procedures: subProcedures, parameters: parameters, hasRest: hasRest)), eatNewlines(lexedEnd.1))
     }
 
-    internal func controlFlow(substring: Substring) -> (ProcedureInvocation, Substring)? {
+    internal func procedureInvocation(substring: Substring) -> (ProcedureInvocation, Substring)? {
         if let command = Lex.name.run(substring) {
             let commandTokenRange = substring.startIndex..<command.1.startIndex
 
@@ -239,18 +244,6 @@ public class OgolParser: LanguageParser {
             let invocation = ProcedureInvocation(name: name, parameters: expressions)
             registerToken(range: commandTokenRange, token: invocation)
             return (invocation, runningSubstring)
-        }
-        return nil
-    }
-
-    /// Keywords and reserved functions that are not considered .user Procedure Invocations
-    /// These will basically be control flow
-    private static let nameBlackList = Set(["end", "ife"] )
-
-    internal func command(substring: Substring) -> (ProcedureInvocation, Substring)? {
-        let chompedString = eatWhitespace(substring)
-        if let controlFlowCommand = controlFlow(substring: chompedString) {
-            return controlFlowCommand
         }
         return nil
     }
@@ -301,7 +294,7 @@ public class OgolParser: LanguageParser {
         // procedure invocations _may_ return values
         // TODO: static analysis to determine if procedures may return?
         // Probably not strictly possible if lists are executable
-        if let (command, remainder) = controlFlow(substring: substring) {
+        if let (command, remainder) = procedureInvocation(substring: substring) {
             return (Value.bottom(.command(command)), remainder)
         }
         
