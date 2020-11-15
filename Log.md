@@ -1,5 +1,58 @@
 #  Ogol Language
 
+## 2020-11-14
+
+I've made small changes in the parser including several useful changes in the language:
+- Parameter lists for procedure declarations are enclosed in brackets [] and comma-separated
+- Parameters for a procedure invocation are enclosed in brackets [] and comma-separated
+- Parameters in a declaration remain preceded with a `:`
+- Variable use no longer requires being preceded by `:` rather names listed without decoration are a "lookup", which may work its way into the runtime
+
+This makes the implementation of `repeat` look like this:
+
+```
+to repeat[:count, :instructionList]
+   if[count = 0, [stop[]]]
+   run[instructionList]
+   make["count", count - 1]
+   repeat[count, instructionList]
+end
+```
+
+I think I want to turn `:name` into declarations in general. Or writes into the local context with a new name. So then `make["foo", 3]` becomes `:foo = 3`. Or possibly `:foo` would be a reference into the context, allowing `make[:foo, 3]` to be possible, especially for `make` to be able to write into a context outside of itself. Procedure definitions could be handled in a similar way.
+
+```
+to [:repeat, [:count, :instructionList], [
+      if[count = 0, [stop[]] ]
+      run[instructionList]
+      make["count", count - 1]
+      repeat[count, instructionList]
+   ]
+]
+```
+
+Maybe some syntactic sugar for trailing lists could give a familiar syntax...
+
+```
+if [x < 5] {
+   repeat [x] {
+      fd[x]
+      rt[20]
+   }
+}
+```
+
+The application to `to` could use some more thought, but the effect on `if` and `repeat` is relally nice.
+
+```
+to [:repeat, [:count, :instructionList]] {
+   if [count = 0] { stop[] }
+   run[instructionList]
+   make["count", count - 1]
+   repeat[count, instructionList]
+}
+```
+
 ## 2020-09-19
 
 Logo is a lot like Lisp without the parenthesis. And that leads to some ambiguity in the language. `foo bar "baz` could be inerpreted as `(foo (bar "baz))` or `(foo bar "baz)`. The correct parsing requires knowldge of `bar`'s expected parameters at parse time. In Logo, that is done at run time. A good way to implement Logo is to implement a Lisp, then convert Logo input to Lisp. But that’s not what I wanted to build.

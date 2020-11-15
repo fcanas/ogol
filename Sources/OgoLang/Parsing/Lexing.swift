@@ -26,6 +26,8 @@ struct Lex {
 
     static let listStart: Parser<Substring, String> = "["
     static let listEnd: Parser<Substring, String> = "]"
+    
+    static let paramaterSeparator: Parser<Substring, String> = "," <* Token._space
 
     static let comment: Parser<Substring, String> = Lex.Token.comment
 
@@ -33,6 +35,7 @@ struct Lex {
 
         static let stringLiteral = "\"" *> string <* "\""
         static let decl = { Value.deref($0) } <^> ":" *> name
+        static let lookup = { Value.deref($0) } <^> name
         static let string = { (c) -> String in
             return String(c)
         } <^> CharacterSet(charactersIn: "\"").inverted.parser().many

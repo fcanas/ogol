@@ -72,6 +72,7 @@ public class OgolParser: LanguageParser {
             errors.forEach { (key, _) in
                 assert(key.upperBound != key.lowerBound, "Ranges should be non-zero")
             }
+            print(errors)
             #endif
         }
     }
@@ -166,11 +167,15 @@ public class OgolParser: LanguageParser {
             return value
         } <^> Lex.Token.decl
         
+        // [
+        runningSubstring = eatWhitespace(runningSubstring)
         guard let (_, paramStartRemainder) = Lex.listStart.run(runningSubstring) else {
             self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `[` for procedure declaration")
             self.hasFatalError = true
             return nil
         }
+        runningSubstring = eatWhitespace(runningSubstring)
+        
         runningSubstring = paramStartRemainder
 
         var parameters: [Value] = []
@@ -201,12 +206,15 @@ public class OgolParser: LanguageParser {
             hasRest = true
         }
         
+        // ]
+        runningSubstring = eatWhitespace(runningSubstring)
         guard let (_, paramEndRemainder) = Lex.listEnd.run(runningSubstring) else {
             self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `]` for procedure declaration")
             self.hasFatalError = true
             return nil
         }
         runningSubstring = paramEndRemainder
+        runningSubstring = eatWhitespace(runningSubstring)
         
         // ^ End Procedure Definition Header.
         // -
@@ -241,7 +249,11 @@ public class OgolParser: LanguageParser {
             let commandTokenRange = substring.startIndex..<command.1.startIndex
 
             let name = command.0
-            var runningSubstring = eatWhitespace(command.1)
+            // [
+            guard var (_, runningSubstring) = Lex.listStart.run(eatWhitespace(command.1)) else {
+                return nil
+            }
+            runningSubstring = eatWhitespace(runningSubstring)
             
             // black list
             if OgolParser.nameBlackList.contains(name) {
@@ -252,8 +264,21 @@ public class OgolParser: LanguageParser {
             while let parsedValue = value(substring: runningSubstring) {
                 expressions.append(parsedValue.0)
                 runningSubstring = parsedValue.1
-                runningSubstring = eatWhitespace(runningSubstring)
+                let separator = Lex.paramaterSeparator.run(runningSubstring)
+                if separator?.1 == nil {
+                    runningSubstring = eatWhitespace(runningSubstring)
+                    break
+                }
+                runningSubstring = separator!.1
             }
+            
+            // ]
+            runningSubstring = eatWhitespace(runningSubstring)
+            guard let (_, endParams) = Lex.listEnd.run(runningSubstring) else {
+                return nil
+            }
+            runningSubstring = eatWhitespace(endParams)
+            
             
             let invocation = ProcedureInvocation(name: name, parameters: expressions)
             registerToken(range: commandTokenRange, token: invocation)
@@ -465,7 +490,7 @@ public class OgolParser: LanguageParser {
         runningSubstring = eatWhitespace(runningSubstring)
 
         // deref
-        if let parsedDeref =  Lex.Token.decl.run(runningSubstring) {
+        if let parsedDeref =  Lex.Token.lookup.run(runningSubstring) {
             let range = runningSubstring.startIndex..<parsedDeref.1.startIndex
             registerToken(range: range, token: parsedDeref.0)
             
