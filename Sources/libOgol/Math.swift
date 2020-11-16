@@ -65,7 +65,12 @@ public struct LogoMath: Module {
                 guard case let .double(param) = params.first else {
                     throw ExecutionHandoff.error(.parameter, "random needs a numeric parameter")
                 }
-                return .double(Double(arc4random() % UInt32(param)))
+                let ceiling = UInt32(param)
+                guard ceiling > 0 else {
+                    return .double(0)
+                }
+                let value = Double(arc4random() % ceiling)
+                return .double(value)
             }))]
         }()
     }
