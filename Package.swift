@@ -25,5 +25,6 @@ let package = Package(
         .target(name: "LogoLang", dependencies: ["FFCParserCombinator", "Execution", "ToolingSupport"]),
         .target(name: "ToolingSupport", dependencies: ["Execution"]),
         .testTarget(name: "LogoLangTests", dependencies: ["LogoLang", "libOgol", "Execution"]),
+        .testTarget(name: "OgoLangTests", dependencies: ["OgoLang", "libOgol", "Execution"]),
     ]
 )

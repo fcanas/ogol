@@ -48,7 +48,6 @@ class SimpleCommandParserTests: XCTestCase {
             XCTFail("No token for basic command \(command)", file: file, line: line)
             return
         }
-//        XCTAssertEqual(c as? ProcedureInvocation, ProcedureInvocation(identifier: .turtle(TurtleCommand.Partial(rawValue: command)!), parameters: []), file: file, line: line)
         XCTAssertEqual(programString[tokenKey], programString, file: file, line: line)
         XCTAssertEqual(s, "", file: file, line: line)
     }

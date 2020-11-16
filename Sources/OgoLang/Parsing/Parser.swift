@@ -327,15 +327,18 @@ public class OgolParser: LanguageParser {
         if let (string, remainder) = stringLiteral(substring: substring) {
             return (Value.bottom(.string(string)), remainder)
         }
-        if let (exp, remainder) = expression(substring: substring) {
-            return (Value.expression(exp), remainder)
-        }
+        
         // procedure invocations _may_ return values
         // TODO: static analysis to determine if procedures may return?
         // Probably not strictly possible if lists are executable
         if let (command, remainder) = procedureInvocation(substring: substring) {
             return (Value.bottom(.command(command)), remainder)
         }
+        
+        if let (exp, remainder) = expression(substring: substring) {
+            return (Value.expression(exp), remainder)
+        }
+        
         
         return instructionList(substring: substring)
     }
