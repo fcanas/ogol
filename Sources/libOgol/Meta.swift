@@ -22,6 +22,7 @@ public struct Meta: Module {
     public let procedures: [String : Procedure] = [
         "stop":.extern(Meta.stop),
         "make":.extern(Meta.make),
+        "local":.extern(Meta.local),
         "output":.extern(Meta.output),
         "if":.extern(Meta.if),
         "run":.extern(Meta.run),
@@ -36,6 +37,14 @@ public struct Meta: Module {
             throw ExecutionHandoff.error(.parameter, "make requires its first parameter to be a string")
         }
         (context.parent ?? context).variables[symbol] = params[1]
+        return nil
+    }
+    
+    private static var local: ExternalProcedure = ExternalProcedure(name: "local", parameters: ["symbol", "value"]) { (params, context) -> Bottom? in
+        guard case let .string(symbol) = params[0] else {
+            throw ExecutionHandoff.error(.parameter, "local requires its first parameter to be a string")
+        }
+        (context.parent ?? context).variables.setLocal(key: symbol, item: params[1])
         return nil
     }
     

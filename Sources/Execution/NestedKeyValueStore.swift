@@ -32,6 +32,16 @@ public class NestedKeyValueStore<T> {
         }
     }
     
+    /// Sets the value for `key` to item on the receiving value store.
+    /// This does _not_ attempt to set it on a parent store, regardless of whether a value
+    /// for the key exists locally. The value can be retrieved via standard subscripting.
+    /// - Parameters:
+    ///   - key: key to set
+    ///   - item: item to set for the given key
+    public func setLocal(key: String, item: T) {
+        self.items[key] = item
+    }
+    
     /// Recursively finds the nearest `NestedKeyValueStore` containing a value
     /// for the supplied key, starting with `self`.
     /// - Parameter key: key to probe
