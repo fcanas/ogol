@@ -33,16 +33,16 @@ public struct Meta: Module {
     }
     
     private static var make: ExternalProcedure = ExternalProcedure(name: "make", parameters: ["symbol", "value"]) { (params, context) -> Bottom? in
-        guard case let .string(symbol) = params[0] else {
-            throw ExecutionHandoff.error(.parameter, "make requires its first parameter to be a string")
+        guard case let .reference(symbol, referenceContext) = params[0] else {
+            throw ExecutionHandoff.error(.parameter, "make requires its first parameter to be a reference")
         }
-        (context.parent ?? context).variables[symbol] = params[1]
+        (referenceContext ?? context.parent ?? context).variables[symbol] = params[1]
         return nil
     }
     
     private static var local: ExternalProcedure = ExternalProcedure(name: "local", parameters: ["symbol", "value"]) { (params, context) -> Bottom? in
-        guard case let .string(symbol) = params[0] else {
-            throw ExecutionHandoff.error(.parameter, "local requires its first parameter to be a string")
+        guard case let .reference(symbol, _) = params[0] else {
+            throw ExecutionHandoff.error(.parameter, "local requires its first parameter to be a reference")
         }
         (context.parent ?? context).variables.setLocal(key: symbol, item: params[1])
         return nil
@@ -96,6 +96,8 @@ public struct Meta: Module {
             case let .command(command):
                 try command.execute(context: context, reuseScope: true)
                 return nil
+            case .reference(_, _):
+                throw ExecutionHandoff.output(parameter)
             }
             
             let invocation = ProcedureInvocation(name: procName, parameters: list.map({Value.bottom($0)}))

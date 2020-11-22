@@ -358,13 +358,16 @@ public struct LogicalExpression: Equatable, Codable {
 public enum Value: Equatable {
     
     indirect case expression(Expression)
+    case reference(String)
     case deref(String)
     case bottom(Bottom)
     
     public var description: String {
         switch self {
+        case let .reference(r):
+            return ":\(r)"
         case let .deref(d):
-            return ":\(d)"
+            return "\(d)"
         case let .expression(e):
             return e.description
         case let .bottom(b):
@@ -388,6 +391,9 @@ public enum Value: Equatable {
             default:
                 return bottom
             }
+        case let .reference(key):
+            let resolvedContext = context.variables.storeContaining(key: key)?.container
+            return .reference(key, resolvedContext ?? context)
         }
     }
     
@@ -413,6 +419,7 @@ extension Expression.Operation: Codable { }
 
 extension Value: Codable {
     enum Key: CodingKey {
+        case reference
         case expression
         case deref
         case bottom
@@ -429,6 +436,9 @@ extension Value: Codable {
         } else if let bottom = try container.decodeIfPresent(Bottom.self, forKey: .bottom) {
             self = .bottom(bottom)
             return
+        } else if let reference = try container.decodeIfPresent(String.self, forKey: .reference) {
+            self = .reference(reference)
+            return
         }
         throw LogoCodingError.signExpression
     }
@@ -443,6 +453,8 @@ extension Value: Codable {
             try container.encode(expression, forKey: .expression)
         case let .bottom(bottom):
             try container.encode(bottom, forKey: .bottom)
+        case let .reference(r):
+            try container.encode(r, forKey: .reference)
         }
     }
 }

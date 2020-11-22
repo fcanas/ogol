@@ -24,11 +24,15 @@ extension Value: SyntaxColorable {
                 return .keyword
             case .command(_):
                 return nil
+            case .reference(_, _):
+                return .parameterDeclaration
             }
         case .deref(_):
             return .variable
         case .expression(_):
             return nil
+        case .reference(_):
+            return .parameterDeclaration
         }
     }
 }

@@ -1,5 +1,18 @@
 #  Ogol Language
 
+## 2020-11-22
+
+Symbols preceeded by `:` are now references. `make` and `local` now require a reference as their first parameter instead of strings.
+
+```
+to repeat[:count, :instructionList]
+   if[count = 0, [stop[]]]
+   run[instructionList]
+   make[:count, count - 1]
+   repeat[count, instructionList]
+end
+```
+
 ## 2020-11-14
 
 I've made small changes in the parser including several useful changes in the language:

@@ -68,6 +68,8 @@ extension Bottom {
         case .command(_):
             // no-op, right now?
             return self
+        case .reference(_, _):
+            return self
         }
     }
 }

@@ -16,9 +16,9 @@ public class ExecutionContext {
     public static var StackDepthProbe: ((UInt) -> Void)?
     private var depth: UInt
     
-    public var procedures: NestedKeyValueStore<Procedure>
-    public var variables: NestedKeyValueStore<Bottom>
-    public var moduleStores: NestedKeyValueStore<ModuleStore>
+    public var procedures: NestedKeyValueStore<Procedure, ExecutionContext>
+    public var variables: NestedKeyValueStore<Bottom, ExecutionContext>
+    public var moduleStores: NestedKeyValueStore<ModuleStore, ExecutionContext>
     
     public weak var parent: ExecutionContext?
     private weak var _root: ExecutionContext!
@@ -105,6 +105,10 @@ public class ExecutionContext {
         self.moduleStores = NestedKeyValueStore(parent: nil, items: [:])
         _root = self
         modules.forEach { self.load($0) }
+        
+        self.procedures.container = self
+        self.variables.container = self
+        self.moduleStores.container = self
     }
 
     /// Initializes a new `ExecutionContext`, which serves as a scope.
@@ -140,6 +144,9 @@ public class ExecutionContext {
         self.parent = parent
         self.moduleStores = parent._root.moduleStores
         _root = parent._root
+        
+        self.procedures.container = self
+        self.variables.container = self
     }
     
 }

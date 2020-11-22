@@ -34,7 +34,7 @@ struct Lex {
     struct Token {
 
         static let stringLiteral = "\"" *> string <* "\""
-        static let decl = { Value.deref($0) } <^> ":" *> name
+        static let reference = { Value.reference($0) } <^> ":" *> name
         static let lookup = { Value.deref($0) } <^> name
         static let string = { (c) -> String in
             return String(c)

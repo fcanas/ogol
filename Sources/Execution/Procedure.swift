@@ -142,7 +142,7 @@ public final class NativeProcedure: GenericProcedure {
         self.name = name
         self.commands = commands
         self.procedures = procedures
-        self.parameters = parameters.map({ guard case let .deref(s) = $0 else {fatalError()}; return s })
+        self.parameters = parameters.map({ guard case let .reference(s) = $0 else {fatalError()}; return s })
         self.hasRest = hasRest
     }
     

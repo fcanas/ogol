@@ -158,14 +158,14 @@ public class OgolParser: LanguageParser {
         
         let parameterTokenizer = { (value: Value) -> Value in
             switch value {
-            case .deref(_):
+            case .reference(_):
                 break
             default:
                 self.errors[substring.startIndex..<runningSubstring.startIndex] = .severeInternal("Parameter names must be declared as a declaration value")
                 self.hasFatalError = true
             }
             return value
-        } <^> Lex.Token.decl
+        } <^> Lex.Token.reference
         
         // [
         runningSubstring = eatWhitespace(runningSubstring)
@@ -339,6 +339,9 @@ public class OgolParser: LanguageParser {
             return (Value.expression(exp), remainder)
         }
         
+        if let (ref, remainder) = reference(substring: substring) {
+            return (ref, remainder)
+        }
         
         return instructionList(substring: substring)
     }
@@ -348,6 +351,14 @@ public class OgolParser: LanguageParser {
             return nil
         }
         registerToken(range: substring.startIndex..<remainder.startIndex, token: SyntaxType(category: .stringLiteral))
+        return (string, remainder)
+    }
+    
+    internal func reference(substring: Substring) -> (Value, Substring)? {
+        guard let (string, remainder) = Lex.Token.reference.run(substring) else {
+            return nil
+        }
+        registerToken(range: substring.startIndex..<remainder.startIndex, token: SyntaxType(category: .parameterDeclaration))
         return (string, remainder)
     }
     

@@ -14,9 +14,10 @@
 /// a value for the provided key, then the first found entry for the key is
 /// overwritten with the new value. When writing a value, if no existing
 /// entry for the key is found, the receiving store will write the value.
-public class NestedKeyValueStore<T> {
+public class NestedKeyValueStore<T, C: AnyObject> {
+    weak var container: C?
     /// The parent store, or `nil` if a root store.
-    var parent: NestedKeyValueStore<T>?
+    var parent: NestedKeyValueStore<T,C>?
     /// The backing dictionary for the store.
     internal var items: [String : T]
     public subscript(key: String)-> T? {
@@ -66,9 +67,10 @@ public class NestedKeyValueStore<T> {
     ///   recursively search their parents for values until a value for a key is found.
     ///   - items: Key-value pairs for the new store. They can be retreived or overwritten
     ///   by subscript access to the store.
-    init(parent: NestedKeyValueStore<T>?, items: [String: T] = [:]) {
+    init(parent: NestedKeyValueStore<T,C>?, items: [String: T] = [:], container: C? = nil) {
         self.parent = parent
         self.items = items
+        self.container = container
     }
 
     // MARK: - Inspection
