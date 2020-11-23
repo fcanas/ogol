@@ -11,9 +11,11 @@ import Execution
 public struct NativeModule: Module {
     
     public var procedures: [String : Procedure]
+    public var initialize: (ExecutionContext)->Void
     
-    public init?(string: String, parser: LanguageParser, optimize: Bool = true) {
+    public init?(string: String, parser: LanguageParser, optimize: Bool = true, initialize: @escaping (ExecutionContext)->Void = { _ in }) {
         let parseResult = parser.program(substring: Substring(string))
+        self.initialize = initialize
         
         let program: Program
         switch parseResult {
@@ -47,4 +49,8 @@ public struct NativeModule: Module {
     
     var inputString: String
     var syntaxMap: [Range<Substring.Index>:SyntaxColorable]
+    
+    public func initialize(context: ExecutionContext) {
+        self.initialize(context)
+    }
 }

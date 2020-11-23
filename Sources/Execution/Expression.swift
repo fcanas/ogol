@@ -266,6 +266,13 @@ public struct Expression: Equatable {
             }
         case (.list(_), .list(_)):
             throw ExecutionHandoff.error(.typeError, "lists are unsupported")
+        case let (.boolean(lhsv), .boolean(rhsv)):
+            switch rhs.operation {
+            case .eq:
+                return .boolean(lhsv == rhsv)
+            default:
+                throw ExecutionHandoff.error(.typeError, "Booleans can only be compared with `=`.")
+            }
         default:
             // TODO: Does this belong here or elsewhere?
             //    guard op == .eq else {
