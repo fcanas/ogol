@@ -6,29 +6,29 @@
 ;  Copyright © 2020 Fabian Canas. All rights reserved.
 ;
 
-to list[:elements]
+to list [:elements]
    output[elements]
 end
 
-to add[:lhs, :rhs]
+to add [:lhs, :rhs]
    output[lhs + rhs]
 end
 
-to sub[:lhs, :rhs]
+to sub [:lhs, :rhs]
    output[lhs - rhs]
 end
 
-to mul[:lhs, :rhs]
+to mul [:lhs, :rhs]
    output[lhs * rhs]
 end
 
-to div[:lhs, :rhs]
+to div [:lhs, :rhs]
    output[lhs / rhs]
 end
 
-to repeat[:count, :instructionList]
-   if[count = 0, [stop[]]]
-   run[instructionList]
-   make[:count, count - 1]
-   repeat[count, instructionList]
+to repeat [:count, :instructionList]
+   if [count = 0, [stop[]]]
+   run [instructionList]
+   make [:count, count - 1]
+   repeat [count, instructionList]
 end

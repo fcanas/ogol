@@ -138,7 +138,7 @@ public class OgolParser: LanguageParser {
         return nil
     }
 
-    private func procedureDeclaration(substring: Substring) -> (Procedure, Substring)? {
+    internal func procedureDeclaration(substring: Substring) -> (Procedure, Substring)? {
         var runningSubstring = substring
         guard let lexedProcedure = Lex.to.run(runningSubstring) else {
             // No procedure found. Ok.
@@ -174,9 +174,7 @@ public class OgolParser: LanguageParser {
             self.hasFatalError = true
             return nil
         }
-        runningSubstring = eatWhitespace(runningSubstring)
-        
-        runningSubstring = paramStartRemainder
+        runningSubstring = eatWhitespace(paramStartRemainder)
 
         var parameters: [Value] = []
         if let param = parameterTokenizer.run(runningSubstring) {
