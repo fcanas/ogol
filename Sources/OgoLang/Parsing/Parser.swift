@@ -147,7 +147,7 @@ public class OgolParser: LanguageParser {
         registerToken(range: runningSubstring.startIndex..<lexedProcedure.1.startIndex, token: SyntaxType(category: .keyword))
         runningSubstring = eatWhitespace(lexedProcedure.1)
         guard let lexedName = Lex.name.run(runningSubstring) else {
-            errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected name for declared procedure")
+            errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected name following `to` defining a procedure")
             hasFatalError = true
             return nil
         }
@@ -161,7 +161,7 @@ public class OgolParser: LanguageParser {
             case .reference(_):
                 break
             default:
-                self.errors[substring.startIndex..<runningSubstring.startIndex] = .severeInternal("Parameter names must be declared as a declaration value")
+                self.errors[substring.startIndex..<runningSubstring.startIndex] = .severeInternal("Parameter names must be declared as a reference")
                 self.hasFatalError = true
             }
             return value
@@ -170,7 +170,7 @@ public class OgolParser: LanguageParser {
         // [
         runningSubstring = eatWhitespace(runningSubstring)
         guard let (_, paramStartRemainder) = Lex.listStart.run(runningSubstring) else {
-            self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `[` for procedure declaration")
+            self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected a parameter list beginning with `[` following procedure declaration \(lexedName)")
             self.hasFatalError = true
             return nil
         }
@@ -207,7 +207,7 @@ public class OgolParser: LanguageParser {
         // ]
         runningSubstring = eatWhitespace(runningSubstring)
         guard let (_, paramEndRemainder) = Lex.listEnd.run(runningSubstring) else {
-            self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `]` for procedure declaration")
+            self.errors[substring.startIndex..<runningSubstring.startIndex] = .basic("Expected `]` for procedure declaration \(lexedName)")
             self.hasFatalError = true
             return nil
         }
@@ -233,7 +233,7 @@ public class OgolParser: LanguageParser {
         }
 
         guard let lexedEnd = Lex.end.run(runningSubstring) else {
-            errors[lexedProcedure.1.startIndex..<runningSubstring.startIndex] = .basic("Expected 'end' to close procedure declaration")
+            errors[lexedProcedure.1.startIndex..<runningSubstring.startIndex] = .basic("Expected 'end' to close procedure declaration \(lexedName)")
             hasFatalError = true
             return nil
         }
