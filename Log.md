@@ -13,6 +13,21 @@ to repeat[:count, :instructionList]
 end
 ```
 
+Because reference values are bound to a context when created, we can also define procedures with in/out parameters.
+
+```
+to randomIn[:reference, :minimum, :maximum]
+    local [ :range, maximum - minimum ]
+    local [ :randomComponent, random [range] ]
+    make [ reference, minimum + randomComponent ]
+end
+
+randomIn [ :value, 10, 20 ]
+fd [value]
+```
+
+The `:value` paremeter in the `randomIn` invocation becomes bound to the `value` symbol in the current context.
+
 ## 2020-11-14
 
 I've made small changes in the parser including several useful changes in the language:
