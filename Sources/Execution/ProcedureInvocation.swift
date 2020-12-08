@@ -53,7 +53,7 @@ public struct ProcedureInvocation: Equatable {
         if reuseScope {
             context.inject(procedures: procedure.procedures)
             parameterMap.forEach { (key: String, value: Bottom) in
-                context.variables[key] = value
+                context.variables.setLocal(key: key, item: value)
             }
             newScope = context
         } else {
