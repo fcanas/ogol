@@ -6,7 +6,7 @@
 ;  Copyright © 2020 Fabian Canas. All rights reserved.
 ;
 
-to list [:elements]
+to list [[:elements]]
    output[elements]
 end
 
