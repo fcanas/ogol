@@ -154,6 +154,7 @@ public final class NativeProcedure: GenericProcedure {
             let command = commands[idx]
             do {
                 if idx == commands.count - 1, command.name == self.name {
+                    // tail recursion
                     let (_, parameterMap) = try command.evaluateParameters(in: ctx)
                     parameterMap.forEach { (key: String, value: Bottom) in
                         ctx.variables[key] = value

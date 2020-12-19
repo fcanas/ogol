@@ -11,35 +11,36 @@ public struct ProcedureInvocation: Equatable {
     public let name: String
     public var parameters: [Value]
     
-    public func evaluateParameters(in context: ExecutionContext) throws -> (Procedure, Dictionary<String,Bottom>) {
+    public func evaluateParameters(in context: ExecutionContext) throws -> (Procedure, [String : Bottom]) {
         guard let procedure = context.procedures[name] else {
             throw ExecutionHandoff.error(.missingSymbol, "I don't know how to \(name)")
         }
         
-        let minimumParameters = procedure.parameters.count - (procedure.hasRest ? 1 : 0)
-        
-        guard minimumParameters <= parameters.count else {
+        guard procedure.invocationValidWith(parameterCount: parameters.count) else {
+            let minimumParameters = procedure.parameters.count - (procedure.hasRest ? 1 : 0)
             throw ExecutionHandoff.error(.parameter, "\(name) needs \(minimumParameters)\(procedure.hasRest ? " or more":"") parameters. I found \(parameters.count).")
         }
         
-        var parameterMap: Dictionary<String,Bottom> = Dictionary(minimumCapacity: procedure.parameters.count)
+        let parameterValues = try parameters.map { (value) -> Bottom in
+            try value.evaluate(context: context)
+        }
+        
+        // Create [paramater name : value] map
+        
+        let parameterNames = procedure.parameters
+        let parameterMap:[String : Bottom]
         
         if procedure.hasRest {
-            var parameterNames = procedure.parameters
-            guard let restName = parameterNames.popLast() else {
-                throw ExecutionHandoff.error(.parameter, "Parameter count mismatch with Rest parameter")
+            guard parameterNames.count > 0 else {
+                throw ExecutionHandoff.error(.parameter, "\(name) indicates a trailing `rest` parameter, but does not have a name for it.")
             }
-            
-            for (index, parameterName) in parameterNames.enumerated() {
-                parameterMap[parameterName] = try parameters[index].evaluate(context: context)
-            }
-            parameterMap[restName] = try .list(parameters[parameterNames.count..<parameters.count].map({
-                try $0.evaluate(context: context)
-            }))
+            let restIndex = procedure.parameters.count - 1
+            let restValue = Array(parameterValues[restIndex...])
+            var namedParameterValues = parameterValues[..<restIndex]
+            namedParameterValues.append(.list(restValue))
+            parameterMap = Dictionary(uniqueKeysWithValues: zip(parameterNames, namedParameterValues))
         } else {
-            for (index, parameter) in parameters.enumerated() {
-                parameterMap[procedure.parameters[index]] = try parameter.evaluate(context: context)
-            }
+            parameterMap = Dictionary(uniqueKeysWithValues: zip(parameterNames, parameterValues))
         }
         
         return (procedure, parameterMap)
