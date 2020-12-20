@@ -19,6 +19,9 @@ public enum ParseResult {
     case error([Range<Substring.Index>:ParseError])
 }
 
-public protocol LanguageParser {
+public protocol LanguageParser: AnyObject {
     func program(substring: Substring) -> ParseResult
+    
+    var modules: [Module] { get set }
+    var additionalProcedures: [String:Procedure] { get set }
 }
