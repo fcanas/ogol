@@ -148,5 +148,4 @@ public class ExecutionContext {
         self.procedures.container = self
         self.variables.container = self
     }
-    
 }

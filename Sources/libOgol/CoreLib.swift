@@ -19,4 +19,3 @@ public let CoreLib: NativeModule? = {
         context.variables.setLocal(key: "false", item: .boolean(false))
     }
 }()
-

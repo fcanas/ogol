@@ -345,7 +345,6 @@ public class LogoParser: LanguageParser {
         }
         
         return (Expression(lhs: lhs.0, rhs: Expression.Rhs(operation: comparison.0.comparisonOperator, rhs: rhs.0)), rhs.1)
-        
     }
     
     /// arithmeticExpression
@@ -497,5 +496,4 @@ public class LogoParser: LanguageParser {
         }
         return substring
     }
-
 }

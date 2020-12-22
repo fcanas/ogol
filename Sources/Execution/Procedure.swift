@@ -55,7 +55,6 @@ public enum Procedure: GenericProcedure {
     
     case native(NativeProcedure)
     case extern(GenericProcedure)
-    
 }
 
 extension Procedure: Equatable {
@@ -102,7 +101,6 @@ extension Procedure: Codable {
             try container.encode(standIn, forKey: .extern)
         }
     }
-    
 }
 
 public struct StandinProcedure: GenericProcedure, Codable {
@@ -169,8 +167,6 @@ public final class NativeProcedure: GenericProcedure {
             idx += 1
         }
     }
-
-    
 }
 
 extension NativeProcedure: Equatable {

@@ -247,4 +247,3 @@ public extension NativeProcedure {
         commands = commands.map(reduceNodeExpressions)
     }
 }
-

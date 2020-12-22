@@ -134,4 +134,3 @@ enum ComparisonOperator: Character, CaseIterable, Op {
         }
     }
 }
-

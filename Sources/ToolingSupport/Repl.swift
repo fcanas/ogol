@@ -76,7 +76,4 @@ public func startRepl(parser: LanguageParser, modules: [Module]) {
         }
         print(prompt, terminator: "")
     }
-
-
 }
-

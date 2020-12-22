@@ -62,7 +62,6 @@ public struct ProcedureInvocation: Equatable {
         }
         
         try procedure.execute(context: newScope, reuseScope: reuseScope)
-        
     }
     
     public init(name: String, parameters: [Value]) {
@@ -86,9 +85,7 @@ extension ProcedureInvocation { // Value
     }
 }
 
-extension ProcedureInvocation: Codable {
-    
-}
+extension ProcedureInvocation: Codable { }
 
 //extension ExecutionNode {
 //    public func evaluate(context: ExecutionContext) throws -> Bottom {

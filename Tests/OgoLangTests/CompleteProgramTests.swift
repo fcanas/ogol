@@ -401,5 +401,4 @@ class CompleteProgramTests: XCTestCase {
         XCTAssertEqual(cP2, "pass")
         XCTAssertEqual(cF1, "pass")
     }
-    
 }

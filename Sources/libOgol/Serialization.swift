@@ -37,7 +37,5 @@ public class Serialization: Module {
             
             return nil
         }
-        
     }()
-    
 }

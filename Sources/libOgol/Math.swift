@@ -78,7 +78,4 @@ public struct LogoMath: Module {
     public let procedures: [String : Procedure] = {
         return SingleParameter().procedures.merging(Random().procedures, uniquingKeysWith: { (a,b) in a })
     }()
-
 }
-
-

@@ -14,4 +14,3 @@ public protocol Module {
 extension Module {
     public func initialize(context: ExecutionContext) {}
 }
-
