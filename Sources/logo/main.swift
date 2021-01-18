@@ -7,6 +7,7 @@
 //
 
 import libOgol
+import OgolMath
 import LogoLang
 import ToolingSupport
 import Execution

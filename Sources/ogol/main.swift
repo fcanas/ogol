@@ -8,6 +8,7 @@
 
 import libOgol
 import OgoLang
+import OgolMath
 import ToolingSupport
 import Execution
 
