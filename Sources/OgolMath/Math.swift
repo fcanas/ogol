@@ -9,6 +9,13 @@
 import Execution
 import Foundation
 import OgoLang
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(WASILibc)
+import WASILibc
+#endif
 
 public struct LogoMath: Module {
     
@@ -17,31 +24,31 @@ public struct LogoMath: Module {
     private struct SingleParameter: Module {
 
         private let nativeFunctions: [String:(Double)->Double] = [
-            "cos" : Darwin.cos,
-            "sin" : Darwin.sin,
-            "tan" : Darwin.tan,
-            "acos" : Darwin.acos,
-            "asin" : Darwin.asin,
-            "atan" : Darwin.atan,
+            "cos" : cos,
+            "sin" : sin,
+            "tan" : tan,
+            "acos" : acos,
+            "asin" : asin,
+            "atan" : atan,
 
-            "cosh" : Darwin.cosh,
-            "sinh" : Darwin.sinh,
-            "tanh" : Darwin.tanh,
-            "acosh" : Darwin.acosh,
-            "asinh" : Darwin.asinh,
-            "atanh" : Darwin.atanh,
+            "cosh" : cosh,
+            "sinh" : sinh,
+            "tanh" : tanh,
+            "acosh" : acosh,
+            "asinh" : asinh,
+            "atanh" : atanh,
 
-            "exp" : Darwin.exp,
-            "exp2" : Darwin.exp2,
+            "exp" : exp,
+            "exp2" : exp2,
 
-            "lgamma" : Darwin.lgamma,
-            "tgamma" : Darwin.tgamma,
+            "lgamma" : lgamma,
+            "tgamma" : tgamma,
 
-            "log" : Darwin.log,
-            "log10" : Darwin.log10,
-            "log2" : Darwin.log2,
-            "abs" : Darwin.fabs,
-            "sqrt" : Darwin.sqrt,
+            "log" : log,
+            "log10" : log10,
+            "log2" : log2,
+            "abs" : fabs,
+            "sqrt" : sqrt,
         ]
 
         public var procedures: [String : Procedure] {
