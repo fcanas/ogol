@@ -27,7 +27,7 @@ to div [:lhs, :rhs]
 end
 
 to repeat [:count, :instructionList]
-   if [count = 0, [stop[]]]
+   if [count < 1, [stop[]]]
    run [instructionList]
    make [:count, count - 1]
    repeat [count, instructionList]
