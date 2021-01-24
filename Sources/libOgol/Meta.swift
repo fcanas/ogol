@@ -75,7 +75,7 @@ public struct Meta: Module {
             switch parameter {
             case var .list(l):
                 guard l.count >= 1 else {
-                    throw ExecutionHandoff.error(.parameter, "a list passed as a parameter run needs at least one String element")
+                    throw ExecutionHandoff.error(.parameter, "a list passed as a parameter run needs at least one element")
                 }
                 
                 if let executionList = l.asInstructionList() {
