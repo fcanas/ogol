@@ -10,7 +10,10 @@ public struct Optimizer: Module {
     
     public init() { }
     
-    public var procedures: [String : Procedure] = ["optimize":.extern(Optimizer.optimize)]
+    public var procedures: [String : Procedure] = [
+        "optimize":.extern(Optimizer.optimize),
+        "optimizeAll":.extern(Optimizer.optimizeAll)
+    ]
     
     static var optimize: ExternalProcedure = ExternalProcedure(name: "optimize", parameters: ["procedure"]) { (params, context) -> Bottom? in
         guard case let .string(name) = params.first else {
@@ -20,13 +23,26 @@ public struct Optimizer: Module {
             throw ExecutionHandoff.error(ExecutionHandoff.Runtime.missingSymbol, "Procedure \(name) not found to optimize")
         }
         guard case let .native(procedure) = candidateProcedure else {
-            throw ExecutionHandoff.error(ExecutionHandoff.Runtime.parameter, "Unable to optimize external procedure. Expected a native procedure -- One written in Logo.")
+            throw ExecutionHandoff.error(ExecutionHandoff.Runtime.parameter, "Unable to optimize external procedure. Expected a native procedure -- One written in Ogol.")
         }
         
         procedure.reduceExpressions()
         
         return nil
     }
+    
+    static var optimizeAll: ExternalProcedure = ExternalProcedure(name: "optimizeAll", parameters: []) { (params, context) -> Bottom? in
+        context.allProcedures().values.forEach { (proc) in
+            switch proc {
+            case .extern(_):
+                break
+            case let .native(procedure):
+                procedure.reduceExpressions()
+            }
+        }
+        return nil
+    }
+    
 }
 
 protocol ExpressionReducable {}
