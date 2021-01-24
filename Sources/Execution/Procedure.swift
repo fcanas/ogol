@@ -104,6 +104,14 @@ extension Procedure: Codable {
 }
 
 public struct StandinProcedure: GenericProcedure, Codable {
+    
+    internal init(name: String, parameters: [String], procedures: [String : Procedure], hasRest: Bool) {
+        self.name = name
+        self.parameters = parameters
+        self.procedures = procedures
+        self.hasRest = hasRest
+    }
+    
     public var name: String
     
     public var parameters: [String]
@@ -120,6 +128,36 @@ public struct StandinProcedure: GenericProcedure, Codable {
         "tbd:extern: \(name) :\(parameters.joined(separator: ", :"))"
     }
     
+    enum Key: CodingKey {
+        case name
+        case commands
+        case procedures
+        case parameters
+        case hasRest
+    }
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        
+        name = try container.decode(String.self, forKey: .name)
+        procedures = try container.decodeIfPresent([String : Procedure].self, forKey: .procedures) ?? [:]
+        parameters = try container.decodeIfPresent([String].self, forKey: .parameters) ?? []
+        hasRest = try container.decodeIfPresent(Bool.self, forKey: .hasRest) ?? false
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Key.self)
+        try container.encode(name, forKey: .name)
+        if procedures.count > 0 {
+            try container.encode(procedures, forKey: .procedures)
+            
+        }
+        if parameters.count > 0 {
+            try container.encode(parameters, forKey: .parameters)
+            
+        }
+        if hasRest {
+            try container.encode(hasRest, forKey: .hasRest)
+        }
+    }
 }
 
 public final class NativeProcedure: GenericProcedure {
