@@ -167,6 +167,42 @@ public final class NativeProcedure: GenericProcedure {
             idx += 1
         }
     }
+    
+    enum Key: CodingKey {
+        case name
+        case commands
+        case procedures
+        case parameters
+        case hasRest
+    }
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        
+        name = try container.decode(String.self, forKey: .name)
+        commands = try container.decodeIfPresent([ProcedureInvocation].self, forKey: .commands) ?? []
+        procedures = try container.decodeIfPresent([String : Procedure].self, forKey: .procedures) ?? [:]
+        parameters = try container.decodeIfPresent([String].self, forKey: .parameters) ?? []
+        hasRest = try container.decodeIfPresent(Bool.self, forKey: .hasRest) ?? false
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Key.self)
+        
+        try container.encode(name, forKey: .name)
+        if commands.count > 0 {
+            try container.encode(commands, forKey: .commands)
+        }
+        if procedures.count > 0 {
+            try container.encode(procedures, forKey: .procedures)
+            
+        }
+        if parameters.count > 0 {
+            try container.encode(parameters, forKey: .parameters)
+            
+        }
+        if hasRest {
+            try container.encode(hasRest, forKey: .hasRest)
+        }
+    }
 }
 
 extension NativeProcedure: Equatable {
@@ -179,7 +215,7 @@ extension NativeProcedure: Equatable {
     }
 }
 
-extension NativeProcedure: Codable {}
+extension NativeProcedure: Codable { }
 
 extension NativeProcedure: CustomStringConvertible {
     public var description: String {

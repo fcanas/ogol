@@ -414,10 +414,50 @@ public enum Value: Equatable {
 
 // MARK: - Codable
 
-extension MultiplyingExpression: Codable { }
+extension MultiplyingExpression: Codable {
+    enum Key: CodingKey {
+        case lhs
+        case rhs
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        self.lhs = try container.decode(SignExpression.self, forKey: .lhs)
+        self.rhs = try container.decodeIfPresent([Rhs].self, forKey: .rhs) ?? []
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Key.self)
+        
+        try container.encode(self.lhs, forKey: .lhs)
+        if rhs.count > 0 {
+            try container.encode(self.rhs, forKey: .rhs)
+        }
+    }
+}
 extension MultiplyingExpression.Rhs: Codable { }
 extension MultiplyingExpression.Operation: Codable { }
-extension ArithmeticExpression: Codable { }
+extension ArithmeticExpression: Codable {
+    enum Key: CodingKey {
+        case lhs
+        case rhs
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        self.lhs = try container.decode(MultiplyingExpression.self, forKey: .lhs)
+        self.rhs = try container.decodeIfPresent([Rhs].self, forKey: .rhs) ?? []
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Key.self)
+        
+        try container.encode(self.lhs, forKey: .lhs)
+        if rhs.count > 0 {
+            try container.encode(self.rhs, forKey: .rhs)
+        }
+    }
+}
 extension ArithmeticExpression.Rhs: Codable { }
 extension ArithmeticExpression.Operation: Codable { }
 extension Expression: Codable { }
