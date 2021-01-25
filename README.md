@@ -1,8 +1,8 @@
 # ogol
 
-Ogol is a derivative of the Logo computer language that is taking off in a different direction.
+Ogol is a derivative of the [Logo](https://en.wikipedia.org/wiki/Logo_(programming_language)) programming language that is taking off in a different direction.
 
-Ogol started as an implementation of Logo that diverged before being a full implementation. Ogol is now emerging as its own language with [dynamic scoping](https://en.wikipedia.org/wiki/Scope_(computer_science)#Dynamic_scope), [tail call optimization](https://en.wikipedia.org/wiki/Tail_call), and [turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics).
+The Ogol language has [dynamic scoping](https://en.wikipedia.org/wiki/Scope_(computer_science)#Dynamic_scope), [tail call optimization](https://en.wikipedia.org/wiki/Tail_call). The inluded core libraries include [turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics) with SVG output.
 
 This project is organized into subcomponents:
 
@@ -11,7 +11,7 @@ This project is organized into subcomponents:
 - OgoLang
   - Contains a Parser converting Ogol to structures described in the Execution module.
 - libOgol
-  - Core libraries including math functions, Turtle Graphics, and  core language procedures that require interacting with the runtime such as `output`, `stop`, and `make`
+  - Core language procedures that require interacting with the runtime such as `output`, `stop`, and `make` in the `Meta` module. libOgol also includes a `CoreLib` module with core utilities implemented in Ogol, such as `list` and `repeat`. Also included are [Turtle Graphics]((https://en.wikipedia.org/wiki/Turtle_graphics)) with SVG output,  
 - OgolMath
   - Core math functions
 - ogol
