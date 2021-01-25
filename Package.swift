@@ -13,7 +13,7 @@ let package = Package(
         .executable(name: "ogol", targets: ["ogol"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/fcanas/FFCParserCombinator.git", .branch("substring")),
+        .package(url: "https://github.com/fcanas/FFCParserCombinator.git", from: "1.0.2"),
     ],
     targets: [
         .target(name: "Execution"),
