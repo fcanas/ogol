@@ -25,6 +25,13 @@ struct Bounds {
     func extend(bounds: Bounds) -> Bounds {
         return Bounds(min: Point(x: Swift.min(min.x, bounds.min.x), y: Swift.min(min.y, bounds.min.y)), max: Point(x: Swift.max(max.x, bounds.max.x), y: Swift.max(max.y, bounds.max.y)))
     }
+    
+    var width: Double {
+        return max.x - min.x
+    }
+    var height: Double {
+        return max.y - min.y
+    }
 }
 
 func bounds(_ a: Point, _ b: Point) -> Bounds {
@@ -102,14 +109,15 @@ public class SVGEncoder {
             return encodable.bounds().map {bounds.extend(bounds: $0)} ?? bounds
         }
         
-        let width = max(abs(ceil(bounds.max.x)), abs(floor(bounds.min.x))) * 2 + 20
-        let height = max(abs(ceil(bounds.max.y)), abs(floor(bounds.min.y))) * 2 + 20
+        let width = bounds.width
+        let height = bounds.height
         
-        let translation = Point(x: -width / 2, y: height / 2)
+        let margin: Double = 20
         
+        let translation = Point(x: 0, y: 0)
         var output =
-        "<svg version=\"1.1\" baseProfile=\"full\" width=\"\(Int(width))\" height=\"\(Int(height))\" xmlns=\"http://www.w3.org/2000/svg\">"
-        output += "\n<g transform=\"scale(-1, 1)\">"
+        "<svg version=\"1.1\" baseProfile=\"full\" width=\"\(Int(width + 2*margin))\" height=\"\(Int(height + 2*margin))\" xmlns=\"http://www.w3.org/2000/svg\">"
+        output += "\n<g transform=\"translate(\(margin + bounds.max.x),\(margin - bounds.min.y)) scale(-1, 1)\">"
         output += items.compactMap({ try? $0.element(translate: translation).asXML() }).joined(separator: "\n")
         output += "\n</g>\n"
         return output + "</svg>"
