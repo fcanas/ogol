@@ -289,10 +289,10 @@ class CompleteProgramTests: XCTestCase {
 
             let multiLines = Turtle.multilines(for: context)
             
-            _ = try! SVGEncoder().encode(multiLines)
-
-            //XCTAssertEqual(svgOut,
-//                           "<svg version=\"1.1\" baseProfile=\"full\" width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\"><polyline fill=\"none\" stroke=\"black\" points=\"158.0, 130.0 122.08788495080478, 31.332274817479615 104.98687778452131, 78.31690585677502 138.9868777845213, 78.31690585677504 104.98687778452131, 78.31690585677502 86.1757699016095, 129.99999999999997\"/></svg>")
+            let result = try! SVGEncoder().encode(multiLines)
+            let fixture = try! String(contentsOf: Bundle.module.url(forResource: "logo", withExtension: "svg")!)
+            
+            XCTAssertEqual(result, fixture)
             
             // TODO: Syntax coloring
         }

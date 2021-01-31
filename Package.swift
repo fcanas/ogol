@@ -22,6 +22,6 @@ let package = Package(
         .target(name: "ogol", dependencies: ["OgoLang", "libOgol", "ToolingSupport", "OgolMath"]),
         .target(name: "OgoLang", dependencies: ["FFCParserCombinator", "Execution", "ToolingSupport"]),
         .target(name: "ToolingSupport", dependencies: ["Execution"]),
-        .testTarget(name: "OgoLangTests", dependencies: ["OgoLang", "libOgol", "Execution"]),
+        .testTarget(name: "OgoLangTests", dependencies: ["OgoLang", "libOgol", "Execution"], resources: [.copy("logo.svg")]),
     ]
 )

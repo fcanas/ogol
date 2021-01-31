@@ -48,8 +48,9 @@ struct Tag {
     let properties: [String:String]
     func asXML() -> String {
         var stringOut = "<" + name
-        for (k,v) in properties {
-            stringOut += " \(k)=\"\(v)\""
+        let keys = properties.keys.sorted()
+        for k in keys {
+            stringOut += " \(k)=\"\(properties[k]!)\""
         }
         return stringOut + "/>"
     }
@@ -109,17 +110,15 @@ public class SVGEncoder {
             return encodable.bounds().map {bounds.extend(bounds: $0)} ?? bounds
         }
         
-        let width = bounds.width
-        let height = bounds.height
-        
         let margin: Double = 20
+        let translation = Point.zero
         
-        let translation = Point(x: 0, y: 0)
-        var output =
-        "<svg version=\"1.1\" baseProfile=\"full\" width=\"\(Int(width + 2*margin))\" height=\"\(Int(height + 2*margin))\" xmlns=\"http://www.w3.org/2000/svg\">"
-        output += "\n<g transform=\"translate(\(margin + bounds.max.x),\(margin - bounds.min.y)) scale(-1, 1)\">"
-        output += items.compactMap({ try? $0.element(translate: translation).asXML() }).joined(separator: "\n")
-        output += "\n</g>\n"
-        return output + "</svg>"
+        return """
+        <svg version="1.1" baseProfile="full" width="\(Int(bounds.width + 2 * margin))" height="\(Int(bounds.height + 2*margin))" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(\(margin + bounds.max.x),\(margin - bounds.min.y)) scale(-1, 1)">
+        \(items.compactMap({ try? $0.element(translate: translation).asXML() }).joined(separator: "\n"))
+        </g>
+        </svg>
+        """
     }
 }
