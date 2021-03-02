@@ -181,7 +181,7 @@ public class OgolParser: LanguageParser {
             registerToken(range: runningSubstring.startIndex..<param.1.startIndex, token: SyntaxType(category: .parameterDeclaration))
             parameters.append(param.0)
             runningSubstring = param.1
-            while let nextParam = ("," *> Lex.Token._space *> parameterTokenizer).run(runningSubstring) {
+            while let nextParam = (Lex.paramaterSeparator *> parameterTokenizer).run(runningSubstring) {
                 registerToken(range: runningSubstring.startIndex..<nextParam.1.startIndex, token: SyntaxType(category: .parameterDeclaration))
                 parameters.append(nextParam.0)
                 runningSubstring = nextParam.1
@@ -193,7 +193,7 @@ public class OgolParser: LanguageParser {
         var hasRest = false
         let restTokenizer: Parser<Substring, Value>
         if parameters.count > 0 {
-            restTokenizer = ("," *> Lex.Token._space *> Lex.listStart *> parameterTokenizer <* Lex.listEnd)
+            restTokenizer = (Lex.paramaterSeparator *> Lex.listStart *> parameterTokenizer <* Lex.listEnd)
         } else {
             restTokenizer = (Lex.listStart *> parameterTokenizer <* Lex.listEnd)
         }
