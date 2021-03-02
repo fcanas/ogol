@@ -27,7 +27,7 @@ struct Lex {
     static let listStart: Parser<Substring, String> = "["
     static let listEnd: Parser<Substring, String> = "]"
     
-    static let paramaterSeparator: Parser<Substring, String> = "," <* Token._space
+    static let paramaterSeparator: Parser<Substring, String> = "," <* Token._w
 
     static let comment: Parser<Substring, String> = Lex.Token.comment
 
