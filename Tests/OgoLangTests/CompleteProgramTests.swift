@@ -14,31 +14,31 @@ class CompleteProgramTests: XCTestCase {
     
     func testTreeDrawing() {
         let source = """
-                      to tree [:size]
-                          if [size < 5, [
-                            fd [size]
-                            bk [size]
-                            stop[]
-                          ]]
-                          fd [size/3]
-                          lt [30]
-                          tree [size*2/3]
-                          rt [30]
-                          fd [size/6]
-                          rt [25]
-                          tree [size/2]
-                          lt [25]
-                          fd [size/3]
-                          rt [25]
-                          tree [size/2]
-                          lt [25]
-                          fd [size/6]
-                          bk [size]
-                      end
-                      cs[]
-                      optimize["tree"]
-                      tree [720]
-                      """
+                     to tree [:size]
+                         if [size < 5, [
+                         fd [size]
+                         bk [size]
+                         stop[]
+                         ]]
+                         fd [size/3]
+                         lt [30]
+                         tree [size*2/3]
+                         rt [30]
+                         fd [size/6]
+                         rt [25]
+                         tree [size/2]
+                         lt [25]
+                         fd [size/3]
+                         rt [25]
+                         tree [size/2]
+                         lt [25]
+                         fd [size/6]
+                         bk [size]
+                     end
+                     cs[]
+                     optimize["tree"]
+                     tree [720]
+                     """
         let parser = OgolParser()
         parser.modules = [Turtle(), Optimizer(), Meta()]
         
