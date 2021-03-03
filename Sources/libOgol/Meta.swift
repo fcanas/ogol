@@ -26,6 +26,8 @@ public struct Meta: Module {
         "output":.extern(Meta.output),
         "if":.extern(Meta.if),
         "run":.extern(Meta.run),
+        "item":.extern(Meta.item),
+        "count":.extern(Meta.count),
     ]
     
     private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
@@ -109,4 +111,34 @@ public struct Meta: Module {
             }
         }
     }()
+    
+    private static var item: ExternalProcedure =
+        ExternalProcedure(name: "item", parameters: ["index", "list"]) { (params, context) throws -> Bottom? in
+            guard case let .list(list) = params[1] else {
+                throw ExecutionHandoff.error(.parameter, "The second parameter of `get` should be a list. Found \n\t\(params[1])")
+            }
+            guard case let .double(index) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be a number. Found \n\t()")
+            }
+            guard index >= 0 else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be greater than zero.")
+            }
+            let idx = Int(index)
+            guard Double(idx) == index else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be an integer.")
+            }
+            
+            guard list.count > idx else {
+                throw ExecutionHandoff.error(.parameter, "List doesn't have enough elements. Trying to get item at index \(idx) in list with \(list.count) elements.")
+            }
+            return list[idx]
+        }
+    
+    private static var count: ExternalProcedure =
+        ExternalProcedure(name: "count", parameters: ["list"]) { (params, context) throws -> Bottom? in
+            guard case let .list(list) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[1])")
+            }
+            return .double(Double(list.count))
+        }
 }
