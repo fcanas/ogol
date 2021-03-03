@@ -461,4 +461,37 @@ class CompleteProgramTests: XCTestCase {
         XCTAssertEqual(l, [1.0, 2.0, 3.0, 5.0].map { Bottom.double($0) })
         XCTAssertEqual(l2, [1.0, 2.0, 3.0, 4.0].map { Bottom.double($0) })
     }
+    
+    func testInvoke() throws {
+        let source =
+            """
+            make[:five,invoke[:add,2,3]] ; invoke with 2 parameters
+            
+            to makeSeven[]
+                make[:seven, 7]
+            end
+            invoke[:makeSeven] ; invoke with no parameters
+            """
+        let parser = OgolParser()
+        parser.modules = [Meta(), CoreLib!]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
+            XCTFail("Failed to parse logical test program")
+            return
+        }
+        let context: ExecutionContext = ExecutionContext()
+        context.variables["five"] = .list([])
+        context.variables["seven"] = .list([])
+        context.load(Meta())
+        context.load(CoreLib!)
+        try! program.execute(context: context, reuseScope: false)
+        
+        guard case let .double(five) = context.variables["five"],
+              case let .double(seven) = context.variables["seven"] else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertEqual(five, 5)
+        XCTAssertEqual(seven, 7)
+    }
 }

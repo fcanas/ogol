@@ -278,7 +278,7 @@ public class ExternalProcedure: GenericProcedure {
 
     let action: ([Bottom], ExecutionContext) throws -> Bottom?
     
-    public init(name: String, parameters: [String], action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?, hasRest: Bool = false) {
+    public init(name: String, parameters: [String], hasRest: Bool = false, action: @escaping ([Bottom], ExecutionContext) throws -> Bottom?) {
         self.name = name
         self.parameters = parameters
         self.action = action
