@@ -28,6 +28,8 @@ public struct Meta: Module {
         "run":.extern(Meta.run),
         "item":.extern(Meta.item),
         "count":.extern(Meta.count),
+        "prepend":.extern(Meta.prepend),
+        "append":.extern(Meta.append),
     ]
     
     private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
@@ -140,5 +142,52 @@ public struct Meta: Module {
                 throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[1])")
             }
             return .double(Double(list.count))
+        }
+    
+    private static var prepend: ExternalProcedure =
+        ExternalProcedure(name: "prepend", parameters: ["thing", "list"]) { (params, context) throws -> Bottom? in
+            
+            let value = params[0]
+            
+            switch params[1] {
+            case let .list(list):
+                var finalList = [value]
+                finalList.append(contentsOf: list)
+                return .list(finalList)
+            case let.reference(referenceName, referenceContext):
+                let contextToUse = (referenceContext ?? context)
+                guard case let .list(list) = context.variables[referenceName] else {
+                    throw ExecutionHandoff.error(.parameter, "No list :\(referenceName) visible in the current scope to prepend to.")
+                }
+                var finalList = [value]
+                finalList.append(contentsOf: list)
+                contextToUse.variables[referenceName] = .list(finalList)
+            default:
+                throw ExecutionHandoff.error(.parameter, "The second parameter of `prepend` should be a list or a reference to a list visible from the current scope. Found \n\t\(params[1])")
+            }
+            return nil
+        }
+    
+    private static var append: ExternalProcedure =
+        ExternalProcedure(name: "append", parameters: ["thing", "list"]) { (params, context) throws -> Bottom? in
+            
+            let value = params[0]
+            
+            switch params[1] {
+            case var .list(list):
+                var finalList = [value]
+                list.append(value)
+                return .list(list)
+            case let .reference(referenceName, referenceContext):
+                let contextToUse = (referenceContext ?? context)
+                guard case var .list(list) = context.variables[referenceName] else {
+                    throw ExecutionHandoff.error(.parameter, "No list :\(referenceName) visible in the current scope to append to.")
+                }
+                list.append(value)
+                contextToUse.variables[referenceName] = .list(list)
+            default:
+                throw ExecutionHandoff.error(.parameter, "The second parameter of `append` should be a list or a reference to a list visible from the current scope. Found \n\t\(params[1])")
+            }
+            return nil
         }
 }
