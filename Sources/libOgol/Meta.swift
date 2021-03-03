@@ -28,6 +28,7 @@ public struct Meta: Module {
         "run":.extern(Meta.run),
         "item":.extern(Meta.item),
         "count":.extern(Meta.count),
+        "invoke":.extern(Meta.invoke),
         "prepend":.extern(Meta.prepend),
         "append":.extern(Meta.append),
     ]
@@ -142,6 +143,37 @@ public struct Meta: Module {
                 throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[1])")
             }
             return .double(Double(list.count))
+        }
+    
+    private static var invoke: ExternalProcedure =
+        ExternalProcedure(name: "invoke", parameters: ["procedure", "parameters"], hasRest: true) { (params, context) throws -> Bottom? in
+            guard case let .reference(procedureName, referenceContext) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "invoke requires its first parameter to be a reference")
+            }
+            guard let procedure = referenceContext?.procedures[procedureName] else {
+                throw ExecutionHandoff.error(.parameter, "No procedure named `\(procedureName)` found.")
+            }
+            
+            // Preprocess Parameters
+            let proccessedParameters: [Value]
+            if params.count > 1 {
+                let rawParameters = params[1]
+                if case let .list(parameterList) = rawParameters {
+                    proccessedParameters = parameterList.map({ Value.bottom($0) })
+                } else {
+                    proccessedParameters = [Value.bottom(rawParameters)]
+                }
+            } else {
+                proccessedParameters = []
+            }
+            
+            let invocation = ProcedureInvocation(name: procedureName, parameters: proccessedParameters)
+            do {
+                try invocation.execute(context: context, reuseScope: false)
+            } catch let ExecutionHandoff.output(bottom) {
+                return bottom
+            }
+            return nil
         }
     
     private static var prepend: ExternalProcedure =
