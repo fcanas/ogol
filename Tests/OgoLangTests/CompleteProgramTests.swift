@@ -401,4 +401,64 @@ class CompleteProgramTests: XCTestCase {
         XCTAssertEqual(cP2, "pass")
         XCTAssertEqual(cF1, "pass")
     }
+    
+    func testPrepend() throws {
+        let source =
+            """
+            make[:l,list[1,2,3]]
+            make[:l2, prepend[0, l]]
+            prepend[-1, :l]
+            """
+        let parser = OgolParser()
+        parser.modules = [Meta(), CoreLib!]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
+            XCTFail("Failed to parse logical test program")
+            return
+        }
+        let context: ExecutionContext = ExecutionContext()
+        context.variables["l"] = .list([])
+        context.variables["l2"] = .list([])
+        context.load(Meta())
+        context.load(CoreLib!)
+        try! program.execute(context: context, reuseScope: false)
+            
+        guard case let .list(l) = context.variables["l"],
+              case let .list(l2) = context.variables["l2"] else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertEqual(l, [-1.0, 1.0, 2.0, 3.0].map { Bottom.double($0) })
+        XCTAssertEqual(l2, [0.0, 1.0, 2.0, 3.0].map { Bottom.double($0) })
+    }
+    
+    func testAppend() throws {
+        let source =
+            """
+            make[:l,list[1,2,3]]
+            make[:l2, append[4, l]]
+            append[5, :l]
+            """
+        let parser = OgolParser()
+        parser.modules = [Meta(), CoreLib!]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
+            XCTFail("Failed to parse logical test program")
+            return
+        }
+        let context: ExecutionContext = ExecutionContext()
+        context.variables["l"] = .list([])
+        context.variables["l2"] = .list([])
+        context.load(Meta())
+        context.load(CoreLib!)
+        try! program.execute(context: context, reuseScope: false)
+            
+        guard case let .list(l) = context.variables["l"],
+              case let .list(l2) = context.variables["l2"] else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertEqual(l, [1.0, 2.0, 3.0, 5.0].map { Bottom.double($0) })
+        XCTAssertEqual(l2, [1.0, 2.0, 3.0, 4.0].map { Bottom.double($0) })
+    }
 }
