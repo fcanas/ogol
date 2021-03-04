@@ -494,4 +494,70 @@ class CompleteProgramTests: XCTestCase {
         XCTAssertEqual(five, 5)
         XCTAssertEqual(seven, 7)
     }
+    
+    func testBF() throws {
+        let source =
+            """
+            make[:l1,butFirst[list[1,2,3]]]
+            make[:l2,butFirst[list[3]]]
+            make[:l3,butFirst[list[]]]
+            """
+        let parser = OgolParser()
+        parser.modules = [Meta(), CoreLib!]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
+            XCTFail("Failed to parse logical test program")
+            return
+        }
+        let context: ExecutionContext = ExecutionContext()
+        context.variables["l1"] = .double(0)
+        context.variables["l2"] = .double(0)
+        context.variables["l3"] = .double(0)
+        context.load(Meta())
+        context.load(CoreLib!)
+        try! program.execute(context: context, reuseScope: false)
+            
+        guard case let .list(l1) = context.variables["l1"],
+              case let .list(l2) = context.variables["l2"],
+              case let .list(l3) = context.variables["l3"] else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertEqual(l1, [2.0, 3.0].map { Bottom.double($0) })
+        XCTAssertEqual(l2, [])
+        XCTAssertEqual(l3, [])
+    }
+    
+    func testBL() throws {
+        let source =
+            """
+            make[:l1,butLast[list[1,2,3]]]
+            make[:l2,butLast[list[3]]]
+            make[:l3,butLast[list[]]]
+            """
+        let parser = OgolParser()
+        parser.modules = [Meta(), CoreLib!]
+        guard case let .success(program, _, _) = parser.program(substring: Substring(source)) else {
+            XCTFail("Failed to parse logical test program")
+            return
+        }
+        let context: ExecutionContext = ExecutionContext()
+        context.variables["l1"] = .double(0)
+        context.variables["l2"] = .double(0)
+        context.variables["l3"] = .double(0)
+        context.load(Meta())
+        context.load(CoreLib!)
+        try! program.execute(context: context, reuseScope: false)
+            
+        guard case let .list(l1) = context.variables["l1"],
+              case let .list(l2) = context.variables["l2"],
+              case let .list(l3) = context.variables["l3"] else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertEqual(l1, [1.0, 2.0].map { Bottom.double($0) })
+        XCTAssertEqual(l2, [])
+        XCTAssertEqual(l3, [])
+    }
 }

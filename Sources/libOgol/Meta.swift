@@ -31,6 +31,8 @@ public struct Meta: Module {
         "count":.extern(Meta.count),
         "prepend":.extern(Meta.prepend),
         "append":.extern(Meta.append),
+        "butFirst":.extern(Meta.butFirst),
+        "butLast":.extern(Meta.butLast),
     ]
     
     // MARK: - Storage
@@ -230,4 +232,21 @@ public struct Meta: Module {
             }
             return nil
         }
+    
+    private static var butFirst: ExternalProcedure =
+        ExternalProcedure(name: "butFirst", parameters: ["list"]) { (params, context) throws -> Bottom? in
+            guard case let .list(list) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "`butFirst` requires a list for a parameter. Found \n\t\(params[0])")
+            }
+            return .list(Array(list.dropFirst()))
+        }
+    
+    private static var butLast: ExternalProcedure =
+        ExternalProcedure(name: "butFirst", parameters: ["list"]) { (params, context) throws -> Bottom? in
+            guard case let .list(list) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "`butFirst` requires a list for a parameter. Found \n\t\(params[0])")
+            }
+            return .list(Array(list.dropLast()))
+        }
+    
 }
