@@ -72,7 +72,6 @@ public class OgolParser: LanguageParser {
             errors.forEach { (key, _) in
                 assert(key.upperBound != key.lowerBound, "Ranges should be non-zero")
             }
-            print(errors)
             #endif
         }
     }

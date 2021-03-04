@@ -20,6 +20,7 @@ public func startRepl(parser: LanguageParser, modules: [Module]) {
     let context: ExecutionContext = ExecutionContext(procedures: procs)
 
     modules.forEach { context.load($0) }
+    parser.modules = modules
 
     let prompt = "> "
     print(prompt, terminator: "")
