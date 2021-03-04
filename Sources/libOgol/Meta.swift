@@ -20,22 +20,20 @@ public struct Meta: Module {
     public init() { }
     
     public let procedures: [String : Procedure] = [
-        "stop":.extern(Meta.stop),
         "make":.extern(Meta.make),
         "local":.extern(Meta.local),
+        "stop":.extern(Meta.stop),
         "output":.extern(Meta.output),
         "if":.extern(Meta.if),
         "run":.extern(Meta.run),
+        "invoke":.extern(Meta.invoke),
         "item":.extern(Meta.item),
         "count":.extern(Meta.count),
-        "invoke":.extern(Meta.invoke),
         "prepend":.extern(Meta.prepend),
         "append":.extern(Meta.append),
     ]
     
-    private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
-        throw ExecutionHandoff.stop
-    }
+    // MARK: - Storage
     
     private static var make: ExternalProcedure = ExternalProcedure(name: "make", parameters: ["symbol", "value"]) { (params, context) -> Bottom? in
         guard case let .reference(symbol, referenceContext) = params[0] else {
@@ -53,6 +51,12 @@ public struct Meta: Module {
         return nil
     }
     
+    // MARK: - Control Flow
+    
+    private static var stop: ExternalProcedure = ExternalProcedure(name: "stop", parameters: []) { (_, _) -> Bottom? in
+        throw ExecutionHandoff.stop
+    }
+    
     private static var output: ExternalProcedure = ExternalProcedure(name: "output", parameters: ["value"]) { (params, context) -> Bottom? in
         throw ExecutionHandoff.output(params[0])
     }
@@ -66,6 +70,8 @@ public struct Meta: Module {
         }
         return nil
     }
+    
+    // MARK: - Execution
     
     private static var run: ExternalProcedure = {
         ExternalProcedure(name: "run", parameters: ["instructionList"]) { (params, context) throws -> Bottom? in
@@ -115,36 +121,6 @@ public struct Meta: Module {
         }
     }()
     
-    private static var item: ExternalProcedure =
-        ExternalProcedure(name: "item", parameters: ["index", "list"]) { (params, context) throws -> Bottom? in
-            guard case let .list(list) = params[1] else {
-                throw ExecutionHandoff.error(.parameter, "The second parameter of `get` should be a list. Found \n\t\(params[1])")
-            }
-            guard case let .double(index) = params[0] else {
-                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be a number. Found \n\t()")
-            }
-            guard index >= 0 else {
-                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be greater than zero.")
-            }
-            let idx = Int(index)
-            guard Double(idx) == index else {
-                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be an integer.")
-            }
-            
-            guard list.count > idx else {
-                throw ExecutionHandoff.error(.parameter, "List doesn't have enough elements. Trying to get item at index \(idx) in list with \(list.count) elements.")
-            }
-            return list[idx]
-        }
-    
-    private static var count: ExternalProcedure =
-        ExternalProcedure(name: "count", parameters: ["list"]) { (params, context) throws -> Bottom? in
-            guard case let .list(list) = params[0] else {
-                throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[1])")
-            }
-            return .double(Double(list.count))
-        }
-    
     private static var invoke: ExternalProcedure =
         ExternalProcedure(name: "invoke", parameters: ["procedure", "parameters"], hasRest: true) { (params, context) throws -> Bottom? in
             guard case let .reference(procedureName, referenceContext) = params[0] else {
@@ -174,6 +150,38 @@ public struct Meta: Module {
                 return bottom
             }
             return nil
+        }
+    
+    // MARK: - Lists
+    
+    private static var item: ExternalProcedure =
+        ExternalProcedure(name: "item", parameters: ["index", "list"]) { (params, context) throws -> Bottom? in
+            guard case let .list(list) = params[1] else {
+                throw ExecutionHandoff.error(.parameter, "The second parameter of `get` should be a list. Found \n\t\(params[1])")
+            }
+            guard case let .double(index) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be a number. Found \n\t()")
+            }
+            guard index >= 0 else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be greater than zero.")
+            }
+            let idx = Int(index)
+            guard Double(idx) == index else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be an integer.")
+            }
+            
+            guard list.count > idx else {
+                throw ExecutionHandoff.error(.parameter, "List doesn't have enough elements. Trying to get item at index \(idx) in list with \(list.count) elements.")
+            }
+            return list[idx]
+        }
+    
+    private static var count: ExternalProcedure =
+        ExternalProcedure(name: "count", parameters: ["list"]) { (params, context) throws -> Bottom? in
+            guard case let .list(list) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[1])")
+            }
+            return .double(Double(list.count))
         }
     
     private static var prepend: ExternalProcedure =
