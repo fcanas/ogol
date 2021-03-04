@@ -83,6 +83,7 @@ public class Turtle: Module {
             case .st: return "st"
             case .ht: return "ht"
             case .home: return "home"
+            case let .setPenColor(v): return "setPenColor \(v)"
             case let .setXY(point): return "setxy \(point)"
             }
         }
@@ -141,7 +142,21 @@ public class Turtle: Module {
                         throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for Y.")
                     }
                     try Turtle.Command.setXY(Point(x: x, y: y)).execute(context: context)
+                case .setPenColor:
+                    guard case let.list(colorValues) = context.variables["pencolor"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a list for color values.")
+                    }
+                    
+                    let colorOut = try colorValues.map { (value) -> Double in
+                        guard case let .double(v) = value else {
+                            throw ExecutionHandoff.error(.typeError, "Expected a list of numbers for color values. Found \(value)")
+                        }
+                        return v
+                    }
+                    
+                    try Turtle.Command.setPenColor(colorOut).execute(context: context)
                 }
+                
             }
             
             case fd
@@ -155,10 +170,11 @@ public class Turtle: Module {
             case ht
             case home
             case setxy
+            case setPenColor
             
             var parameterCount: Int {
                 switch self {
-                case .fd, .bk, .rt, .lt:
+                case .fd, .bk, .rt, .lt, .setPenColor:
                     return 1
                 case .cs, .pu, .pd, .st, .ht, .home:
                     return 0
@@ -173,6 +189,8 @@ public class Turtle: Module {
                     return ["amount"]
                 case .setxy:
                     return ["x", "y"]
+                case .setPenColor:
+                    return ["pencolor"]
                 default:
                     return []
                 }
@@ -191,6 +209,7 @@ public class Turtle: Module {
         case ht
         case home
         case setXY(Point)
+        case setPenColor([Double])
         
         func execute(context: ExecutionContext) throws {
             
@@ -225,6 +244,7 @@ public class Turtle: Module {
     public struct Segment {
         public let start: Point
         public let end: Point
+        public var color: [Double]?
     }
     
     public typealias MultiLine = Array<Turtle.Segment>
@@ -236,6 +256,7 @@ public class Turtle: Module {
     public var pen: Pen
     public var visible: Bool
     public var multiline: MultiLine
+    public var color: [Double]?
     
     public init(position: Point = .zero,
                 angle: Double = Turtle.defaultAngle,
@@ -256,7 +277,7 @@ public class Turtle: Module {
             let a = angle * .pi / 180
             let newPosition = position + Point(x: cos(a) * dist, y: sin(a) * dist)
             if pen == .down {
-                self.multiline.append(Segment(start: position, end: newPosition))
+                self.multiline.append(Segment(start: position, end: newPosition, color: self.color))
             }
             position = newPosition
         case let .bk(dist):
@@ -294,6 +315,9 @@ public class Turtle: Module {
             return oldML
         case .cs:
             multiline = []
+        case let .setPenColor(colorValues):
+            self.color = colorValues
+            break
         }
         return nil
     }
