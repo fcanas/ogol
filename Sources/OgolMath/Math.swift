@@ -85,4 +85,15 @@ public struct LogoMath: Module {
     public let procedures: [String : Procedure] = {
         return SingleParameter().procedures.merging(Random().procedures, uniquingKeysWith: { (a,b) in a })
     }()
+    
+    public func initialize(context: ExecutionContext) {
+        [
+            "pi":Double.pi,
+            "tau":Double.pi * 2,
+            "infinity":Double.infinity,
+            "euler":log(1),
+        ].forEach { (key, value) in
+            context.variables[key] = .double(value)
+        }
+    }
 }
