@@ -39,7 +39,7 @@ func bounds(_ a: Point, _ b: Point) -> Bounds {
 }
 
 protocol SVGEncodable {
-    func element(translate: Point) throws -> Tag
+    func element(translate: Point, properties: [String:String]) throws -> Tag
     func bounds() -> Bounds?
 }
 
@@ -67,7 +67,7 @@ extension Turtle.MultiLine: SVGEncodable {
         }
     }
     
-    func element(translate: Point) throws -> Tag {
+    func element(translate: Point, properties: [String:String]) throws -> Tag {
         guard let firstSegment = first else {
             throw SVGError.emptyMultiLine
         }
@@ -76,11 +76,15 @@ extension Turtle.MultiLine: SVGEncodable {
             return "\(point.x + translate.x), \(point.y + translate.y)"
         }
         
-        let points = reduce(stringify(point: firstSegment.start)) { (result, segment) -> String in
-            return result + " " + stringify(point: segment.end)
+        let r = reduce((stringify(point: firstSegment.start), nil)) { (result, segment) -> (String,String?) in
+            return (result.0 + " " + stringify(point: segment.end), segment.color.map( { cVec in "rgb(\( cVec.map({String($0)}).joined(separator: ",") ))" } ) ?? result.1 )
         }
-        
-        return Tag(name: "polyline", properties: ["points":points, "fill":"none", "stroke-width":"1px"])
+        print(r)
+        var p = properties.merging(["points":r.0, "fill":"none", "stroke-width":"1px"], uniquingKeysWith: { (a,_) in a })
+        if let color = r.1 {
+            p["stroke"] = color
+        }
+        return Tag(name: "polyline", properties: p)
     }
 }
 
@@ -116,7 +120,7 @@ public class SVGEncoder {
         return """
         <svg version="1.1" baseProfile="full" width="\(Int(bounds.width + 2 * margin))" height="\(Int(bounds.height + 2*margin))" xmlns="http://www.w3.org/2000/svg">
         <g transform="translate(\(margin + bounds.max.x),\(margin - bounds.min.y)) scale(-1, 1)">
-        \(items.compactMap({ try? $0.element(translate: translation).asXML() }).joined(separator: "\n"))
+        \(items.compactMap({ try? $0.element(translate: translation, properties: [:]).asXML() }).joined(separator: "\n"))
         </g>
         </svg>
         """
