@@ -29,8 +29,8 @@ end
 to repeat [:count, :instructionList]
    if [count < 1, [stop[]]]
    run [instructionList]
-   make [:count, count - 1]
-   repeat [count, instructionList]
+   repeat [count - 1, instructionList]
+end
 
 to empty [:empList]
     local[:c, count[empList]]
