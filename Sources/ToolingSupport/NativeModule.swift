@@ -22,7 +22,9 @@ public struct NativeModule: Module {
         case let .success(p, syntax, error):
             self.syntaxMap = syntax
             program = p
-            print(error)
+            if !error.isEmpty {
+                print(error)
+            }
         case let .error(e):
             print("Unable to load native module: \(e)")
             return nil
