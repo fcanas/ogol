@@ -28,6 +28,7 @@ public struct Meta: Module {
         "run":.extern(Meta.run),
         "invoke":.extern(Meta.invoke),
         "item":.extern(Meta.item),
+        "setItem":.extern(Meta.setItem),
         "count":.extern(Meta.count),
         "prepend":.extern(Meta.prepend),
         "append":.extern(Meta.append),
@@ -165,7 +166,7 @@ public struct Meta: Module {
                 throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be a number. Found \n\t()")
             }
             guard index >= 0 else {
-                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be greater than zero.")
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `get` should be greater than or equal zero.")
             }
             let idx = Int(index)
             guard Double(idx) == index else {
@@ -176,6 +177,40 @@ public struct Meta: Module {
                 throw ExecutionHandoff.error(.parameter, "List doesn't have enough elements. Trying to get item at index \(idx) in list with \(list.count) elements.")
             }
             return list[idx]
+        }
+    
+    private static var setItem: ExternalProcedure =
+        ExternalProcedure(name: "item", parameters: ["index", "list", "value"]) { (params, context) throws -> Bottom? in
+            
+            
+            guard case let.reference(referenceName, referenceContext) = params[1] else {
+                throw ExecutionHandoff.error(.parameter, "The second parameter of `setItem` should be a reference to a list. Found \n\t\(params[1])")
+            }
+            
+            let contextToUse = (referenceContext ?? context)
+
+            guard case var .list(list) = context.variables[referenceName] else {
+                throw ExecutionHandoff.error(.parameter, "The second parameter of `setItem` should be a reference to a list. Found \n\t\(String(describing: context.variables[referenceName]))")
+            }
+            guard case let .double(index) = params[0] else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `setItem` should be a number. Found \n\t()")
+            }
+            guard index >= 0 else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `setItem` should be greater than zero.")
+            }
+            let idx = Int(index)
+            guard Double(idx) == index else {
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `setItem` should be an integer.")
+            }
+            
+            guard list.count > idx else {
+                throw ExecutionHandoff.error(.parameter, "List doesn't have enough elements. Trying to get item at index \(idx) in list with \(list.count) elements.")
+            }
+            
+            list[idx] = params[2]
+            contextToUse.variables[referenceName] = .list(list)
+            
+            return nil
         }
     
     private static var count: ExternalProcedure =
