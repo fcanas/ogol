@@ -36,3 +36,24 @@ to empty [:empList]
     local[:c, count[empList]]
     output[ c < 1 ]
 end
+
+to map0 [:remainingItems]
+    if [ empty [remainingItems], [ stop[] ]]
+    append [ invoke [proc, item [ 0, remainingItems ] ] , :mapOut ]
+    map0 [ butFirst [ remainingItems ] ]
+end
+
+to map [:proc, :itemList]
+    local [:mapOut, list[]]
+    map0 [itemList]
+    output [ mapOut ]
+end
+
+to forEach [:proc, :data]
+    local[:dataIndex, 0]
+    repeat[count[data], [
+        invoke[proc, item[dataIndex, data]]
+        make[:dataIndex, dataIndex + 1]
+    ]]
+end
+
