@@ -27,6 +27,7 @@ public class Serialization: Module {
             }
             do {
                 let encoder = JSONEncoder()
+                encoder.nonConformingFloatEncodingStrategy = .convertToString(positiveInfinity: "+Inf", negativeInfinity: "-Inf", nan: "NaN")
                 encoder.outputFormatting = .prettyPrinted
                 let encodedProcedure = try encoder.encode(procedure)
                 let encString = String(data: encodedProcedure, encoding: .utf8)!
