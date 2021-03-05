@@ -85,6 +85,7 @@ public class Turtle: Module {
             case .home: return "home"
             case let .setPenColor(v): return "setPenColor \(v)"
             case let .setXY(point): return "setxy \(point)"
+            case let .setHeading(degrees): return "setxy \(degrees)"
             }
         }
         
@@ -153,8 +154,12 @@ public class Turtle: Module {
                         }
                         return v
                     }
-                    
                     try Turtle.Command.setPenColor(colorOut).execute(context: context)
+                case .setHeading:
+                    guard case let .double(degrees) = context.variables["degrees"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for degrees.")
+                    }
+                    try Turtle.Command.setHeading(degrees).execute(context: context)
                 }
                 
             }
@@ -171,10 +176,11 @@ public class Turtle: Module {
             case home
             case setxy
             case setPenColor
+            case setHeading
             
             var parameterCount: Int {
                 switch self {
-                case .fd, .bk, .rt, .lt, .setPenColor:
+                case .fd, .bk, .rt, .lt, .setPenColor, .setHeading:
                     return 1
                 case .cs, .pu, .pd, .st, .ht, .home:
                     return 0
@@ -191,7 +197,9 @@ public class Turtle: Module {
                     return ["x", "y"]
                 case .setPenColor:
                     return ["pencolor"]
-                default:
+                case .setHeading:
+                    return ["degrees"]
+                case .cs, .pu, .pd, .st, .ht, .home:
                     return []
                 }
             }
@@ -210,6 +218,7 @@ public class Turtle: Module {
         case home
         case setXY(Point)
         case setPenColor([Double])
+        case setHeading(Double)
         
         func execute(context: ExecutionContext) throws {
             
@@ -318,6 +327,8 @@ public class Turtle: Module {
         case let .setPenColor(colorValues):
             self.color = colorValues
             break
+        case let .setHeading(degrees):
+            angle = degrees
         }
         return nil
     }
