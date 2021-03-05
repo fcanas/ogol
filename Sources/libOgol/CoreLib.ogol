@@ -57,3 +57,16 @@ to forEach [:proc, :data]
     ]]
 end
 
+to radToDeg[:rad]
+   output [ rad * 360 / tau ]
+end
+
+to arc[:radius, :radians]
+    local[:remainingDistance, tau * radius / radians]
+    local[:numberOfSteps, remainingDistance]
+    local[:degrees, radToDeg[radians]]
+    repeat[numberOfSteps, [
+        fd [1]
+        rt [degrees / numberOfSteps]
+    ]]
+end
