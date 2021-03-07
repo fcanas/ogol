@@ -10,6 +10,10 @@ import Execution
 import Foundation
 import OgoLang
 
+public protocol Drawable {
+    var color: [Double]? { get }
+}
+
 public struct Point {
     
     public init(x: Double, y: Double) {
@@ -31,11 +35,19 @@ public struct Point {
     public static let zero = Point(x: 0, y: 0)
 }
 
+public struct Label: Drawable {
+    public var position: Point
+    public var angle: Double
+    public var text: String
+    public var color: [Double]?
+}
+
 public class Turtle: Module {
     
     internal static let ModuleStoreKey: String = "turtle"
     internal static let turtleKey = ExecutionContext.ModuleStore.Key<Turtle>(key: "turtle")
-    internal static let multilineKey = ExecutionContext.ModuleStore.Key<[MultiLine]>(key: "multiline")
+    internal static let multilineKey = ExecutionContext.ModuleStore.Key<[Drawable]>(key: "multiline")
+    internal static let boundsKey = ExecutionContext.ModuleStore.Key<Bounds>(key: "bounds")
     
     public var procedures: [String : Procedure] = {
         var out: [String:Procedure] = [:]
@@ -45,7 +57,7 @@ public class Turtle: Module {
         return out
     }()
     
-    public static func fullMultiline(context: ExecutionContext) -> [MultiLine] {
+    public static func fullMultiline(context: ExecutionContext) -> [Drawable] {
         guard let moduleStore = context.moduleStores[ModuleStoreKey] else {
             return []
         }
@@ -56,13 +68,20 @@ public class Turtle: Module {
         return multilines
     }
     
+    public static func overriddenBounds(for context: ExecutionContext) -> Bounds? {
+        guard let moduleStore = context.moduleStores[ModuleStoreKey] else {
+            return nil
+        }
+        return moduleStore[boundsKey]
+    }
+    
     public func initialize(context: ExecutionContext) {
         let turtleStore = ExecutionContext.ModuleStore()
         context.moduleStores[Turtle.ModuleStoreKey] = turtleStore
         turtleStore[Turtle.turtleKey] = Turtle()
     }
     
-    public static func multilines(for context:ExecutionContext) -> [MultiLine] {
+    public static func multilines(for context:ExecutionContext) -> [Drawable] {
         return context.moduleStores[ModuleStoreKey]?[multilineKey] ?? []
     }
     
@@ -86,6 +105,8 @@ public class Turtle: Module {
             case let .setPenColor(v): return "setPenColor \(v)"
             case let .setXY(point): return "setxy \(point)"
             case let .setHeading(degrees): return "setxy \(degrees)"
+            case let .label(string): return "label \(string)"
+            case let .bounds(bounds): return "setBounds [ \(bounds.min.x), \(bounds.min.y), \(bounds.max.x), \(bounds.max.y) ]"
             }
         }
         
@@ -160,6 +181,31 @@ public class Turtle: Module {
                         throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for degrees.")
                     }
                     try Turtle.Command.setHeading(degrees).execute(context: context)
+                case .label:
+                    guard case let .string(string) = context.variables["string"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a string for the argument to `label`.")
+                    }
+                    try Turtle.Command.label(string).execute(context: context)
+                case .setBounds:
+                    guard case let .double(minX) = context.variables["minX"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for minX.")
+                    }
+                    guard case let .double(minY) = context.variables["minY"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for minY.")
+                    }
+                    guard case let .double(maxX) = context.variables["maxX"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for maxX.")
+                    }
+                    guard case let .double(maxY) = context.variables["maxY"] else {
+                        throw ExecutionHandoff.error(.typeError, "\(self.rawValue) Expected a number for maxY.")
+                    }
+                    
+                    let newBounds = Bounds(min: Point(x: minX, y: minY), max: Point(x: maxX, y: maxY))
+                    
+                    guard let moduleStore = context.moduleStores[ModuleStoreKey] else {
+                        return
+                    }
+                    moduleStore[boundsKey] = newBounds
                 }
                 
             }
@@ -177,15 +223,19 @@ public class Turtle: Module {
             case setxy
             case setPenColor
             case setHeading
+            case label
+            case setBounds
             
             var parameterCount: Int {
                 switch self {
-                case .fd, .bk, .rt, .lt, .setPenColor, .setHeading:
+                case .fd, .bk, .rt, .lt, .setPenColor, .setHeading, .label:
                     return 1
                 case .cs, .pu, .pd, .st, .ht, .home:
                     return 0
                 case .setxy:
                     return 2
+                case .setBounds:
+                    return 4
                 }
             }
             
@@ -199,6 +249,10 @@ public class Turtle: Module {
                     return ["pencolor"]
                 case .setHeading:
                     return ["degrees"]
+                case .label:
+                    return ["string"]
+                case .setBounds:
+                    return ["minX", "minY", "maxX", "maxY"]
                 case .cs, .pu, .pd, .st, .ht, .home:
                     return []
                 }
@@ -219,6 +273,8 @@ public class Turtle: Module {
         case setXY(Point)
         case setPenColor([Double])
         case setHeading(Double)
+        case label(String)
+        case bounds(Bounds)
         
         func execute(context: ExecutionContext) throws {
             
@@ -250,13 +306,25 @@ public class Turtle: Module {
         case down
     }
     
-    public struct Segment {
+    public struct Segment: Drawable {
         public let start: Point
         public let end: Point
         public var color: [Double]?
     }
     
-    public typealias MultiLine = Array<Turtle.Segment>
+    public struct MultiLine: Drawable {
+        public init(segments: [Turtle.Segment] = [], color: [Double]? = nil) {
+            self.segments = segments
+            self.color = color
+        }
+        
+        mutating public func append(_ newSegment: Segment) {
+            segments.append(newSegment)
+        }
+        
+        public var segments: [Segment]
+        public var color: [Double]?
+    }
     
     public static let defaultAngle: Double = -90
     
@@ -271,7 +339,7 @@ public class Turtle: Module {
                 angle: Double = Turtle.defaultAngle,
                 pen: Pen = .down,
                 visible: Bool = true,
-                multiline: MultiLine = []
+                multiline: MultiLine = MultiLine()
     ) {
         self.position = position
         self.angle = angle
@@ -280,7 +348,7 @@ public class Turtle: Module {
         self.multiline = multiline
     }
     
-    func performing(_ command: Turtle.Command) -> MultiLine? {
+    func performing(_ command: Turtle.Command) -> Drawable? {
         switch command {
         case let .fd(dist):
             let a = angle * .pi / 180
@@ -297,13 +365,13 @@ public class Turtle: Module {
             }
             position = newPosition
         case let .lt(a):
-            angle += a
-        case let .rt(a):
             angle -= a
+        case let .rt(a):
+            angle += a
         case .pu:
             pen = .up
             let oldML = multiline
-            multiline = []
+            multiline = MultiLine()
             return oldML
         case .pd:
             pen = .down
@@ -311,7 +379,7 @@ public class Turtle: Module {
             position = .zero
             angle = Turtle.defaultAngle
             let oldML = multiline
-            multiline = []
+            multiline = MultiLine()
             return oldML
         case .st:
             visible = true
@@ -320,15 +388,19 @@ public class Turtle: Module {
         case let .setXY(position):
             self.position = position
             let oldML = multiline
-            multiline = []
+            multiline = MultiLine()
             return oldML
         case .cs:
-            multiline = []
+            multiline = MultiLine()
         case let .setPenColor(colorValues):
             self.color = colorValues
             break
         case let .setHeading(degrees):
             angle = degrees
+        case let .label(string):
+            return Label(position: self.position, angle: self.angle, text: string, color: self.color)
+        case let .bounds(bounds):
+            return nil
         }
         return nil
     }
