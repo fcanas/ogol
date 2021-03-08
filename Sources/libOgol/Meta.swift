@@ -34,6 +34,7 @@ public struct Meta: Module {
         "append":.extern(Meta.append),
         "butFirst":.extern(Meta.butFirst),
         "butLast":.extern(Meta.butLast),
+        "string":.extern(Meta.string),
     ]
     
     // MARK: - Storage
@@ -283,5 +284,14 @@ public struct Meta: Module {
             }
             return .list(Array(list.dropLast()))
         }
+    
+    private static var string: ExternalProcedure = ExternalProcedure(name: "string", parameters: ["components"], hasRest: true) { (params, context) -> Bottom? in
+        guard case let .list(input) = params[0] else {
+            return .string("")
+        }
+        return .string(input.reduce("") { (string, next) -> String in
+            return string + next.description
+        })
+    }
     
 }
