@@ -49,6 +49,10 @@ public struct LogoMath: Module {
             "log2" : log2,
             "abs" : fabs,
             "sqrt" : sqrt,
+            
+            "floor": floor,
+            "round": round,
+            "ceil" : ceil,
         ]
 
         public var procedures: [String : Procedure] {
