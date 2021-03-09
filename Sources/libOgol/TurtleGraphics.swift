@@ -104,6 +104,7 @@ public class Turtle: Module {
             case .home: return "home"
             case let .setPenColor(v): return "setPenColor \(v)"
             case let .setXY(point): return "setxy \(point)"
+            case .pos: return "pos"
             case let .setHeading(degrees): return "setxy \(degrees)"
             case let .label(string): return "label \(string)"
             case let .bounds(bounds): return "setBounds [ \(bounds.min.x), \(bounds.min.y), \(bounds.max.x), \(bounds.max.y) ]"
@@ -206,6 +207,22 @@ public class Turtle: Module {
                         return
                     }
                     moduleStore[boundsKey] = newBounds
+                case .pos:
+                    guard let moduleStore = context.moduleStores[ModuleStoreKey] else {
+                        return
+                    }
+                    guard let turtle = moduleStore[Turtle.turtleKey] else {
+                        return
+                    }
+                    throw ExecutionHandoff.output(.list([ .double(turtle.position.x), .double(turtle.position.y) ]))
+                case .heading:
+                    guard let moduleStore = context.moduleStores[ModuleStoreKey] else {
+                        return
+                    }
+                    guard let turtle = moduleStore[Turtle.turtleKey] else {
+                        return
+                    }
+                    throw ExecutionHandoff.output(.double(turtle.angle))
                 }
                 
             }
@@ -221,16 +238,18 @@ public class Turtle: Module {
             case ht
             case home
             case setxy
+            case pos
             case setPenColor
             case setHeading
             case label
             case setBounds
+            case heading
             
             var parameterCount: Int {
                 switch self {
                 case .fd, .bk, .rt, .lt, .setPenColor, .setHeading, .label:
                     return 1
-                case .cs, .pu, .pd, .st, .ht, .home:
+                case .cs, .pu, .pd, .st, .ht, .home, .pos, .heading:
                     return 0
                 case .setxy:
                     return 2
@@ -253,7 +272,7 @@ public class Turtle: Module {
                     return ["string"]
                 case .setBounds:
                     return ["minX", "minY", "maxX", "maxY"]
-                case .cs, .pu, .pd, .st, .ht, .home:
+                case .cs, .pu, .pd, .st, .ht, .home, .pos, .heading:
                     return []
                 }
             }
@@ -271,6 +290,7 @@ public class Turtle: Module {
         case ht
         case home
         case setXY(Point)
+        case pos
         case setPenColor([Double])
         case setHeading(Double)
         case label(String)
@@ -399,7 +419,9 @@ public class Turtle: Module {
             angle = degrees
         case let .label(string):
             return Label(position: self.position, angle: self.angle, text: string, color: self.color)
-        case let .bounds(bounds):
+        case .bounds(_):
+            return nil
+        case .pos:
             return nil
         }
         return nil

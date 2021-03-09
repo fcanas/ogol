@@ -149,8 +149,8 @@ public class SVGEncoder {
         let translation = Point.zero
         
         return """
-        <svg version="1.1" baseProfile="full" width="\(Int(bounds.width + 2 * margin))" height="\(Int(bounds.height + 2*margin))" viewBox="\(bounds.min.x - margin) \(bounds.min.y - margin) \(bounds.width + 2 * margin) \(bounds.height + 2 * margin)" xmlns="http://www.w3.org/2000/svg">
-        <g style="overflow=visible;">
+        <svg version="1.1" baseProfile="full" width="\(Int(bounds.width + 2 * margin))" height="\(Int(bounds.height + 2*margin))" viewBox="\(bounds.min.x - margin) \(bounds.min.y - margin) \(bounds.width + 2 * margin) \(bounds.height + 2 * margin)" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+        <g>
         \(items.compactMap({ try? $0.element(translate: translation, properties: [:]).asXML() }).joined(separator: "\n"))
         </g>
         </svg>
