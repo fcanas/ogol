@@ -264,8 +264,13 @@ public struct Expression: Equatable {
             case .gt:
                 return .boolean(lhsv > rhsv)
             }
-        case (.list(_), .list(_)):
-            throw ExecutionHandoff.error(.typeError, "lists are unsupported")
+        case let (.list(lhsv), .list(rhsv)):
+            switch rhs.operation {
+            case .eq:
+                return .boolean(lhsv == rhsv)
+            default:
+                throw ExecutionHandoff.error(.typeError, "Lists can only be compared with `=`.")
+            }
         case let (.boolean(lhsv), .boolean(rhsv)):
             switch rhs.operation {
             case .eq:
@@ -273,16 +278,40 @@ public struct Expression: Equatable {
             default:
                 throw ExecutionHandoff.error(.typeError, "Booleans can only be compared with `=`.")
             }
+        case let (.string(lhsv), .string(rhsv)):
+            switch rhs.operation {
+            case .eq:
+                return .boolean(lhsv == rhsv)
+            default:
+                throw ExecutionHandoff.error(.typeError, "Strings can only be compared with `=`.")
+            }
+        case let (.reference(lhsName, lhsContext), .reference(rhsName, rhsContext)):
+            switch rhs.operation {
+            case .eq:
+                if lhsName != rhsName {
+                    return .boolean(false)
+                }
+                
+                let lhsUseContext = lhsContext ?? context
+                let rhsUseContext = rhsContext ?? context
+                
+                if lhsUseContext === rhsUseContext {
+                    return .boolean(true)
+                }
+                return .boolean(lhsUseContext.variables.storeContaining(key: lhsName) === rhsUseContext.variables.storeContaining(key: rhsName))
+                // TODO: references for functions? 😬
+            default:
+                throw ExecutionHandoff.error(.typeError, "References can only be compared with `=`.")
+            }
+        case let (.command(lhsv), .command(rhsv)):
+            switch rhs.operation {
+            case .eq:
+                return .boolean(lhsv == rhsv)
+            default:
+                throw ExecutionHandoff.error(.typeError, "commands can only be compared with `=`.")
+            }
         default:
-            // TODO: Does this belong here or elsewhere?
-            //    guard op == .eq else {
-            //        throw ExecutionHandoff.error(.typeError, "= comparison only possible with boolean types. Left hand side not boolean")
-            //    }
-            //    guard case let .boolean(rhsbv) = try self.rhs.evaluate(context: context) else {
-            //        throw ExecutionHandoff.error(.typeError, "= comparison only possible with boolean types. Right hand side not boolean")
-            //    }
-            //    return .boolean(lhsbv == rhsbv)
-            throw ExecutionHandoff.error(.typeError, "Comparisons are for numbers and booleans.")
+            return .boolean(false)
         }
     }
     
