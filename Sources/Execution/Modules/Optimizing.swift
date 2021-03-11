@@ -16,10 +16,10 @@ public struct Optimizer: Module {
     ]
     
     static var optimize: ExternalProcedure = ExternalProcedure(name: "optimize", parameters: ["procedure"]) { (params, context) -> Bottom? in
-        guard case let .string(name) = params.first else {
-            throw ExecutionHandoff.error(ExecutionHandoff.Runtime.parameter, "Needs a single string parameter.")
+        guard case let .reference(name, referenceContext) = params.first else {
+            throw ExecutionHandoff.error(ExecutionHandoff.Runtime.parameter, "Needs a reference as a parameter.")
         }
-        guard var candidateProcedure = context.procedures[name] else {
+        guard var candidateProcedure = (referenceContext ?? context).procedures[name] else {
             throw ExecutionHandoff.error(ExecutionHandoff.Runtime.missingSymbol, "Procedure \(name) not found to optimize")
         }
         guard case let .native(procedure) = candidateProcedure else {
