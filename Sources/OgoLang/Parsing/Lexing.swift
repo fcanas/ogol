@@ -12,8 +12,8 @@ import Foundation
 import ToolingSupport
 
 extension CharacterSet {
-    static let logoAlphabetical = CharacterSet.letters
-    static let logoAlphaNumeric = logoAlphabetical.union(CharacterSet(charactersIn: "0"..."9"))
+    static let symbotStart = CharacterSet.letters.union(CharacterSet(charactersIn: "._"))
+    static let symbolAny = symbotStart.union(CharacterSet(charactersIn: "0"..."9"))
 }
 
 // MARK: Lex
@@ -42,7 +42,7 @@ struct Lex {
         
         static let name = { (c, ca) -> String in
             return String(c) + String(ca)
-            } <^> CharacterSet.logoAlphabetical.parser() <&> CharacterSet.logoAlphaNumeric.parser().many
+            } <^> CharacterSet.symbotStart.parser() <&> CharacterSet.symbolAny.parser().many
         static let number = { Value.bottom(.double(($0))) } <^> Double.parser
         static let comment = { String($0) } <^> ";" *> character(condition: { $0 != "\n" && $0 != "\r" }).many <* eol
         static let eol = _w *> BasicParser.newline.many
