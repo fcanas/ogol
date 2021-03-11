@@ -35,6 +35,7 @@ public struct Meta: Module {
         "butFirst":.extern(Meta.butFirst),
         "butLast":.extern(Meta.butLast),
         "string":.extern(Meta.string),
+        "thing":.extern(Meta.thing),
     ]
     
     // MARK: - Storage
@@ -292,6 +293,17 @@ public struct Meta: Module {
         return .string(input.reduce("") { (string, next) -> String in
             return string + next.description
         })
+    }
+    
+    private static var thing: ExternalProcedure = ExternalProcedure(name: "thing", parameters: ["reference"]) { (params, context) -> Bottom? in
+        guard case let .reference(name, referenceContext) = params[0] else {
+            throw ExecutionHandoff.error(.parameter, "`thing` requires a reference for a parameter")
+        }
+        let contextToUse = (referenceContext ?? context)
+        guard let value = contextToUse.variables[name] else {
+            throw ExecutionHandoff.error(.missingSymbol, "No variable named '\(name)' in this scope")
+        }
+        return value
     }
     
 }
