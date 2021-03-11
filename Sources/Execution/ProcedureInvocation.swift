@@ -60,8 +60,12 @@ public struct ProcedureInvocation: Equatable {
         } else {
             newScope = try ExecutionContext(parent: context, procedures: procedure.procedures, variables: parameterMap)
         }
-        
-        try procedure.execute(context: newScope, reuseScope: reuseScope)
+        do {
+            try procedure.execute(context: newScope, reuseScope: reuseScope)
+        } catch ExecutionHandoff.error(let type, var message) {
+            message = "\t\(procedure.name)\n" + message
+            throw ExecutionHandoff.error(type, message)
+        }
     }
     
     public init(name: String, parameters: [Value]) {
