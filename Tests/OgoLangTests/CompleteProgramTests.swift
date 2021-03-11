@@ -58,7 +58,7 @@ class CompleteProgramTests: XCTestCase {
                          bk [size]
                      end
                      cs[]
-                     optimize["tree"]
+                     optimize[:tree]
                      tree [720]
                      """
         let parser = OgolParser()
@@ -86,7 +86,7 @@ class CompleteProgramTests: XCTestCase {
                             bk [100 * 10 * 20 / 20 + 200 + 8 + 11 * 8 + 1 + 3 + 7 * 5 / 3 / 100 * 10 * 20 / 20 + 200 + 8 + 11 * 8 + 1 + 3 + 7 * 5 / 3]
                         ]]
                         end
-                        optimize ["keepbusy]
+                        optimize [:keepbusy]
                         keepbusy[]
                         """
         let parser = OgolParser()
