@@ -534,9 +534,14 @@ public class OgolParser: LanguageParser {
     }
 
     private func eatNewlines(_ substring: Substring) -> Substring {
-        if let (_, candidateSubstring) =  Lex.Token.eol.run(substring) {
-            return candidateSubstring
+        var s: Substring = substring
+        while true {
+            if let (_, candidateSubstring) =  Lex.Token.eol.run(s) {
+                if s == candidateSubstring { return s }
+                s = candidateSubstring
+            } else {
+                return s
+            }
         }
-        return substring
     }
 }
