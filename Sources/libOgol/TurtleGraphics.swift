@@ -332,13 +332,13 @@ public class Turtle: Module {
         public var color: [Double]?
     }
     
-    public struct MultiLine: Drawable {
+    public class MultiLine: Drawable {
         public init(segments: [Turtle.Segment] = [], color: [Double]? = nil) {
             self.segments = segments
             self.color = color
         }
         
-        mutating public func append(_ newSegment: Segment) {
+        public func append(_ newSegment: Segment) {
             segments.append(newSegment)
         }
         
