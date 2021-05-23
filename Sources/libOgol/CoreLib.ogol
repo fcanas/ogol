@@ -101,3 +101,12 @@ to max[:a, :b]
     if [ a < b, [ output[b]]]
     output[a]
 end
+
+to tick[]
+    make[:startTime, Time.now[]]
+end
+
+to tock[]
+    local[:elapsedTime, Time.now[]]
+    output[elapsedTime - startTime]
+end

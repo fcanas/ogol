@@ -116,6 +116,15 @@ to max[:a, :b]
     output[a]
 end
 
+to tick[]
+    make[:_Time.startTime, Time.now[]]
+end
+
+to tock[]
+    local[:elapsedTime, Time.now[]]
+    output[elapsedTime - _Time.startTime]
+end
+
 """
 
 public let CoreLib: NativeModule? = {
@@ -125,5 +134,6 @@ public let CoreLib: NativeModule? = {
     return NativeModule(string: CoreLibString, parser: parser) { context in
         context.variables.setLocal(key: "true", item: .boolean(true))
         context.variables.setLocal(key: "false", item: .boolean(false))
+        context.variables.setLocal(key: "_Time.startTime", item: .double(0))
     }
 }()
