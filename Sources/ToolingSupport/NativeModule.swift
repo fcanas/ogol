@@ -21,12 +21,13 @@ public struct NativeModule: Module {
         switch parseResult {
         case let .success(p, syntax, error):
             self.syntaxMap = syntax
+            self.errorMap = error
             program = p
             if !error.isEmpty {
                 print(error)
             }
-        case let .error(e):
-            print("Unable to load native module: \(e)")
+        case .error(_):
+            // TODO: sane logging
             return nil
         }
         
@@ -50,7 +51,8 @@ public struct NativeModule: Module {
     }
     
     var inputString: String
-    var syntaxMap: [Range<Substring.Index>:SyntaxColorable]
+    public var syntaxMap: [Range<Substring.Index>:SyntaxColorable]
+    public var errorMap: [Range<Substring.Index>:ParseError]
     
     public func initialize(context: ExecutionContext) {
         self.initialize(context)
