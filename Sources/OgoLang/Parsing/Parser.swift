@@ -24,6 +24,12 @@ public class OgolParser: LanguageParser {
     
     public var modules: [Module] = []
     public var additionalProcedures: [String:Procedure] = [:]
+    
+    public var commentDelimiter: String {
+        get {
+            Lex.commentDelimiter
+        }
+    }
 
     public func program(substring: Substring) -> ParseResult {
 

@@ -12,13 +12,15 @@ import Foundation
 import ToolingSupport
 
 extension CharacterSet {
-    static let symbotStart = CharacterSet.letters.union(CharacterSet(charactersIn: "._"))
-    static let symbolAny = symbotStart.union(CharacterSet(charactersIn: "0"..."9"))
+    static let symbolStart = CharacterSet.letters.union(CharacterSet(charactersIn: "._"))
+    static let symbolAny = symbolStart.union(CharacterSet(charactersIn: "0"..."9"))
 }
 
 // MARK: Lex
 
 struct Lex {
+    static let commentDelimiter: String = ";"
+    
     static let stringLiteral: Parser<Substring, String> = Lex.Token.stringLiteral
     static let to: Parser<Substring, String> = "to"
     static let name: Parser<Substring, String> = Lex.Token.name
@@ -42,7 +44,7 @@ struct Lex {
         
         static let name = { (c, ca) -> String in
             return String(c) + String(ca)
-            } <^> CharacterSet.symbotStart.parser() <&> CharacterSet.symbolAny.parser().many
+            } <^> CharacterSet.symbolStart.parser() <&> CharacterSet.symbolAny.parser().many
         static let number = { Value.bottom(.double(($0))) } <^> Double.parser
         static let comment = { String($0) } <^> ";" *> character(condition: { $0 != "\n" && $0 != "\r" }).many <* eol
         static let eol = _w *> BasicParser.newline.many

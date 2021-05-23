@@ -24,4 +24,6 @@ public protocol LanguageParser: AnyObject {
     
     var modules: [Module] { get set }
     var additionalProcedures: [String:Procedure] { get set }
+    
+    var commentDelimiter: String { get }
 }
