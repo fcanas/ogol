@@ -27,15 +27,16 @@ public struct Meta: Module {
         "if":.extern(Meta.if),
         "run":.extern(Meta.run),
         "invoke":.extern(Meta.invoke),
-        "item":.extern(Meta.item),
-        "setItem":.extern(Meta.setItem),
-        "count":.extern(Meta.count),
-        "prepend":.extern(Meta.prepend),
-        "append":.extern(Meta.append),
-        "butFirst":.extern(Meta.butFirst),
-        "butLast":.extern(Meta.butLast),
+        "List.item":.extern(Meta.item),
+        "List.setItem":.extern(Meta.setItem),
+        "List.count":.extern(Meta.count),
+        "List.prepend":.extern(Meta.prepend),
+        "List.append":.extern(Meta.append),
+        "List.butFirst":.extern(Meta.butFirst),
+        "List.butLast":.extern(Meta.butLast),
         "string":.extern(Meta.string),
         "thing":.extern(Meta.thing),
+        "defined":.extern(Meta.defined),
     ]
     
     // MARK: - Storage
@@ -217,8 +218,9 @@ public struct Meta: Module {
     
     private static var count: ExternalProcedure =
         ExternalProcedure(name: "count", parameters: ["list"]) { (params, context) throws -> Bottom? in
+            
             guard case let .list(list) = params[0] else {
-                throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[1])")
+                throw ExecutionHandoff.error(.parameter, "The first parameter of `count` should be a list. Found \n\t\(params[0])")
             }
             return .double(Double(list.count))
         }
@@ -304,6 +306,17 @@ public struct Meta: Module {
             throw ExecutionHandoff.error(.missingSymbol, "No variable named '\(name)' in this scope")
         }
         return value
+    }
+    
+    private static var defined: ExternalProcedure = ExternalProcedure(name: "defined", parameters: ["reference"]) { (params, context) -> Bottom? in
+        guard case let .reference(name, referenceContext) = params[0] else {
+            throw ExecutionHandoff.error(.parameter, "`thing` requires a reference for a parameter")
+        }
+        let contextToUse = (referenceContext ?? context)
+        guard let value = contextToUse.variables[name] else {
+            return .boolean(false)
+        }
+        return .boolean(true)
     }
     
 }

@@ -10,6 +10,10 @@ to list [[:elements]]
    output[elements]
 end
 
+to List [[:elements]]
+   output[elements]
+end
+
 to add [:lhs, :rhs]
    output[lhs + rhs]
 end
@@ -33,26 +37,26 @@ to repeat [:count, :instructionList]
 end
 
 to empty [:empList]
-    local[:c, count[empList]]
+    local[:c, List.count[empList]]
     output[ c < 1 ]
 end
 
-to map0 [:remainingItems]
+to _map [:remainingItems]
     if [ empty [remainingItems], [ stop[] ]]
-    append [ invoke [proc, item [ 0, remainingItems ] ] , :mapOut ]
-    map0 [ butFirst [ remainingItems ] ]
+    List.append [ invoke [proc, List.item [ 0, remainingItems ] ] , :mapOut ]
+    _map [ butFirst [ remainingItems ] ]
 end
 
 to map [:proc, :itemList]
     local [:mapOut, list[]]
-    map0 [itemList]
+    _map [itemList]
     output [ mapOut ]
 end
 
 to forEach [:proc, :data]
     local[:dataIndex, 0]
-    repeat[count[data], [
-        invoke[proc, item[dataIndex, data]]
+    repeat[List.count[data], [
+        invoke[proc, List.item[dataIndex, data]]
         make[:dataIndex, dataIndex + 1]
     ]]
 end
@@ -69,4 +73,31 @@ to arc[:radius, :radians]
         fd [1]
         rt [degrees / numberOfSteps]
     ]]
+end
+
+; List
+
+to List.multiIndex[:listIn, [:idx]]
+    local[:valueOut, 0]
+    _List.multiIndex[listIn, idx]
+    output[valueOut]
+end
+
+to _List.multiIndex[:listIn, :idx]
+    local [ :listCount, List.count [idx] ]
+    if [ listCount = 0, [
+        make [ :valueOut, listIn ]
+        stop[]
+    ]]
+    _List.multiIndex [ List.item [ List.item [0, idx], listIn ], List.butFirst [idx] ]
+end
+
+to min[:a, :b]
+    if [ a > b, [ output[b]]];
+    output[a]
+end
+
+to max[:a, :b]
+    if [ a < b, [ output[b]]]
+    output[a]
 end

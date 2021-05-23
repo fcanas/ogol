@@ -425,8 +425,8 @@ class CompleteProgramTests: XCTestCase {
         let source =
             """
             make[:l,list[1,2,3]]
-            make[:l2, prepend[0, l]]
-            prepend[-1, :l]
+            make[:l2, List.prepend[0, l]]
+            List.prepend[-1, :l]
             """
         let parser = OgolParser()
         parser.modules = [Meta(), CoreLib!]
@@ -455,8 +455,8 @@ class CompleteProgramTests: XCTestCase {
         let source =
             """
             make[:l,list[1,2,3]]
-            make[:l2, append[4, l]]
-            append[5, :l]
+            make[:l2, List.append[4, l]]
+            List.append[5, :l]
             """
         let parser = OgolParser()
         parser.modules = [Meta(), CoreLib!]
@@ -517,9 +517,9 @@ class CompleteProgramTests: XCTestCase {
     func testBF() throws {
         let source =
             """
-            make[:l1,butFirst[list[1,2,3]]]
-            make[:l2,butFirst[list[3]]]
-            make[:l3,butFirst[list[]]]
+            make[:l1,List.butFirst[list[1,2,3]]]
+            make[:l2,List.butFirst[list[3]]]
+            make[:l3,List.butFirst[list[]]]
             """
         let parser = OgolParser()
         parser.modules = [Meta(), CoreLib!]
@@ -550,9 +550,9 @@ class CompleteProgramTests: XCTestCase {
     func testBL() throws {
         let source =
             """
-            make[:l1,butLast[list[1,2,3]]]
-            make[:l2,butLast[list[3]]]
-            make[:l3,butLast[list[]]]
+            make[:l1,List.butLast[list[1,2,3]]]
+            make[:l2,List.butLast[list[3]]]
+            make[:l3,List.butLast[list[]]]
             """
         let parser = OgolParser()
         parser.modules = [Meta(), CoreLib!]
