@@ -93,8 +93,8 @@ public struct MultiplyingExpression: Equatable, CustomStringConvertible {
         public var description: String {
             return operation.rawValue + " " + rhs.description
         }
-        var operation: Operation
-        var rhs: SignExpression
+        public var operation: Operation
+        public var rhs: SignExpression
     }
     
     public enum Operation: String {
@@ -102,8 +102,8 @@ public struct MultiplyingExpression: Equatable, CustomStringConvertible {
         case divide
     }
     
-    var lhs: SignExpression
-    var rhs: [Rhs]
+    public var lhs: SignExpression
+    public var rhs: [Rhs]
     
     func evaluate(context: ExecutionContext) throws -> Bottom {
         
@@ -160,8 +160,8 @@ public struct ArithmeticExpression: Equatable {
             return operation.rawValue + " " + rhs.description
         }
         
-        var operation: Operation
-        var rhs: MultiplyingExpression
+        public var operation: Operation
+        public var rhs: MultiplyingExpression
     }
     
     public enum Operation: String {
@@ -169,8 +169,8 @@ public struct ArithmeticExpression: Equatable {
         case subtract
     }
     
-    var lhs: MultiplyingExpression
-    var rhs: [Rhs]
+    public var lhs: MultiplyingExpression
+    public var rhs: [Rhs]
     
     public func evaluate(context: ExecutionContext) throws -> Bottom {
         
@@ -207,8 +207,8 @@ public struct Expression: Equatable {
         self.rhs = rhs
     }
     
-    var lhs: ArithmeticExpression
-    var rhs: Rhs?
+    public var lhs: ArithmeticExpression
+    public var rhs: Rhs?
     
     public struct Rhs: Equatable {
         
@@ -220,8 +220,8 @@ public struct Expression: Equatable {
         var description: String {
             return operation.rawValue + " " + rhs.description
         }
-        var operation: Operation
-        var rhs: ArithmeticExpression
+        public var operation: Operation
+        public var rhs: ArithmeticExpression
     }
     
     public enum Operation: String, CustomStringConvertible {
